@@ -110,6 +110,15 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outl
 .pet { position: relative; width: 100%; height: 100%; transform-origin: 50% 88%; }
 .pet.stage2 { scale: 1.1; }
 .pet.stage3 { scale: 1.2; }
+.pet.stage4 { scale: 1.28; filter: drop-shadow(0 0 14px rgba(255,216,107,.65)); }
+.renbtn { width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); background: rgba(27,16,70,.6); color: var(--cream); cursor: pointer; font-size: 16px; vertical-align: middle; margin-left: 6px; }
+.renbtn.small { width: 28px; height: 28px; font-size: 13px; margin-left: 2px; }
+.req.maxreq { background: #ffd86b; color: #4a3300; }
+.req.tollreq { background: #ffd1d1; color: #5a1a1a; }
+.maxrow .btn { margin-top: 6px; }
+.maxring { transform-origin: 100px 106px; animation: maxspin 14s linear infinite; }
+@keyframes maxspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .maxring { animation: none; } }
 .pet-svg { width: 100%; height: 100%; display: block; overflow: visible; animation: bob 3.2s ease-in-out infinite; }
 .pet-wrap.hop .pet { animation: hop .6s ease; }
 .pet.evolving { animation: shake .22s linear infinite; filter: brightness(1.5) drop-shadow(0 0 26px var(--gold)); }
@@ -177,6 +186,16 @@ body.in-world { padding: 0; overflow: hidden; height: 100%; overscroll-behavior:
 .hud .chip { flex: none; min-height: 24px; padding: 0 9px; font-size: 12px; background: rgba(27,16,70,.7); white-space: nowrap; }
 .fsbtn { flex: none; width: 38px; height: 38px; padding: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); background: rgba(27,16,70,.78); color: var(--cream); cursor: pointer; display: grid; place-items: center; margin-left: auto; }
 .fsbtn[hidden] { display: none; }
+.hudtog { display: none; }
+.hudtog .eyeslash { opacity: 0; }
+.hudtog[data-m=hide] .eyeslash { opacity: 1; }
+@media (pointer: coarse), (max-width: 760px) {
+  .hudtog { display: grid; }
+  body.hudm-fade .hud { opacity: .28; transition: opacity .3s; }
+  body.hudm-hide .hud { visibility: hidden; }
+  body.hudm-hide .hud .hudtog { visibility: visible; position: fixed; top: 112px; right: max(14px, env(safe-area-inset-right, 0px)); margin: 0; }
+}
+.playsnd { position: fixed; top: max(10px, env(safe-area-inset-top, 0px)); right: max(10px, env(safe-area-inset-right, 0px)); margin: 0; z-index: 20; }
 .fsbtn.nomargin { margin-left: 0; }
 .sndbtn.off { opacity: .75; } .sndbtn .snd-off { display: none; } .sndbtn.off .snd-off { display: block; } .sndbtn.off .snd-on { display: none; }
 .utop .sndbtn { margin-left: auto; }
@@ -229,6 +248,24 @@ body.in-world { padding: 0; overflow: hidden; height: 100%; overscroll-behavior:
 .catchbar p { margin: 0; }
 #app.wide { max-width: none; margin: 0; min-height: 0; }
 .scene { position: relative; width: 100%; flex: 1; min-height: 0; border-radius: 0; overflow: hidden; touch-action: none; border: 0; box-sizing: border-box; background: #2c86d8; user-select: none; -webkit-user-select: none; }
+/* ----- immersive walk view ----- */
+.w3 { position: absolute; inset: 0; overflow: hidden; z-index: 1; touch-action: none; }
+.w3floor { position: absolute; left: 0; width: 100%; display: block; }
+.w3clouds { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; background-repeat: repeat-x; background-size: 1400px 100%;
+  background-image: radial-gradient(ellipse 110px 28px at 140px 34%, rgba(255,255,255,.9), rgba(255,255,255,0) 70%), radial-gradient(ellipse 150px 36px at 520px 20%, rgba(255,255,255,.85), rgba(255,255,255,0) 70%), radial-gradient(ellipse 120px 30px at 900px 44%, rgba(255,255,255,.8), rgba(255,255,255,0) 70%), radial-gradient(ellipse 90px 22px at 1230px 28%, rgba(255,255,255,.85), rgba(255,255,255,0) 70%); }
+.w3obj, .w3ents { position: absolute; inset: 0; pointer-events: none; }
+.w3ents .sprite { pointer-events: auto; }
+.scene.v3on .world { visibility: hidden; }
+.scene.v3on .sprite { transform-origin: 0 0; }
+.w3item { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; will-change: transform; transition: opacity .2s; }
+.w3item svg { display: block; overflow: visible; }
+.w3lbl { position: absolute; left: 0; right: 0; top: -70px; text-align: center; font-family: var(--font-display); font-weight: 600; font-size: 40px; line-height: 1.05; color: #fff; text-shadow: 0 0 6px #1b1046, 0 0 6px #1b1046, 0 3px 0 #1b1046; white-space: nowrap; }
+.w3lbl small { display: block; font-size: 30px; color: #ffb4c4; }
+.w3lbl.w3small { font-size: 30px; top: -40px; }
+.w3hz { position: absolute; left: 0; top: 0; transform-origin: 0 0; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(18,4,28,.74) 60%, rgba(18,4,28,.2) 100%); box-shadow: 0 0 60px var(--hc); }
+.w3hz i { position: absolute; inset: 8%; border-radius: 50%; border: 8px dashed var(--hc); animation: hzspin 14s linear infinite; }
+.atlasbtn.v3toggle { top: calc(var(--hudh, 10px) + 104px); }
+.atlasbtn.v3toggle[aria-pressed="true"] { background: var(--gold); color: var(--night); }
 .world { position: absolute; left: 0; top: 0; width: 1600px; height: 1600px; transform-origin: 0 0; will-change: transform; }
 .world-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .slabel { font-family: var(--font-display); font-weight: 600; font-size: 30px; fill: #fff; paint-order: stroke; stroke: rgba(20,40,40,.55); stroke-width: 7px; stroke-linejoin: round; }
@@ -366,6 +403,31 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .jumprow .tum-bar.wide { flex: none; width: 100%; }
 .jumpgrid { display: flex; flex-wrap: wrap; gap: 6px; }
 .jumpgrid .btn em { display: block; font-style: normal; font-size: 11px; opacity: .8; }
+#scoutfx { position: fixed; left: 8px; top: 50%; transform: translateY(-50%); z-index: 6; display: flex; flex-direction: column; gap: 8px; pointer-events: none; max-width: 190px; }
+.scpill { background: rgba(27,16,70,.82); border: 2px solid rgba(255,255,255,.35); border-radius: 14px; padding: 6px 8px 7px; color: var(--cream); font-size: 12px; line-height: 1.25; }
+.sctrack { position: relative; height: 40px; overflow: hidden; border-radius: 10px; background: rgba(255,255,255,.08); margin-bottom: 4px; }
+.scpet { position: absolute; left: 0; top: 2px; width: 36px; height: 36px; animation: scrun 3.2s ease-in-out infinite alternate; }
+.scpet svg { width: 100%; height: 100%; }
+.scgoal { position: absolute; right: 8px; top: 14px; width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 10px 3px rgba(255,255,255,.55); animation: scpulse 1.4s ease-in-out infinite; }
+.scfx { position: absolute; inset: 0; opacity: .85; }
+.sctxt i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin: 0 3px 0 2px; vertical-align: middle; }
+.sct { font-variant-numeric: tabular-nums; opacity: .9; }
+.scbar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); margin-top: 4px; overflow: hidden; }
+.scbar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ffd86b, #ff8fc8); transition: width 1s linear; }
+.sc-wind .scfx { background: repeating-linear-gradient(100deg, transparent 0 14px, rgba(255,255,255,.35) 14px 16px, transparent 16px 34px); animation: scwind 1.1s linear infinite; }
+.sc-psychic .scfx { background: radial-gradient(circle at 20% 50%, transparent 0 8px, rgba(190,120,255,.55) 9px 11px, transparent 12px 20px, rgba(190,120,255,.35) 21px 23px, transparent 24px); animation: scring 1.8s ease-in-out infinite; }
+.sc-electric .scfx { background: linear-gradient(115deg, transparent 40%, rgba(255,236,90,.75) 46% 50%, transparent 56%); animation: scflash .7s steps(2) infinite; }
+.sc-shadow .scfx { background: radial-gradient(ellipse at 30% 60%, rgba(10,0,30,.8), transparent 60%), radial-gradient(ellipse at 70% 40%, rgba(70,20,110,.6), transparent 55%); animation: scmist 3s ease-in-out infinite alternate; }
+.sc-cosmic .scfx { background: radial-gradient(circle, #fff 0 1.5px, transparent 2px) 0 0/22px 18px, radial-gradient(circle, #cfe 0 1px, transparent 1.5px) 9px 7px/17px 15px; animation: sctwinkle 1.2s ease-in-out infinite alternate; }
+@keyframes scrun { from { left: 0; } to { left: calc(100% - 36px); } }
+@keyframes scpulse { 50% { transform: scale(1.5); opacity: .6; } }
+@keyframes scwind { to { background-position: -34px 0; } }
+@keyframes scring { 50% { transform: translateX(38px) scale(1.3); opacity: .5; } }
+@keyframes scflash { 50% { opacity: .15; transform: translateX(10px); } }
+@keyframes scmist { to { transform: translateX(18px); } }
+@keyframes sctwinkle { to { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .scpet, .scgoal, .scfx { animation: none; } .scpet { left: 40%; } }
+@media (max-width: 760px) { #scoutfx { top: auto; bottom: 150px; transform: none; max-width: 150px; } }
 .scoutgo { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .scoutgo .btn em { display: block; font-style: normal; font-size: 11px; opacity: .85; }
 .scoutnote { font-style: italic; }
@@ -467,6 +529,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .acaves { color: var(--muted); }
 .sunbtn { background: #ffd86b; color: #2a1a55; }
 .req.lv2 { outline: 2px solid var(--gold); }
+.sheet.homesheet { position: fixed; z-index: 60; }
 .sheet { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; padding: 10px; background: rgba(15,8,51,.8); overflow: auto; touch-action: pan-y; }
 .sheet-card { width: 100%; max-width: 380px; max-height: 100%; overflow: auto; background: #2a1a78; border: 3px solid rgba(255,255,255,.35); border-radius: 22px; padding: 14px 14px 16px; text-align: center; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; }
 .sheet-card > * { flex-shrink: 0; }
@@ -498,6 +561,31 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .hpbar i { display: block; height: 100%; background: #ff4d6d; transition: width .3s; }
 .bt-msg { margin: 0; min-height: 2.6em; font-family: var(--font-display); font-weight: 500; }
 .track { position: relative; height: 40px; border-radius: 999px; background: rgba(255,255,255,.14); border: 2px solid rgba(255,255,255,.35); cursor: pointer; overflow: hidden; }
+.btmode { align-self: center; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 10px; border-radius: 999px; background: rgba(255,255,255,.14); color: var(--gold); }
+.echo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.epad { height: 62px; border-radius: 16px; border: 3px solid rgba(255,255,255,.5); font-size: 26px; color: rgba(255,255,255,.9); cursor: pointer; opacity: .6; transition: transform .1s, opacity .1s, filter .1s; }
+.epad.e0 { background: #e0536a; } .epad.e1 { background: #2aa9bd; } .epad.e2 { background: #d9a91c; } .epad.e3 { background: #4fa35a; }
+.epad.lit { opacity: 1; transform: scale(1.06); filter: brightness(1.5) saturate(1.2); box-shadow: 0 0 18px 4px rgba(255,255,255,.7); }
+.whack { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.hole { height: 54px; border-radius: 50%; border: 3px solid rgba(255,255,255,.3); background: rgba(0,0,0,.28); cursor: pointer; transition: background .08s, transform .08s; }
+.hole.gold { background: radial-gradient(circle, #fff3b0, #ffb347); box-shadow: 0 0 14px 3px rgba(255,216,107,.8); transform: scale(1.05); }
+.hole.red { background: repeating-linear-gradient(135deg, #ff6b81 0 8px, #c2255c 8px 16px); }
+.dodge { position: relative; height: 170px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.dlane { position: relative; border: 2px solid rgba(255,255,255,.25); border-radius: 14px; background: rgba(255,255,255,.08); overflow: hidden; cursor: pointer; padding: 0; }
+.dlane.warn { background: repeating-linear-gradient(180deg, rgba(255,107,129,.38) 0 10px, rgba(255,107,129,.15) 10px 20px); border-color: #ff6b81; }
+.dbolt { position: absolute; left: 50%; top: 0; width: 18px; height: 34px; margin-left: -9px; background: linear-gradient(#fff6a0, #ff9f1a); clip-path: polygon(55% 0, 0 58%, 38% 58%, 20% 100%, 100% 38%, 60% 38%); opacity: 0; }
+.dpet { position: absolute; bottom: 4px; width: 56px; height: 56px; margin-left: -28px; left: 50%; transition: left .12s; pointer-events: none; }
+.dpet svg { width: 100%; height: 100%; }
+.match { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.match.c12, .match.c16 { grid-template-columns: repeat(4, 1fr); }
+.mcard { position: relative; height: 62px; border-radius: 14px; border: 3px solid rgba(255,255,255,.4); background: #3a2a96; cursor: pointer; padding: 0; perspective: 600px; }
+.mcard .mfront, .mcard .mback { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 11px; transition: opacity .15s; }
+.mcard .mback { font-family: var(--font-display); font-size: 26px; color: var(--gold); }
+.mcard .mfront { opacity: 0; }
+.mcard .mfront svg { width: 48px; height: 48px; }
+.mcard.up .mfront { opacity: 1; } .mcard.up .mback { opacity: 0; }
+.mcard.done { border-color: #8ef0a5; background: #2f6b4a; }
+@media (prefers-reduced-motion: reduce) { .epad, .hole, .dpet { transition: none; } }
 .zone.red { background: repeating-linear-gradient(135deg, #ff6b81 0 8px, #c2255c 8px 16px); }
 .zone { position: absolute; top: 0; bottom: 0; background: linear-gradient(#ffe98a, #ffb347); border-radius: 999px; }
 .marker { position: absolute; top: 0; bottom: 0; width: 9px; margin-left: -4px; border-radius: 5px; background: #fff; box-shadow: 0 0 12px 2px #fff; }
@@ -856,6 +944,69 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
   };
   var TYPE_IDS = Object.keys(TYPES).filter(function (k) { return k !== 'unicorn'; });
+
+  /* ----- six new types, found in the 25 far worlds (hidden until the player reaches world 20) ----- */
+  var FAR_TYPES = ['metal', 'light', 'dragon', 'cosmic', 'music', 'candy'];
+  function gearSVG(cx, cy, r, f) { return '<g transform="translate(' + cx + ' ' + cy + ')"><circle r="' + r + '" fill="none" stroke="' + f + '" stroke-width="9" stroke-dasharray="7 6"/><circle r="' + (r - 7) + '" fill="' + f + '"/><circle r="6" fill="#e4ecf6"/></g>'; }
+  function raysSVG(cx, cy, r0, r1, n, f) {
+    var o = [], i, a;
+    for (i = 0; i < n; i++) { a = i * 2 * Math.PI / n; o.push('M' + (cx + Math.cos(a) * r0).toFixed(0) + ' ' + (cy + Math.sin(a) * r0).toFixed(0) + ' L' + (cx + Math.cos(a) * r1).toFixed(0) + ' ' + (cy + Math.sin(a) * r1).toFixed(0)); }
+    return '<path d="' + o.join(' ') + '" stroke="' + f + '" stroke-width="7" stroke-linecap="round" fill="none" opacity=".8"/>';
+  }
+  function noteSVG(x, y, f, k) { return '<g transform="translate(' + x + ' ' + y + ') scale(' + (k || 1) + ')"><ellipse cx="-6" cy="12" rx="8" ry="6" fill="' + f + '" transform="rotate(-20 -6 12)"/><path d="M0 11 V-18 Q10 -12 12 -4" stroke="' + f + '" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>'; }
+  function swirlSVG(cx, cy, r) { return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#fff" stroke="#ff6b8a" stroke-width="4"/><path d="M' + (cx - r * 0.5) + ' ' + cy + ' a' + r * 0.5 + ' ' + r * 0.5 + ' 0 0 1 ' + r + ' 0 a' + r * 0.28 + ' ' + r * 0.28 + ' 0 0 1 ' + (-r * 0.56) + ' 0" stroke="#ff6b8a" stroke-width="3" fill="none"/>'; }
+  TYPES.metal = {
+    name: 'Metal', dot: '#a9b8cc', body: '#b8c4d4', light: '#e4ecf6', dark: '#7b8aa0',
+    evolve: 'Steel plates and shiny gears clicked into place all over it.',
+    back: function (s2) { return s2 ? gearSVG(34, 104, 24, '#7b8aa0') + gearSVG(166, 104, 24, '#7b8aa0') : ''; },
+    front: function (s2) {
+      return s2
+        ? '<path d="M72 64 L80 30 L100 40 L120 30 L128 64Z" fill="#cfd8e6" stroke="#7b8aa0" stroke-width="3" stroke-linejoin="round"/><circle cx="88" cy="50" r="3.5" fill="#7b8aa0"/><circle cx="112" cy="50" r="3.5" fill="#7b8aa0"/><circle cx="100" cy="46" r="4.5" fill="#ffd84d"/>'
+        : '<path d="M84 62 L90 42 L110 42 L116 62Z" fill="#cfd8e6" stroke="#7b8aa0" stroke-width="2.5" stroke-linejoin="round"/><circle cx="96" cy="52" r="2.6" fill="#7b8aa0"/><circle cx="104" cy="52" r="2.6" fill="#7b8aa0"/>';
+    }
+  };
+  TYPES.light = {
+    name: 'Light', dot: '#ffe27a', body: '#fff0a0', light: '#fffbe0', dark: '#f0c850',
+    evolve: 'A golden halo appeared and rays of sunshine shone out.',
+    back: function (s2) { return s2 ? raysSVG(100, 110, 84, 104, 14, '#ffe27a') : ''; },
+    front: function (s2) { return '<ellipse cx="100" cy="36" rx="' + (s2 ? 34 : 26) + '" ry="9" fill="none" stroke="#ffd84d" stroke-width="6"/>' + (s2 ? star(100, 20, 9, '#fff') : ''); }
+  };
+  TYPES.dragon = {
+    name: 'Dragon', dot: '#e8645a', body: '#e8645a', light: '#ffc7bf', dark: '#b53a32',
+    evolve: 'Golden horns and big leathery wings unfolded.',
+    back: function (s2) {
+      return s2
+        ? '<path d="M50 100 C6 78 2 30 20 18 C30 52 48 62 66 74Z" fill="#b53a32"/><path d="M150 100 C194 78 198 30 180 18 C170 52 152 62 134 74Z" fill="#b53a32"/>'
+        : '<path d="M54 104 C26 92 24 66 34 58 C42 76 52 82 62 88Z" fill="#b53a32"/><path d="M146 104 C174 92 176 66 166 58 C158 76 148 82 138 88Z" fill="#b53a32"/>';
+    },
+    front: function (s2) {
+      return s2
+        ? '<path d="M76 64 Q64 36 78 18 Q86 40 94 58Z" fill="#ffd86b"/><path d="M124 64 Q136 36 122 18 Q114 40 106 58Z" fill="#ffd86b"/><path d="M92 60 L100 36 L108 60Z" fill="#ffd86b"/>'
+        : '<path d="M78 62 Q70 40 82 30 Q86 46 92 58Z" fill="#ffd86b"/><path d="M122 62 Q130 40 118 30 Q114 46 108 58Z" fill="#ffd86b"/>';
+    }
+  };
+  TYPES.cosmic = {
+    name: 'Cosmic', dot: '#7d74e8', body: '#7a70e0', light: '#c6c1ff', dark: '#4a40b4',
+    evolve: 'Stars began to orbit around it like a tiny galaxy.',
+    back: function (s2) { return s2 ? '<ellipse cx="100" cy="112" rx="96" ry="30" transform="rotate(-18 100 112)" fill="none" stroke="#c6c1ff" stroke-width="4" opacity=".8"/><circle cx="12" cy="136" r="8" fill="#ffd86b"/><circle cx="188" cy="88" r="6" fill="#ff7eb6"/>' : ''; },
+    front: function (s2) {
+      return '<path d="M100 22 a16 16 0 1 0 12 26 a12 12 0 1 1 -12 -26z" fill="#ffe98a"/>' + star(76, 40, 6, '#fff') + (s2 ? star(130, 30, 8, '#fff') + star(52, 66, 5, '#ffe98a') + star(150, 62, 5, '#c6c1ff') : star(128, 44, 5, '#fff'));
+    }
+  };
+  TYPES.music = {
+    name: 'Music', dot: '#d65ad6', body: '#d86ad8', light: '#f6c9f6', dark: '#a03aa0',
+    evolve: 'Little notes floated around it and it hummed a happy song.',
+    back: function (s2) { return s2 ? noteSVG(26, 70, '#f6c9f6', 1.3) + noteSVG(176, 98, '#ffe27a', 1.3) : ''; },
+    front: function (s2) { return noteSVG(100, 46, '#ffe27a', s2 ? 1.5 : 1.1); }
+  };
+  TYPES.candy = {
+    name: 'Candy', dot: '#ff6b8a', body: '#ffe4ec', light: '#ffffff', dark: '#ff6b8a',
+    evolve: 'Sweet sprinkles and a big swirly lollipop appeared.',
+    back: function (s2) { return s2 ? '<path d="M168 70 L160 132" stroke="#e8b27a" stroke-width="5" stroke-linecap="round"/>' + swirlSVG(168, 52, 20) : ''; },
+    front: function (s2) {
+      return swirlSVG(100, 40, s2 ? 18 : 14) + (s2 ? '<g stroke-width="4" stroke-linecap="round"><path d="M64 72 l6 -4" stroke="#6bd0ff"/><path d="M134 70 l7 3" stroke="#ffe27a"/><path d="M84 52 l5 -5" stroke="#9cff9c"/><path d="M118 52 l6 -3" stroke="#ff6b8a"/></g>' : '');
+    }
+  };
   var EVOLVE3 = 'A fierce mane of bright spikes sprouted around its head.';
 
   /* ---------- drawing ---------- */
@@ -864,6 +1015,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var BODY_OPTIONS = { fairy: ['bird', 'bunny', 'cat', 'deer', 'hedgehog'], fire: ['fox', 'cat', 'dog', 'hedgehog'], water: ['fish', 'bird', 'dog', 'frog', 'turtle'], grass: ['bunny', 'dog', 'cat', 'deer', 'frog'],
     ice: ['fox', 'bird', 'cat', 'bear'], psychic: ['cat', 'bird', 'bunny', 'owl'], electric: ['mouse', 'cat', 'bird', 'fox', 'bat'], earth: ['turtle', 'hedgehog', 'bear', 'dog'],
     wind: ['bird', 'owl', 'bat', 'bunny', 'deer'], shadow: ['bat', 'owl', 'cat', 'fox', 'mouse'], unicorn: ['bear'] };
+  BODY_OPTIONS.metal = ['mouse', 'bear', 'hedgehog', 'turtle', 'panda'];
+  BODY_OPTIONS.light = ['bird', 'deer', 'bunny', 'cat', 'lamb'];
+  BODY_OPTIONS.dragon = ['lizard', 'bat', 'fox', 'dog', 'bear'];
+  BODY_OPTIONS.cosmic = ['cat', 'owl', 'fox', 'bunny', 'panda'];
+  BODY_OPTIONS.music = ['bird', 'frog', 'mouse', 'lamb', 'dog'];
+  BODY_OPTIONS.candy = ['bunny', 'lamb', 'cat', 'panda', 'hedgehog'];
   function bodyFor(type, n) { var o = BODY_OPTIONS[type] || ['bear']; return o[Math.abs(n | 0) % o.length]; }
   function hashId(s) { var h = 0; String(s).split('').forEach(function (c) { h = (h * 31 + c.charCodeAt(0)) | 0; }); return h; }
   function band(d, t, w, dash) {
@@ -1003,6 +1160,28 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       tail1: function (t) { return '<path d="M150 152 L182 134 Q178 152 182 170 Z" fill="' + t.dark + '"/>'; }
     }
   };
+
+  BODIES.panda = {
+    ears: function (t) { return '<circle cx="56" cy="68" r="19" fill="#4a3a6a"/><circle cx="144" cy="68" r="19" fill="#4a3a6a"/>'; },
+    muzzle: function () { return '<ellipse cx="78" cy="108" rx="17" ry="21" transform="rotate(-18 78 108)" fill="#7d6ca0" opacity=".85"/><ellipse cx="122" cy="108" rx="17" ry="21" transform="rotate(18 122 108)" fill="#7d6ca0" opacity=".85"/>'; },
+    face: function () { return ''; },
+    tail: function (t) { return band('M146 156 C176 160 188 140 178 120', t, 15, '6 10'); },
+    tail1: function (t) { return '<circle cx="160" cy="154" r="14" fill="' + t.dark + '"/>'; }
+  };
+  BODIES.lizard = {
+    ears: function (t) { return '<polygon points="60,70 48,38 80,58" fill="' + t.dark + '"/><polygon points="140,70 152,38 120,58" fill="' + t.dark + '"/><path d="M80 48 L88 30 L100 46 L112 30 L120 48" fill="' + t.dark + '"/>'; },
+    muzzle: function (t) { return '<ellipse cx="100" cy="124" rx="26" ry="14" fill="' + t.light + '"/>'; },
+    face: function () { return '<circle cx="92" cy="120" r="2.4" fill="#2a1a55" opacity=".5"/><circle cx="108" cy="120" r="2.4" fill="#2a1a55" opacity=".5"/>'; },
+    tail: function (t) { return band('M146 160 C196 166 206 118 184 92 C176 82 190 70 200 78', t, 16, '6 10'); },
+    tail1: function (t) { return '<path d="M148 160 C184 168 190 142 176 128" stroke="' + t.body + '" stroke-width="13" fill="none" stroke-linecap="round"/>'; }
+  };
+  BODIES.lamb = {
+    ears: function (t) { return '<ellipse cx="44" cy="92" rx="26" ry="13" transform="rotate(-20 44 92)" fill="' + t.dark + '"/><ellipse cx="156" cy="92" rx="26" ry="13" transform="rotate(20 156 92)" fill="' + t.dark + '"/><g fill="#fff"><circle cx="70" cy="52" r="17"/><circle cx="92" cy="42" r="19"/><circle cx="116" cy="42" r="19"/><circle cx="138" cy="52" r="17"/></g>'; },
+    muzzle: function () { return ''; },
+    face: function (t) { return '<ellipse cx="100" cy="120" rx="8" ry="5" fill="' + t.dark + '" opacity=".4"/>'; },
+    tail: function (t) { return band('M146 152 C190 154 204 100 176 66', t, 17, '7 12'); },
+    tail1: function (t) { return '<g fill="#fff"><circle cx="160" cy="150" r="15"/><circle cx="174" cy="136" r="12"/></g>'; }
+  };
   function spikes(cx, cy, ro, ri, n, fill) {
     var p = [];
     for (var i = 0; i < n * 2; i++) {
@@ -1012,17 +1191,18 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return '<polygon points="' + p.join(' ') + '" fill="' + fill + '" stroke="' + fill + '" stroke-width="4" stroke-linejoin="round"/>';
   }
   function petSVG(typeId, stage, name, bodyId) {
-    var t = TYPES[typeId], B = BODIES[bodyId] || BODIES.bear, s2 = stage >= 2, s3 = stage >= 3;
+    var t = TYPES[typeId], B = BODIES[bodyId] || BODIES.bear, s2 = stage >= 2, s3 = stage >= 3, s4 = stage >= 4;
     var tail = s2 ? B.tail(t) : B.tail1(t);
-    var mane = s3 ? spikes(100, 106, 96, 68, 13, t.dark) + spikes(100, 106, 80, 62, 13, t.light) : '';
+    var mane = (s4 ? spikes(100, 106, 110, 76, 13, '#ffd86b') : '') + (s3 ? spikes(100, 106, 96, 68, 13, t.dark) + spikes(100, 106, 80, 62, 13, t.light) : '');
     var mouths = B.noMouth ? '' :
       '<path class="mouth-smile" d="M91 124 Q100 133 109 124" fill="none" stroke="#2a1a55" stroke-width="4" stroke-linecap="round"/>' +
       '<path class="mouth-open" d="M90 122 Q100 144 110 122 Z" fill="#7a2a52"/>' +
       '<path class="mouth-sad" d="M91 134 Q100 124 109 134" fill="none" stroke="#2a1a55" stroke-width="4" stroke-linecap="round"/>' +
       '<path class="mouth-angry" d="M90 132 L95 126 L100 132 L105 126 L110 132" fill="none" stroke="#2a1a55" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>';
-    return '<svg class="pet-svg" viewBox="0 0 200 200" role="img" aria-label="' + esc(name || 'Your pet') + ', a ' + t.name + ' pet' + (s3 ? ' in its final form' : s2 ? ' in its evolved form' : '') + '">' +
+    return '<svg class="pet-svg" viewBox="0 0 200 200" role="img" aria-label="' + esc(name || 'Your pet') + ', a ' + t.name + ' pet' + (s4 ? ' in its secret Max Grown form' : s3 ? ' in its final form' : s2 ? ' in its evolved form' : '') + '">' +
       '<defs><radialGradient id="aura"><stop offset="0" stop-color="#ffd86b" stop-opacity="0"/><stop offset=".7" stop-color="#ffd86b" stop-opacity=".28"/><stop offset="1" stop-color="#ffd86b" stop-opacity="0"/></radialGradient></defs>' +
       (s2 ? '<circle cx="100" cy="110" r="98" fill="url(#aura)"/>' : '') +
+      (s4 ? '<circle class="maxring" cx="100" cy="106" r="103" fill="none" stroke="#ffd86b" stroke-width="3.5" stroke-dasharray="3 9" stroke-linecap="round"/>' + star(22, 40, 8, '#fff3a8') + star(178, 34, 9, '#fff3a8') + star(14, 122, 6, '#ffd86b') + star(186, 126, 6, '#ffd86b') : '') +
       '<ellipse cx="100" cy="178" rx="54" ry="9" fill="#000" opacity=".25"/>' +
       t.back(s2) + tail + mane +
       '<ellipse cx="72" cy="168" rx="17" ry="10" fill="' + t.dark + '"/><ellipse cx="128" cy="168" rx="17" ry="10" fill="' + t.dark + '"/>' +
@@ -1191,7 +1371,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function baseState() {
     return { screen: 'intro', stone: STONES[0], awake: false, awakening: false, chosen: null, merging: false, eggs: null, taps: 0, hatch: null, suggest: '',
-      look: defaultLook(), lookReturn: 'sun', uni: {}, jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
+      look: defaultLook(), lookReturn: 'sun', uni: {}, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
       evolving: false, justEvolved: null, msg: '', world: null, birds: false, hasSave: !!(readSave() && readSave().team && readSave().team.length) };
   }
   function newGame() {
@@ -1206,9 +1386,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!S.team.length) return;
       dexSync();
       stashWorld();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(function (p) { return { id: p.id, type: p.type, body: p.body, rid: p.rid, stage: p.stage, happy: p.happy, fav: p.fav, name: p.name, prog: p.prog, hun: Math.round(hunOf(p)) }; }), sel: S.sel, sleeping: S.sleeping,
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(function (p) { return { id: p.id, type: p.type, body: p.body, rid: p.rid, stage: p.stage, happy: p.happy, fav: p.fav, name: p.name, prog: p.prog, hun: Math.round(hunOf(p)), uc: p.uc, px: p.px }; }), sel: S.sel, weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
         stones: S.stones.map(function (s) { return s.id; }), caught: S.caught, wilds: S.wilds, freed: S.freed, opened: S.opened, beaten: S.beaten, coins: S.coins, boots: S.boots, bag: S.bag, portals: S.portals, suns: S.suns, food: S.food,
-        cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)) } }; }) }));
+        cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)), uc: q.uc, px: q.px } }; }) }));
     } catch (x) { /* storage can be unavailable; the game still works */ }
   }
   function loadGame() {
@@ -1221,6 +1401,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.caught = d.caught || {}; S.wilds = d.ws === 2 ? (d.wilds || {}) : {}; S.freed = d.freed || {};
     S.look = fixLook(d.look);
     S.homeStyle = d.homeStyle === undefined ? 'meadow' : (HOMES[d.homeStyle] ? d.homeStyle : null); applyHome();
+    S.losses = d.losses | 0; S.toll = d.toll || {}; S.weak = d.weak || {}; S.homeJ = Array.isArray(d.homeJ) ? d.homeJ.filter(function (n) { return typeof n === 'number'; }) : [];
     S.uni = d.uni || {}; S.jump = d.jump == null ? null : d.jump; S.away = Array.isArray(d.away) ? d.away.filter(function (a) { return a && a.pet && TYPES[a.pet.type] && TYPES[a.t]; }) : [];
     S.dex = {};
     Object.keys(d.dex || {}).forEach(function (k) { var v = d.dex[k], pr = k.split(':'); if (v && BODY_OPTIONS[pr[0]] && BODY_OPTIONS[pr[0]].indexOf(pr[1]) >= 0) S.dex[k] = { s: (v.s | 0) & 7, r: Math.max(0, Math.min(4, v.r | 0)), o: v.o ? 1 : 0 }; });
@@ -1347,13 +1528,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var sm = scoutCheck(); if (sm) S.msg = sm;
       var p = P(), h = p.happy, ev = S.justEvolved;
       S.justEvolved = null;
-      return '<section class="screen">' +
+      return '<section class="screen"><button class="fsbtn sndbtn playsnd" data-act="sound" aria-label="Mute sound">' + SND_ICON + '</button>' +
         (ev ? '<p class="banner">' + esc(ev.name) + ' evolved!</p><p class="evolve-line">' + ev.line + '</p>' : '') +
         (S.team.length > 1 ? '<div class="team">' + S.team.map(function (q, i) {
           return '<button class="tchip" data-act="sel" data-i="' + i + '" aria-pressed="' + (i === S.sel) + '"><i style="--dot:' + TYPES[q.type].dot + '"></i>' + esc(q.name) + '</button>';
         }).join('') + '</div>' : '') +
         (canFly(p) ? '<div class="flyrow"><span class="badge flybadge">Can fly</span>' + (S.team[0] !== p ? '<button class="btn ghost small" data-act="leadfront">Put in front to fly</button>' : '<span class="badge">Leads the team</span>') + '</div>' : '') +
-        '<div class="head"><h2 class="petname">' + esc(p.name) + '</h2>' + badges(p) + '<div class="badges"><span class="badge">Owner level ' + level() + '</span></div></div>' +
+        '<div class="head"><h2 class="petname">' + esc(p.name) + ' <button class="renbtn" data-act="rename" data-id="' + p.id + '" aria-label="Rename ' + esc(p.name) + '">&#9998;</button></h2>' + badges(p) + '<div class="badges"><span class="badge">Owner level ' + level() + '</span></div></div>' +
         '<div class="pet-wrap" id="petwrap" data-mood="calm"><div class="fx" id="fx"></div>' + petHTML(p.type, p.stage, p.name, p.body) +
         '<button class="want want-play" data-act="want" aria-label="What does ' + esc(p.name) + ' want?"></button></div>' +
         '<p class="msg" id="msg" aria-live="polite">' + esc(S.msg) + '</p>' +
@@ -1659,6 +1840,46 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       return { land: land, anchors: [[800, 1100], [420, 480], [800, 280], [1180, 480], [620, 960], [980, 960], [610, 720], [990, 720]], hub: [800, 950] };
     }
   };
+
+  SHAPES.hub10 = function () {
+    var land = [[800, 800, 300]], an = [], i, p;
+    for (i = 0; i < 8; i++) { p = polar(800, 800, 480, i * 45); land.push(p.concat([190])); an.push(p); }
+    an.push([800, 800]);
+    return { land: land, anchors: an, hub: [800, 800] };
+  };
+  SHAPES.cross = function () {
+    var land = [[800, 800, 250]], an = [], i, e;
+    for (i = 0; i < 4; i++) { e = polar(800, 800, 500, i * 90); lineD(land, 800, 800, e[0], e[1], 150, 120); an.push(polar(800, 800, 450, i * 90)); }
+    an.push([800, 800], polar(800, 800, 300, 45), polar(800, 800, 300, 225));
+    return { land: land, anchors: an, hub: [800, 800] };
+  };
+  SHAPES.wave = function () {
+    var land = [], P = [[250, 900], [520, 640], [800, 860], [1080, 620], [1360, 820]], i;
+    for (i = 0; i < 4; i++) lineD(land, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1], 190, 190);
+    P.forEach(function (p) { land.push([p[0], p[1], 220]); });
+    return { land: land, anchors: [P[0], P[4], P[2], P[1], P[3]], hub: P[2] };
+  };
+  SHAPES.trident = function () {
+    var land = [[800, 1000, 300]];
+    lineD(land, 800, 1000, 800, 260, 190, 130); lineD(land, 800, 1000, 450, 420, 170, 120); lineD(land, 800, 1000, 1150, 420, 170, 120);
+    return { land: land, anchors: [[800, 280], [450, 440], [1150, 440], [800, 1050], [560, 980], [1040, 980]], hub: [800, 960] };
+  };
+  SHAPES.heart = function () {
+    var land = [[560, 640, 280], [1040, 640, 280], [800, 880, 300]];
+    lineD(land, 560, 640, 800, 1180, 210, 130); lineD(land, 1040, 640, 800, 1180, 210, 130);
+    return { land: land, anchors: [[560, 620], [1040, 620], [800, 880], [800, 1150], [660, 960], [940, 960]], hub: [800, 860] };
+  };
+  SHAPES.arch = function () {
+    var land = []; arcD(land, 800, 940, 470, 180, 360, function (t) { return 175 + 60 * Math.sin(Math.PI * t); }, 13);
+    var a = function (i) { return [land[i][0], land[i][1]]; };
+    return { land: land, anchors: [a(0), a(12), a(6), a(3), a(9), a(2), a(10)], hub: a(6) };
+  };
+  SHAPES.trio = function () {
+    var A = [[800, 330], [430, 1010], [1170, 1010]], land = [];
+    A.forEach(function (p) { land.push([p[0], p[1], 280]); });
+    lineD(land, A[0][0], A[0][1], A[1][0], A[1][1], 110, 110); lineD(land, A[1][0], A[1][1], A[2][0], A[2][1], 110, 110); lineD(land, A[2][0], A[2][1], A[0][0], A[0][1], 110, 110);
+    return { land: land, anchors: [A[0], A[1], A[2], [800, 800], [620, 660], [980, 660], [800, 1010]], hub: [800, 800] };
+  };
   var BACKT = BACK;
   var NEW_WORLDS = {
     bonewood: { name: 'Bonewood', seed: 9191, size: 3.4, shape: 'ring', types: ['shadow', 'earth', 'grass', 'psychic'], pal: PAL.bonewood, spots: [
@@ -1724,11 +1945,46 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       { k: 'pond', at: 5, r: 170, ly: -180, t: 'Blood Pool' }
     ] }
   };
+
+  /* ----- the 25 far worlds (worlds 26 to 50). They stay hidden until the player reaches world 20. ----- */
+  var FAR_DEF = [{"id":"nexus","name":"The Crossroads","size":4.6,"shape":"hub10","types":["fairy","psychic","wind","electric","shadow"],"pal":{"h":270,"s":45,"h2":200,"dk":0.3,"trees":"starpost"},"back":null,"fw":[{"to":"candy","t":"Candy Cave","g":{"name":"Dolce","type":"candy","body":"bunny","need":{"fairy":2,"grass":1,"water":1,"wind":1},"lv2":{"fairy":1},"tier":10,"hp":12,"zone":0.21,"speed":1.55,"toll":"grass"}},{"to":"steel","t":"Steel Cave","g":{"name":"Rivet","type":"metal","body":"mouse","need":{"electric":2,"earth":2,"fire":1,"shadow":1},"lv2":{"earth":1,"electric":1},"tier":10,"hp":12,"zone":0.21,"speed":1.55,"toll":"earth"}},{"to":"dawn","t":"Dawn Cave","g":{"name":"Twilight","type":"light","body":"cat","need":{"psychic":2,"shadow":2,"fairy":1,"fire":1,"ice":1},"lv2":{"psychic":1,"shadow":1,"fairy":1},"tier":10,"hp":13,"zone":0.21,"speed":1.55,"toll":"ice"},"twin":{"to":"dusk","t":"Dusk Cave"}}],"res":"p","bn":"","pn":"Waystone Pool","th":{"root":53,"sc":"whole","step":1.0,"wet":0.8,"mel":"bell","dens":0.25,"oct":[0,1],"pad":{"type":"sine","cut":1400,"vol":0.06,"every":8},"tex":[],"ev":[["spark",0.2]],"drone":{"type":"sine","gain":0.07}},"wx":[["glints",20,["#ffffff","#c8b8ff"]],["meteors",3,["#ffffff"]]],"hz":{"d":1,"name":"Crossroad Rune","ward":"psychic","c":"#b388ff"},"pos":[1800,-350],"seed":12000,"at":{"back":{"throne":5,"nightbloom":7,"colossus":1,"maw":3},"f":[2,0,6],"ft":[4],"bush":-1,"pond":8}},{"id":"candy","name":"Candy Cloud Coast","size":3.4,"shape":"wave","types":["candy","fairy","grass","water"],"pal":{"h":335,"s":70,"h2":190,"dk":0,"trees":"puff"},"back":"nexus","fw":[{"to":"jelly","t":"Jelly Cave","g":{"name":"Gummy","type":"candy","body":"bunny","need":{"candy":1,"fairy":2,"grass":1,"wind":1},"lv2":{"candy":1,"fairy":1},"tier":10,"hp":12,"zone":0.21,"speed":1.55,"toll":"grass"}}],"res":"bp","bn":"Gumdrop Bushes","pn":"Syrup Pond","th":{"root":72,"sc":"maj","step":0.32,"wet":0.4,"mel":"marimba","dens":0.8,"oct":[0,1,2],"pad":{"type":"triangle","cut":2600,"vol":0.04,"every":16},"tex":[],"ev":[["spark",0.35],["bubble",0.15]],"arp":true},"wx":[["petals",30,["#ff9ac8","#ffffff","#ffe27a"]]],"hz":null,"pos":[3950.0,1610.0],"seed":12037,"at":{"b":0,"f":[1],"ft":[],"bush":2,"pond":3}},{"id":"jelly","name":"Jelly Bay","size":3.0,"shape":"islands","types":["candy","water","grass","ice"],"pal":{"h":170,"s":65,"h2":300,"dk":0,"trees":"coral"},"back":"candy","fw":[{"to":"cocoa","t":"Cocoa Cave","g":{"name":"Truffle","type":"candy","body":"panda","need":{"candy":2,"earth":1,"water":1,"shadow":1},"lv2":{"candy":1,"earth":1},"tier":10,"hp":12,"zone":0.21,"speed":1.55,"toll":"earth"}}],"res":"b","bn":"Jellyberry Patch","pn":"","th":{"root":65,"sc":"pent","step":0.4,"wet":0.6,"mel":"harp","dens":0.6,"oct":[0,1],"pad":{"type":"sine","cut":1800,"vol":0.05,"every":8},"tex":[["waves",0.04,500]],"ev":[["bubble",0.5]]},"wx":[["bubbles",30,["#ffb3e6","#b3fff0"]]],"hz":null,"pos":[5530.0,2740.0],"seed":12074,"at":{"b":0,"f":[1],"ft":[],"bush":2,"pond":-1}},{"id":"cocoa","name":"Cocoa Hills","size":3.6,"shape":"ridge","types":["candy","earth","fire","grass"],"pal":{"h":25,"s":45,"h2":40,"dk":0.2,"trees":"forest"},"back":"jelly","fw":[{"to":"sprinkle","t":"Sprinkle Cave","g":{"name":"Twist","type":"candy","body":"lamb","need":{"candy":2,"fairy":1,"fire":1,"ice":1,"psychic":1},"lv2":{"candy":1,"fairy":1,"fire":1},"tier":11,"hp":14,"zone":0.2,"speed":1.6,"toll":"fire"},"twin":{"to":"licorice","t":"Licorice Cave"}}],"res":"p","bn":"","pn":"Cocoa Lake","th":{"root":55,"sc":"dor","step":0.6,"wet":0.5,"mel":"marimba","dens":0.35,"oct":[-1,0],"pad":{"type":"triangle","cut":900,"vol":0.04,"every":8},"tex":[["wind",0.02,500]],"ev":[["drip",0.2]]},"wx":[["dust",30,["#d0a070"]],["leaves",8,["#8a5a3a"]]],"hz":{"d":1,"name":"Fudge Trap","ward":"candy","c":"#d08040"},"pos":[6830.0,3900.0],"seed":12111,"at":{"b":0,"f":[1],"ft":[2],"bush":-1,"pond":3}},{"id":"sprinkle","name":"Sprinkle Meadow","size":3.2,"shape":"flower","types":["candy","music","fairy","wind"],"pal":{"h":300,"s":65,"h2":50,"dk":0,"trees":"blossom"},"back":"cocoa","fw":[{"to":"festival","t":"Festival Cave","g":{"name":"Maraca","type":"music","body":"frog","need":{"candy":1,"music":1,"grass":1,"wind":1,"electric":1},"lv2":{"music":1,"candy":1},"tier":11,"hp":13,"zone":0.2,"speed":1.6,"toll":"music"}}],"res":"","bn":"","pn":"","th":{"root":76,"sc":"maj","step":0.3,"wet":0.4,"mel":"bell","dens":0.8,"oct":[1,2],"pad":{"type":"triangle","cut":2800,"vol":0.04,"every":16},"tex":[],"ev":[["spark",0.5]],"arp":true},"wx":[["petals",44,["#ff6b8a","#6bd0ff","#ffe27a","#9cff9c"]]],"hz":null,"pos":[8180.0,5040.0],"seed":12148,"at":{"b":0,"f":[1],"ft":[],"bush":-1,"pond":-1}},{"id":"licorice","name":"Licorice Marsh","size":3.0,"shape":"peanut","types":["candy","shadow","water","music"],"pal":{"h":285,"s":35,"h2":140,"dk":0.65,"trees":"thorn"},"back":"cocoa","fw":[],"res":"b","bn":"Licorice Berries","pn":"","th":{"root":50,"sc":"phr","step":0.9,"wet":0.7,"mel":"pluck","dens":0.25,"oct":[-1,0],"pad":{"type":"sine","cut":600,"vol":0.05,"every":8},"tex":[["crickets",0.01,3800]],"ev":[["drip",0.3],["bubble",0.2]],"drone":{"type":"sine","gain":0.06}},"wx":[["spores",26,["#9a5bff","#e8d4ff"]]],"hz":{"d":2,"name":"Sticky Tar","ward":"candy","c":"#9a5bff"},"pos":[6570.0,5980.0],"seed":12185,"at":{"b":0,"f":[],"ft":[],"bush":1,"pond":-1}},{"id":"festival","name":"Festival Fields","size":3.8,"shape":"arch","types":["music","candy","fairy","electric"],"pal":{"h":45,"s":75,"h2":330,"dk":0,"trees":"rainbow"},"back":"sprinkle","fw":[{"to":"melody","t":"Melody Cave","g":{"name":"Maestro","type":"music","body":"owl","need":{"music":2,"candy":1,"psychic":1,"fairy":1},"lv2":{"music":1,"candy":1},"tier":11,"hp":13,"zone":0.2,"speed":1.6,"toll":"candy"}}],"res":"p","bn":"","pn":"Fountain of Fun","th":{"root":67,"sc":"maj","step":0.28,"wet":0.3,"mel":"marimba","dens":0.9,"oct":[0,1,2],"pad":{"type":"triangle","cut":2400,"vol":0.04,"every":16},"tex":[],"ev":[["bird",0.2],["spark",0.3]],"perc":["clink",4]},"wx":[["glints",26,["#ff6b8b","#ffb347","#ffe36b","#6ee7b7","#6bc8ff","#b388ff"]]],"hz":{"d":1,"name":"Drum Pad","ward":"music","c":"#ff6bd6"},"pos":[8520.0,6820.0],"seed":12222,"at":{"b":0,"f":[1],"ft":[],"bush":-1,"pond":2}},{"id":"melody","name":"Melody Peak","size":3.4,"shape":"spiral","types":["music","wind","psychic","fairy"],"pal":{"h":200,"s":60,"h2":320,"dk":0,"trees":"swirl"},"back":"festival","fw":[],"res":"","bn":"","pn":"","th":{"root":69,"sc":"lyd","step":0.5,"wet":0.7,"mel":"flute","dens":0.5,"oct":[0,1,2],"pad":{"type":"sine","cut":2200,"vol":0.06,"every":6},"tex":[["wind",0.03,1200]],"ev":[["spark",0.3]]},"wx":[["wind",24,["#ffffff"]],["glints",14,["#ffe27a"]]],"hz":null,"pos":[9720.0,7400.0],"seed":12259,"at":{"b":0,"f":[],"ft":[],"bush":-1,"pond":-1}},{"id":"steel","name":"Steelwork Plains","size":3.4,"shape":"cross","types":["metal","electric","earth","fire"],"pal":{"h":215,"s":15,"h2":30,"dk":0,"trees":"pillar"},"back":"nexus","fw":[{"to":"gears","t":"Gear Cave","g":{"name":"Cog","type":"metal","body":"turtle","need":{"metal":1,"electric":2,"earth":1,"fire":1},"lv2":{"metal":1,"electric":1},"tier":10,"hp":12,"zone":0.21,"speed":1.55,"toll":"electric"}}],"res":"b","bn":"Rivet Berries","pn":"","th":{"root":50,"sc":"dor","step":0.5,"wet":0.3,"mel":"marimba","dens":0.3,"oct":[0,1],"pad":{"type":"sawtooth","cut":500,"vol":0.03,"every":8},"tex":[],"ev":[["clink",0.15]],"perc":["clink",4]},"wx":[["dust",30,["#c0c8d4"]]],"hz":null,"pos":[3740.0,-650.0],"seed":12296,"at":{"b":0,"f":[1],"ft":[],"bush":2,"pond":-1}},{"id":"gears","name":"Gearworks","size":3.2,"shape":"trio","types":["metal","electric","earth","shadow"],"pal":{"h":35,"s":25,"h2":210,"dk":0.35,"trees":"obsidian"},"back":"steel","fw":[{"to":"chrome","t":"Chrome Cave","g":{"name":"Sprocket","type":"metal","body":"hedgehog","need":{"metal":2,"fire":1,"earth":1,"wind":1,"shadow":1},"lv2":{"metal":1,"fire":1,"earth":1},"tier":11,"hp":14,"zone":0.2,"speed":1.6,"toll":"earth"},"twin":{"to":"rust","t":"Rust Cave"}}],"res":"","bn":"","pn":"","th":{"root":48,"sc":"harm","step":0.4,"wet":0.3,"mel":"marimba","dens":0.4,"oct":[0,1],"pad":{"type":"sawtooth","cut":420,"vol":0.03,"every":8},"tex":[],"ev":[["crackle",0.3]],"perc":["clink",2]},"wx":[["embers",20,["#ffb347"]],["dust",20,["#c0c8d4"]]],"hz":{"d":1,"name":"Spinning Cog","ward":"electric","c":"#ffd84d"},"pos":[5130.0,-90.0],"seed":12333,"at":{"b":0,"f":[1],"ft":[2],"bush":-1,"pond":-1}},{"id":"chrome","name":"Chrome Canyon","size":3.6,"shape":"arch","types":["metal","fire","wind","earth"],"pal":{"h":200,"s":12,"h2":190,"dk":0,"trees":"crystal"},"back":"gears","fw":[{"to":"foundry","t":"Foundry Cave","g":{"name":"Alloy","type":"metal","body":"bear","need":{"metal":2,"electric":1,"fire":2,"earth":1},"lv2":{"metal":1,"fire":1},"tier":11,"hp":13,"zone":0.2,"speed":1.6,"toll":"fire"}}],"res":"p","bn":"","pn":"Mirror Pool","th":{"root":62,"sc":"whole","step":0.55,"wet":0.5,"mel":"bell","dens":0.45,"oct":[1,2],"pad":{"type":"sine","cut":2000,"vol":0.05,"every":8},"tex":[],"ev":[["spark",0.4],["clink",0.1]]},"wx":[["glints",34,["#ffffff","#cfe8ff"]]],"hz":{"d":1,"name":"Mirror Shard","ward":"metal","c":"#cfe8ff"},"pos":[6200.0,950.0],"seed":12370,"at":{"b":0,"f":[1],"ft":[],"bush":-1,"pond":2}},{"id":"rust","name":"Rust Wastes","size":3.0,"shape":"comet","types":["metal","earth","fire","shadow"],"pal":{"h":18,"s":50,"h2":30,"dk":0.4,"trees":"deadtree"},"back":"gears","fw":[],"res":"","bn":"","pn":"","th":{"root":45,"sc":"phr","step":0.8,"wet":0.4,"mel":"pluck","dens":0.2,"oct":[-1,0],"pad":{"type":"sawtooth","cut":350,"vol":0.03,"every":8},"tex":[["wind",0.05,350]],"ev":[["drip",0.2],["crackle",0.3]],"perc":["clink",8]},"wx":[["dust",40,["#c0602a"]],["ash",14,["#8a5a3a"]]],"hz":{"d":2,"name":"Rust Pit","ward":"earth","c":"#d0702a"},"pos":[6190.0,1540.0],"seed":12407,"at":{"b":0,"f":[],"ft":[],"bush":-1,"pond":-1}},{"id":"foundry","name":"Molten Foundry","size":3.8,"shape":"claw","types":["metal","fire","electric","earth"],"pal":{"h":14,"s":65,"h2":40,"dk":0.5,"trees":"emberpine"},"back":"chrome","fw":[{"to":"anvil","t":"Anvil Cave","g":{"name":"Hammer","type":"metal","body":"bear","need":{"metal":2,"fire":2,"earth":2,"electric":1},"lv2":{"metal":1,"fire":1,"earth":1},"tier":11,"hp":14,"zone":0.2,"speed":1.6,"toll":"earth"}}],"res":"b","bn":"Ember Fruit","pn":"","th":{"root":46,"sc":"harm","step":0.45,"wet":0.3,"mel":"marimba","dens":0.3,"oct":[0,1],"pad":{"type":"sawtooth","cut":380,"vol":0.035,"every":8},"tex":[],"ev":[["crackle",0.8]],"perc":["drum",4],"drone":{"type":"sine","gain":0.08}},"wx":[["embers",60,["#ff7a2a","#ffc04a"]]],"hz":{"d":2,"name":"Lava Vent","ward":"fire","c":"#ff6a2a"},"pos":[7190.0,90.0],"seed":12444,"at":{"b":0,"f":[1],"ft":[],"bush":2,"pond":-1}},{"id":"anvil","name":"Anvil Summit","size":3.4,"shape":"trident","types":["metal","earth","wind","dragon"],"pal":{"h":225,"s":20,"h2":10,"dk":0.55,"trees":"bonespire"},"back":"foundry","fw":[{"to":"drakehold","t":"Drake Cave","g":{"name":"Forgefather","type":"dragon","body":"lizard","need":{"metal":2,"fire":2,"earth":1,"shadow":1},"lv2":{"metal":1,"fire":1},"tier":12,"hp":15,"zone":0.19,"speed":1.65,"toll":"metal","max":{"metal":1}}}],"res":"","bn":"","pn":"","th":{"root":48,"sc":"minp","step":0.55,"wet":0.4,"mel":"marimba","dens":0.28,"oct":[0,1],"pad":{"type":"sawtooth","cut":400,"vol":0.035,"every":8},"tex":[["rain",0.03,3000]],"ev":[["thunder",0.08],["zap",0.1]],"perc":["clink",4]},"wx":[["blizzard",60,["#e8f0ff"]]],"hz":{"d":2,"name":"Hammer Rune","ward":"metal","c":"#cfd8e6"},"pos":[8160.0,1320.0],"seed":12481,"at":{"b":0,"f":[1],"ft":[],"bush":-1,"pond":-1}},{"id":"drakehold","name":"Drakehold","size":4.2,"shape":"star","types":["dragon","fire","metal","earth","shadow"],"pal":{"h":5,"s":55,"h2":40,"dk":0.7,"trees":"bonespire"},"back":"anvil","fw":[],"res":"p","bn":"","pn":"Scale Pool","th":{"root":43,"sc":"phr","step":0.7,"wet":0.6,"mel":"pluck","dens":0.22,"oct":[-1,0],"pad":{"type":"sawtooth","cut":330,"vol":0.04,"every":8},"tex":[],"ev":[["crackle",0.7],["thunder",0.1]],"perc":["drum",4],"drone":{"type":"triangle","gain":0.1}},"wx":[["embers",40,["#ff4a2a","#ffb347"]],["ash",30,["#8e8782"]]],"hz":{"d":3,"name":"Dragon Brand","ward":"dragon","c":"#ff5a3a","hide":true},"pos":[8680.0,2720.0],"seed":12518,"at":{"b":0,"f":[],"ft":[],"bush":-1,"pond":1}},{"id":"dawn","name":"Dawnlight Shore","size":3.2,"shape":"crescent","types":["light","fairy","water","wind"],"pal":{"h":48,"s":80,"h2":200,"dk":0,"trees":"blossom"},"back":"nexus","fw":[{"to":"glow","t":"Glow Cave","g":{"name":"Ray","type":"light","body":"bird","need":{"light":1,"fairy":2,"psychic":1,"wind":1},"lv2":{"light":1,"fairy":1},"tier":10,"hp":12,"zone":0.21,"speed":1.55,"toll":"wind"}}],"res":"b","bn":"Sunrise Berries","pn":"","th":{"root":72,"sc":"lyd","step":0.7,"wet":0.7,"mel":"harp","dens":0.5,"oct":[0,1,2],"pad":{"type":"sine","cut":2400,"vol":0.06,"every":8},"tex":[["wind",0.02,1400]],"ev":[["bird",0.35],["spark",0.2]]},"wx":[["glints",30,["#fff3a8","#ffffff"]]],"hz":null,"pos":[3410.0,-3320.0],"seed":12555,"at":{"b":0,"f":[1],"ft":[],"bush":2,"pond":-1}},{"id":"dusk","name":"Duskwood","size":3.2,"shape":"ring","types":["shadow","psychic","fairy","wind"],"pal":{"h":265,"s":40,"h2":320,"dk":0.55,"trees":"dusk"},"back":"nexus","fw":[{"to":"gloam","t":"Gloam Cave","g":{"name":"Murk","type":"shadow","body":"owl","need":{"shadow":2,"psychic":1,"ice":1,"wind":1,"electric":1},"lv2":{"shadow":1,"psychic":1},"tier":10,"hp":12,"zone":0.21,"speed":1.55,"toll":"ice"}}],"res":"","bn":"","pn":"","th":{"root":62,"sc":"dor","step":0.9,"wet":0.7,"mel":"celesta","dens":0.35,"oct":[0,1],"pad":{"type":"sine","cut":1000,"vol":0.06,"every":6},"tex":[["crickets",0.012,4300]],"ev":[["spark",0.2]]},"wx":[["fireflies",22,["#ffb3ff"]]],"hz":{"d":1,"name":"Dusk Hex","ward":"shadow","c":"#c58bff"},"pos":[3870.0,-2790.0],"seed":12592,"at":{"b":0,"f":[1],"ft":[],"bush":-1,"pond":-1}},{"id":"glow","name":"Glowing Glade","size":3.4,"shape":"heart","types":["light","grass","fairy","psychic"],"pal":{"h":95,"s":65,"h2":55,"dk":0.1,"trees":"forest"},"back":"dawn","fw":[{"to":"prism","t":"Prism Cave","g":{"name":"Beam","type":"light","body":"deer","need":{"light":2,"psychic":1,"ice":1,"fairy":1,"water":1},"lv2":{"light":1,"psychic":1},"tier":11,"hp":13,"zone":0.2,"speed":1.6,"toll":"water"}}],"res":"p","bn":"","pn":"Glow Pond","th":{"root":71,"sc":"pent","step":0.55,"wet":0.7,"mel":"celesta","dens":0.5,"oct":[1,2],"pad":{"type":"triangle","cut":1800,"vol":0.05,"every":8},"tex":[],"ev":[["spark",0.5],["bird",0.1]]},"wx":[["fireflies",34,["#fff3a8","#b9ff9a"]]],"hz":null,"pos":[3160.0,-4430.0],"seed":12629,"at":{"b":0,"f":[1],"ft":[],"bush":-1,"pond":2}},{"id":"prism","name":"Prism Palace","size":3.6,"shape":"trio","types":["light","cosmic","psychic","ice"],"pal":{"h":190,"s":55,"h2":300,"dk":0,"trees":"crystal"},"back":"glow","fw":[{"to":"nebula","t":"Nebula Cave","g":{"name":"Aurora","type":"light","body":"cat","need":{"light":2,"cosmic":1,"psychic":1,"shadow":1,"fairy":1},"lv2":{"light":1,"cosmic":1},"tier":12,"hp":15,"zone":0.19,"speed":1.65,"toll":"psychic","max":{"light":1}},"twin":{"to":"comet","t":"Comet Cave"}}],"res":"","bn":"","pn":"","th":{"root":76,"sc":"lyd","step":0.45,"wet":0.8,"mel":"bell","dens":0.6,"oct":[1,2],"pad":{"type":"sine","cut":2600,"vol":0.05,"every":16},"tex":[],"ev":[["spark",0.6]],"arp":true},"wx":[["glints",36,["#ff6b8b","#ffb347","#ffe36b","#6ee7b7","#6bc8ff","#b388ff"]]],"hz":{"d":1,"name":"Light Snare","ward":"light","c":"#fff3a8"},"pos":[1960.0,-6040.0],"seed":12666,"at":{"b":0,"f":[1],"ft":[2],"bush":-1,"pond":-1}},{"id":"gloam","name":"Gloaming Moor","size":3.4,"shape":"wave","types":["shadow","psychic","ice","electric"],"pal":{"h":250,"s":30,"h2":200,"dk":0.7,"trees":"deadtree"},"back":"dusk","fw":[{"to":"eclipse","t":"Eclipse Cave","g":{"name":"Umbra","type":"shadow","body":"bat","need":{"shadow":2,"fairy":1,"fire":1,"psychic":2},"lv2":{"shadow":1,"fairy":1},"tier":11,"hp":13,"zone":0.2,"speed":1.6,"toll":"fairy"}}],"res":"b","bn":"Fog Berries","pn":"","th":{"root":51,"sc":"minp","step":1.1,"wet":0.8,"mel":"pluck","dens":0.2,"oct":[-1,0],"pad":{"type":"sine","cut":600,"vol":0.05,"every":8},"tex":[["wind",0.06,400]],"ev":[["gust",0.15]],"drone":{"type":"sine","gain":0.07}},"wx":[["ghosts",16,["#d6c2ff"]]],"hz":{"d":2,"name":"Fog Hex","ward":"psychic","c":"#b9a0ff"},"pos":[5710.0,-3720.0],"seed":12703,"at":{"b":0,"f":[1],"ft":[],"bush":2,"pond":-1}},{"id":"eclipse","name":"Eclipse Keep","size":3.8,"shape":"spiral","types":["shadow","fairy","fire","wind"],"pal":{"h":280,"s":45,"h2":45,"dk":0.85,"trees":"voidshard"},"back":"gloam","fw":[{"to":"zenith","t":"Zenith Cave","g":{"name":"Void Queen","type":"cosmic","body":"cat","need":{"shadow":2,"cosmic":1,"light":1,"psychic":1,"wind":1},"lv2":{"shadow":1,"cosmic":1},"tier":12,"hp":15,"zone":0.19,"speed":1.65,"toll":"light","max":{"shadow":1}}}],"res":"","bn":"","pn":"","th":{"root":49,"sc":"harm","step":1.0,"wet":0.9,"mel":"bell","dens":0.25,"oct":[0,1],"pad":{"type":"sine","cut":800,"vol":0.06,"every":8},"tex":[],"ev":[["thunder",0.05],["spark",0.1]],"drone":{"type":"sine","gain":0.09}},"wx":[["void",40,["#ffd86b","#b388ff","#ffffff"]]],"hz":{"d":3,"name":"Eclipse Seal","ward":"shadow","c":"#ffd86b","hide":true},"pos":[5540.0,-5450.0],"seed":12740,"at":{"b":0,"f":[1],"ft":[],"bush":-1,"pond":-1}},{"id":"nebula","name":"Nebula Nook","size":3.4,"shape":"islands","types":["cosmic","psychic","light","ice"],"pal":{"h":255,"s":55,"h2":310,"dk":0.6,"trees":"starpost"},"back":"prism","fw":[],"res":"p","bn":"","pn":"Stardust Pool","th":{"root":64,"sc":"whole","step":1.2,"wet":0.9,"mel":"bell","dens":0.3,"oct":[1,2],"pad":{"type":"sine","cut":2200,"vol":0.06,"every":6},"tex":[],"ev":[["spark",0.35]]},"wx":[["meteors",5,["#ffffff"]],["glints",24,["#c6c1ff"]]],"hz":{"d":2,"name":"Star Hole","ward":"cosmic","c":"#c6c1ff"},"pos":[1950.0,-7870.0],"seed":12777,"at":{"b":0,"f":[],"ft":[],"bush":-1,"pond":1}},{"id":"comet","name":"Comet Tail","size":3.0,"shape":"comet","types":["cosmic","wind","electric","fire"],"pal":{"h":215,"s":50,"h2":30,"dk":0.5,"trees":"starpost"},"back":"prism","fw":[],"res":"","bn":"","pn":"","th":{"root":66,"sc":"lyd","step":0.5,"wet":0.7,"mel":"celesta","dens":0.55,"oct":[1,2],"pad":{"type":"sine","cut":2400,"vol":0.05,"every":8},"tex":[],"ev":[["spark",0.5],["gust",0.1]],"desc":true},"wx":[["meteors",9,["#ffe9a0"]]],"hz":{"d":2,"name":"Comet Burn","ward":"fire","c":"#ff9a5a"},"pos":[1270.0,-8020.0],"seed":12814,"at":{"b":0,"f":[],"ft":[],"bush":-1,"pond":-1}},{"id":"zenith","name":"Zenith Spire","size":4.0,"shape":"star","types":["cosmic","shadow","light","psychic"],"pal":{"h":240,"s":45,"h2":50,"dk":0.75,"trees":"voidshard"},"back":"eclipse","fw":[{"to":"worldheart","t":"Heart Cave","g":{"name":"Star Heart","type":"cosmic","body":"owl","need":{"cosmic":2,"light":1,"dragon":1,"music":1,"metal":1,"candy":1},"lv2":{"cosmic":1},"tier":12,"hp":16,"zone":0.19,"speed":1.65,"toll":"light","max":{"cosmic":1}}}],"res":"b","bn":"Comet Berries","pn":"","th":{"root":55,"sc":"whole","step":1.3,"wet":0.95,"mel":"bell","dens":0.2,"oct":[0,1],"pad":{"type":"sine","cut":1000,"vol":0.07,"every":6},"tex":[],"ev":[["spark",0.15],["thunder",0.03]],"drone":{"type":"sine","gain":0.09}},"wx":[["void",50,["#c6c1ff","#ffffff"]],["meteors",4,["#ffffff"]]],"hz":{"d":3,"name":"Zenith Seal","ward":"cosmic","c":"#c6c1ff","hide":true},"pos":[5190.0,-7060.0],"seed":12851,"at":{"b":0,"f":[1],"ft":[],"bush":2,"pond":-1}},{"id":"worldheart","name":"The World Heart","size":5.0,"shape":"flower","types":["cosmic","light","dragon","music","metal","candy"],"pal":{"h":320,"s":60,"h2":50,"dk":0.35,"trees":"rainbow"},"back":"zenith","fw":[],"res":"","bn":"","pn":"","th":{"root":60,"sc":"maj","step":0.4,"wet":0.8,"mel":"harp","dens":0.7,"oct":[0,1,2],"pad":{"type":"triangle","cut":2600,"vol":0.06,"every":16},"tex":[],"ev":[["spark",0.4],["bird",0.2]],"arp":true},"wx":[["petals",36,["#ff6b8b","#ffb347","#ffe36b","#6ee7b7","#6bc8ff","#b388ff"]],["glints",24,["#ff6b8b","#ffb347","#ffe36b","#6ee7b7","#6bc8ff","#b388ff"]]],"hz":{"d":3,"name":"Heart Seal","ward":"light","c":"#ff7eb6","hide":true},"pos":[6810.0,-8240.0],"seed":12888,"at":{"b":0,"f":[],"ft":[],"bush":-1,"pond":-1}}];
+  var FAR_HUB = {"throne":{"t":"Crossroads Gate","idx":1,"g":{"name":"Overlord","type":"shadow","body":"cat","need":{"shadow":2,"fire":1,"psychic":1,"fairy":1,"electric":1},"lv2":{"shadow":1,"psychic":1},"tier":9,"hp":11,"zone":0.22,"speed":1.5,"toll":"fairy"}},"nightbloom":{"t":"Crossroads Gate","idx":1,"g":{"name":"Briar","type":"fairy","body":"deer","need":{"fairy":2,"shadow":1,"grass":1,"fire":1,"wind":1},"lv2":{"fairy":1,"grass":1},"tier":9,"hp":11,"zone":0.22,"speed":1.5,"toll":"wind"}},"colossus":{"t":"Crossroads Gate","idx":3,"g":{"name":"Golem","type":"earth","body":"bear","need":{"earth":2,"fire":1,"wind":1,"shadow":1,"electric":1},"lv2":{"earth":1,"fire":1},"tier":9,"hp":11,"zone":0.22,"speed":1.5,"toll":"electric"}},"maw":{"t":"Crossroads Gate","idx":3,"g":{"name":"Kraken","type":"water","body":"fish","need":{"water":2,"electric":1,"shadow":1,"ice":1,"psychic":1},"lv2":{"water":1,"electric":1},"tier":9,"hp":11,"zone":0.22,"speed":1.5,"toll":"ice"}}};
+  var FAR_BY = {};
+  FAR_DEF.forEach(function (d) { FAR_BY[d.id] = d; });
+  function hx(h, s, l) {
+    s /= 100; l /= 100;
+    var a = s * Math.min(l, 1 - l), f = function (n) { var k = (n + h / 30) % 12, c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return ('0' + Math.round(255 * c).toString(16)).slice(-2); };
+    return '#' + f(0) + f(8) + f(4);
+  }
+  function mkPal(o) {
+    var h = o.h, s = o.s, h2 = o.h2, dk = o.dk, L = function (l, k) { return Math.max(4, Math.round(l - dk * (k || 30))); };
+    return { sea: [hx(h2, 50, L(64, 42)), hx(h2, 55, L(46, 30))], wave: hx(h2, 70, L(82, 34)), beach: hx(h, 50, L(82, 46)),
+      grass: [hx(h, s, L(66, 36)), hx(h, s, L(53, 30)), hx(h, s, L(41, 24))], patch: hx(h, Math.max(10, s - 5), L(71, 38)),
+      flowers: [hx(h2, 85, L(70, 10)), '#ffffff', hx((h + 60) % 360, 80, L(72, 10)), hx((h + 310) % 360, 80, L(70, 10))],
+      path: hx(h, 40, L(80, 40)), edge: hx(h, s, L(28, 14)), rock: [hx(h, 25, L(50, 28)), hx(h, 25, L(72, 30))],
+      lake: [hx(h2, 70, L(80, 28)), hx(h2, 70, L(50, 26))], shore: hx(h, 50, L(82, 46)), lily: false, trees: o.trees, palms: false,
+      berry: hx(h2, 85, 60), leaf: [hx(h, s, L(44, 22)), hx(h, s, L(52, 24))], hill: [hx(h, s, L(66, 30)), hx(h, s, L(74, 28)), hx(h, s, L(82, 26))], bg: hx(h2, 50, L(30, 24)) };
+  }
+  function farTint(id) { var d = FAR_BY[id], dk = d.pal.dk; return [hx(d.pal.h, 80, Math.round(74 - 22 * dk)), hx(d.pal.h2, 75, Math.round(46 - 12 * dk))]; }
+  FAR_DEF.forEach(function (d) {
+    var P = mkPal(d.pal), sp = [], at = d.at;
+    PAL[d.id] = P;
+    if (d.back) sp.push({ k: 'portal', at: at.b, r: 130, ly: 130, t: 'Way Back', to: d.back, tint: BACKT });
+    if (d.id === 'nexus') Object.keys(at.back).forEach(function (eid) { sp.push({ k: 'portal', at: at.back[eid], r: 130, ly: 130, t: 'Back to ' + NEW_WORLDS[eid].name, to: eid, tint: BACKT }); });
+    d.fw.forEach(function (f, j) {
+      var s1 = { k: 'portal', at: at.f[j], r: 130, ly: 130, t: f.t, to: f.to, tint: farTint(f.to), guard: f.g };
+      sp.push(s1);
+      if (f.twin) { s1.twinTo = f.twin.to; sp.push({ k: 'portal', at: at.ft[0], r: 130, ly: 130, t: f.twin.t, to: f.twin.to, tint: farTint(f.twin.to), guard: f.g, twin: true, twinTo: f.to }); }
+    });
+    if (at.bush >= 0) sp.push({ k: 'bush', at: at.bush, r: 120, ly: -140, t: d.bn });
+    if (at.pond >= 0) sp.push({ k: 'pond', at: at.pond, r: 170, ly: -180, t: d.pn });
+    NEW_WORLDS[d.id] = { name: d.name, seed: d.seed, size: d.size, shape: d.shape, types: d.types, pal: P, spots: sp, far: true, gloom: Math.round(d.pal.dk * 60) / 100 + 0.001 };
+  });
   Object.keys(NEW_WORLDS).forEach(function (id) {
     var N = NEW_WORLDS[id], sh = SHAPES[N.shape]();
     var anch = sh.anchors;
     N.spots.forEach(function (sp) { var a = anch[sp.at]; sp.x = a[0]; sp.y = a[1]; delete sp.at; });
-    WORLDS[id] = { name: N.name, seed: N.seed, types: N.types, pal: N.pal, spots: N.spots, land: sh.land, hub: sh.hub, gloom: N.gloom || 0.55 };
+    WORLDS[id] = { name: N.name, seed: N.seed, types: N.types, pal: N.pal, spots: N.spots, land: sh.land, hub: sh.hub, gloom: N.gloom || 0.55, far: !!N.far };
     SIZE[id] = N.size;
   });
   // the older deep worlds each get one more cave, leading on
@@ -1740,6 +1996,20 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     guard: { name: 'Rime', type: 'ice', body: 'bear', need: { ice: 2, psychic: 1, wind: 1, shadow: 1 }, lv2: { ice: 1, psychic: 1 }, tier: 7, hp: 8, zone: 0.25, speed: 1.4 } });
   WORLDS.rainbow.spots.push({ k: 'portal', x: 800, y: 360, r: 130, ly: 130, t: 'Night Cave', to: 'nightbloom', tint: ['#ff4d9a', '#26061e'],
     guard: { name: 'Thorne', type: 'fairy', body: 'deer', need: { fairy: 2, shadow: 1, fire: 1, grass: 1 }, lv2: { fairy: 1, shadow: 1 }, tier: 7, hp: 8, zone: 0.25, speed: 1.4 } });
+
+  var FAR_HOOKS = [];
+  Object.keys(FAR_HUB).forEach(function (eid) {
+    var H = FAR_HUB[eid], N = NEW_WORLDS[eid], an = SHAPES[N.shape]().anchors[H.idx], sz = SIZE[eid];
+    FAR_HOOKS.push({ world: eid, spot: { k: 'portal', x: Math.round(an[0] * sz), y: Math.round(an[1] * sz), r: 130, ly: 130, t: H.t, to: 'nexus', tint: farTint('nexus'), guard: H.g } });
+  });
+  // after the first ten worlds, berries and ponds get rarer
+  var RES_OLD = { gale: 'p', forge: 'b', ruins: 'p', starfall: 'b', rainbow: 'bp', bonewood: '', ashen: 'p', mire: 'b', abyss: '', crag: 'p', voidw: '', nightbloom: 'b', maw: '', colossus: 'p', throne: '' };
+  Object.keys(RES_OLD).forEach(function (id) {
+    var W0 = WORLDS[id], r = RES_OLD[id];
+    W0.spots = W0.spots.filter(function (sp) { return !((sp.k === 'bush' && r.indexOf('b') < 0) || (sp.k === 'pond' && r.indexOf('p') < 0)); });
+    W0.noExtra = true;
+  });
+  FAR_DEF.forEach(function (d) { WORLDS[d.id].noExtra = true; });
   var EXTRA = { bush: ['Berry Patch', 'Sweet Bushes', 'Snack Grove', 'Munch Meadow', 'Nibble Nook', 'Tasty Thicket'],
     pond: ['Splash Pond', 'Little Lake', 'Puddle Park', 'Giggle Brook', 'Play Pool', 'Bubble Bay'] };
   Object.keys(WORLDS).forEach(function (id) {
@@ -1754,7 +2024,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       }
       W.fill = Math.max(0.15, hit / 600);
     }
-    var extra = Math.round((s * s - 1) * 0.9 * (W.fill || 1)), tries = 0, made = { bush: 0, pond: 0 };
+    var extra = W.noExtra ? 0 : Math.round((s * s - 1) * 0.9 * (W.fill || 1)), tries = 0, made = { bush: 0, pond: 0 };
     while (extra > 0 && tries++ < 400) {
       var a = Rr() * 6.2832, d = (0.3 + Rr() * 0.5) * 690 * s, x = Math.round(c + Math.cos(a) * d), y = Math.round(c + Math.sin(a) * d), ok = true;
       if (W.land) { var lq = landPick(W.land, Rr, 0.78); x = Math.round(lq.x); y = Math.round(lq.y); }
@@ -1777,6 +2047,31 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     for (i = 0; i < land.length; i++) { x -= land[i][2] * land[i][2]; if (x <= 0) { q = land[i]; break; } }
     var a = R() * 6.2832, d = Math.sqrt(R()) * q[2] * (f || 0.9);
     return { x: q[0] + Math.cos(a) * d, y: q[1] + Math.sin(a) * d };
+  }
+
+  function rebuildWalk(W0) {
+    delete W0.paths;
+    if (!W0.land) return;
+    W0.walk = W0.land.slice();
+    pathsFor(W0).forEach(function (q) { var nk = Math.max(14, Math.ceil(Math.hypot(q[4] - q[0], q[5] - q[1]) / 45)); for (var k = 0; k <= nk; k++) { var t = k / nk, u = 1 - t; W0.walk.push([u * u * q[0] + 2 * u * t * q[2] + t * t * q[4], u * u * q[1] + 2 * u * t * q[3] + t * t * q[5], 62]); } });
+    W0.spots.forEach(function (sp) { W0.walk.push([sp.x, sp.y, sp.r * 0.85]); });
+  }
+  var FAR_AT = 20, FAR_STATE = false;
+  function farOn() { return !!S && !!S.opened && level() >= FAR_AT; }
+  function shown(id) { return !WORLDS[id].far || farOn(); }
+  function shownIds() { return WORLD_IDS.filter(shown); }
+  function typeShown(t) { return FAR_TYPES.indexOf(t) < 0 || farOn(); }
+  function typeTotal() { return TYPE_IDS.length + (farOn() ? FAR_TYPES.length : 0); }
+  function dexTypes() { return Object.keys(BODY_OPTIONS).filter(typeShown); }
+  // at world 20 the caves at the end of the four old paths appear; in a new game they go away again
+  var V3 = { on: false, cache: {} }, OBS = {};
+  function syncFar() {
+    var on = farOn(); if (on === FAR_STATE) return; FAR_STATE = on;
+    FAR_HOOKS.forEach(function (h) {
+      var W0 = WORLDS[h.world], i = W0.spots.indexOf(h.spot);
+      if (on && i < 0) W0.spots.push(h.spot); else if (!on && i >= 0) W0.spots.splice(i, 1);
+      delete ART[h.world]; delete V3.cache[h.world]; delete OBS[h.world]; rebuildWalk(W0);
+    });
   }
   function setScale(id) { var W = WORLDS[id]; WS = W.s; WORLD = 1600 * WS; CX = CY = 800 * WS; WALK_R = 690 * WS; HX = W.hub ? W.hub[0] : CX; HY = W.hub ? W.hub[1] : CY; LAND = W.walk || null; }
   var WORLD_IDS = Object.keys(WORLDS);
@@ -1804,6 +2099,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     maw: { d: 3, name: 'Drowning Rune', ward: 'electric', c: '#4adfd2', hide: true },
     throne: { d: 3, name: 'Dread Seal', ward: 'fairy', c: '#ff4a5e', hide: true }
   };
+  FAR_DEF.forEach(function (d) { if (d.hz) HZ[d.id] = d.hz; });
   function dangerOf(id) { return HZ[id] ? HZ[id].d : 0; }
   function hazOf(id) {
     var W = WORLDS[id]; if (W.haz) return W.haz;
@@ -1992,6 +2288,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     colossus: [['dust', 60, ['#e0c898']], ['wind', 16, ['#e8d8b0']]],
     throne: [['embers', 48, ['#ff4a5e', '#ff9a8a']], ['thunder', 9, ['#ff9aa8']]]
   };
+  FAR_DEF.forEach(function (d) { WXD[d.id] = d.wx; });
   var WXP = [], WXM = [], WXC = null, WXG = null, wxT = 0, wxFlash = 0, wxBolt = null, wxNext = 0, wxGlow = {}, wxCol = '#fff', wxMetNext = 0;
   function wxGlowSprite(c) {
     if (wxGlow[c]) return wxGlow[c];
@@ -2178,7 +2475,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function dexSync() { if (!S || !S.dex) return; S.team.forEach(function (p) { dexAdd(p.type, p.body, p.stage, p.rid, true); var e = S.dex[dexKey(p.type, p.body)]; if (e) e.o = 1; }); }
   function dexTotals() {
     var tot = 0, have = 0;
-    Object.keys(BODY_OPTIONS).forEach(function (t) { BODY_OPTIONS[t].forEach(function (b) { tot++; if (S.dex[dexKey(t, b)]) have++; }); });
+    dexTypes().forEach(function (t) { BODY_OPTIONS[t].forEach(function (b) { tot++; if (S.dex[dexKey(t, b)]) have++; }); });
     return [have, tot];
   }
   function dexLook(ents, lead, now) {
@@ -2193,13 +2490,17 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   /* ----- credit ----- */
   var CREDIT = '<p class="credit">A game by Mira &middot; made with love by Daddy <svg viewBox="0 0 24 24" aria-label="heart" role="img"><path d="M12 21s-7.500-4.700-9.500-9.200C1 8 3.200 4.500 6.800 4.500c2 0 3.700 1.100 5.200 3 1.500-1.900 3.200-3 5.200-3 3.600 0 5.800 3.500 4.300 7.300C19.500 16.300 12 21 12 21z" fill="#ff7eb6"/></svg></p>';
 
-  /* ----- unicorn spirits: one waits to be rescued at level 10, 15, 20 and 25 ----- */
-  var UNI_LV = [10, 15, 20, 25], UNI_NAME = { 10: 'Aurora', 15: 'Celeste', 20: 'Lumi', 25: 'Nova' };
+  /* ----- unicorn spirits: one waits to be rescued every 2 worlds from level 10 ----- */
+  var UNI_LV = [], UNI_NAME = {}, UNI_NAMES = ['Aurora', 'Celeste', 'Lumi', 'Nova', 'Prism', 'Stella', 'Opal', 'Aster', 'Solara', 'Willow', 'Ember', 'Comet', 'Pearl', 'Breeze', 'Dewdrop', 'Twinkle', 'Maple', 'Lyra', 'Halo', 'Misty', 'Orion'];
+  UNI_NAMES.forEach(function (n, i) { UNI_LV.push(10 + 2 * i); UNI_NAME[10 + 2 * i] = n; });
+  var UNI_CHARGES = 3, UNI_MAX = 3;   // each unicorn can open 3 caves, then it fades away; you can carry 3 unicorns
+  function unicorns() { return S.team.filter(function (p) { return p.type === 'unicorn'; }); }
+  function uniLeft(p) { return p.uc == null ? UNI_CHARGES : p.uc; }
   function uniWorld(th) { return Object.keys(S.opened)[th - 2] || null; }
   function uniQuests() { return UNI_LV.filter(function (th) { return level() >= th && uniWorld(th); }); }
   function uniHere(id) { var q = uniQuests().filter(function (th) { return uniWorld(th) === id && !S.uni[th]; }); return q.length ? q[0] : 0; }
   function uniNewMsg(to) {
-    var th = UNI_LV.filter(function (t) { return level() === t && uniWorld(t) === to; })[0];
+    var th = UNI_LV.filter(function (t) { return level() >= t && uniWorld(t) === to && !S.uni[t]; })[0];
     return th ? ' A unicorn spirit is roaming ' + WORLDS[to].name + '! Find it and make friends with a Happy Stone.' : '';
   }
   function uniSpiritSVG(id, th) {
@@ -2211,15 +2512,21 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var POWERS = {
     fairy: { name: 'Pixie Dust', cd: 90, d: 'Gives every growing pet one free cuddle, snack or game it still needs.' },
     fire: { name: 'Torch Light', cd: 60, d: 'Lights up the hidden cursed ground near you.' },
-    water: { name: 'Bubble Shield', cd: 90, d: 'A bubble keeps your pets safe from cursed ground for 20 seconds.' },
+    water: { name: 'Pond Warp', cd: 90, tele: 'pond', d: 'Step on any pond, and you can warp to a pond in any world you have opened.' },
     grass: { name: 'Bloom', cd: 90, d: 'Berries sprout! Fills every tummy a little and gives 2 food.' },
     psychic: { name: 'Far Sight', scout: 150, d: 'Send it out to find a missing pet that a new world needs. Back in about 2 minutes.' },
     ice: { name: 'Frost Calm', cd: 70, d: 'Wild pets near you turn happy for 12 seconds, so a Happy Stone can work.' },
     electric: { name: 'Lightning Runner', scout: 90, d: 'Sends a bolt of speed out to find a missing pet that a new world needs. Back in about 90 seconds.' },
-    earth: { name: 'Dig Treasure', cd: 75, d: 'Digs up 3 to 8 coins.' },
+    earth: { name: 'Park Warp', cd: 75, tele: 'bush', d: 'Step on any berry patch, and you can warp to a berry patch in any world you have opened.' },
     wind: { name: 'Sky Scout', scout: 120, d: 'Rides the wind far away to find a missing pet that a new world needs. Back in about 2 minutes.' },
     shadow: { name: 'Shadow Scout', scout: 180, d: 'Slips through the shadows to find a missing pet that a new world needs. Back in about 3 minutes.' },
-    unicorn: { name: 'Rainbow Heal', cd: 120, d: 'Fills every tummy and shields everyone from cursed ground for 15 seconds.' }
+    metal: { name: 'Steel Plates', cd: 100, d: 'Covers the whole team in steel. Safe from cursed ground for 25 seconds.' },
+    light: { name: 'Sunbeam', cd: 90, d: 'Lights up every hidden rune far around and warms every tummy a little.' },
+    dragon: { name: 'Dragon Roar', cd: 110, d: 'A big, friendly roar. Every wild pet near you becomes happy.' },
+    cosmic: { name: 'Star Scout', scout: 60, d: 'Flies between the stars to find a missing pet that a new world needs. Back in about 1 minute.' },
+    music: { name: 'Lullaby', cd: 100, d: 'A soft song. Tummies feel fuller and wild pets nearby feel happy.' },
+    candy: { name: 'Sweet Treat', cd: 90, d: 'Rains candy! You get 4 food and every tummy is fuller.' },
+    unicorn: { name: 'Rainbow Heal', cd: 120, d: 'Fills every tummy and shields everyone from cursed ground for 15 seconds. At a guard cave, a unicorn of any level can also open the cave for you.' }
   };
   function powerLeft(p) { return Math.max(0, Math.ceil(((p.pcd || 0) - Date.now()) / 1000)); }
   function growPets() { return S.team.filter(function (p) { return p.stage >= 3; }); }
@@ -2229,28 +2536,38 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function usePower(p) {
     var w = S.world, PW = POWERS[p.type]; if (!w || !PW || PW.scout || p.stage < 3 || powerLeft(p) > 0) return false;
-    var lead = w.ents[0], now = performance.now(), msg = '', H = hazOf(S.cur), n = 0;
+    if (PW.tele) { wmsg(PW.name + ' works on its own. Walk onto ' + (PW.tele === 'pond' ? 'a pond' : 'a berry patch') + ' to choose a world!'); return false; }
+    var lead = w.ents[0], now = performance.now(), msg = '', H = hazOf(S.cur), n = 0, X = p.stage >= 4 ? 2 : 1;
     if (p.type === 'fairy') {
       var ready = [];
-      S.team.forEach(function (q) { if (q.stage < 3) { addProg(q, mostNeeded(q), 1); n++; if (q.happy >= 100) ready.push(q); } });
+      S.team.forEach(function (q) { if (q.stage < 3) { addProg(q, mostNeeded(q), X); n++; if (q.happy >= 100) ready.push(q); } });
       msg = n ? 'Sparkles! ' + n + ' pet' + (n > 1 ? 's' : '') + ' grew a little.' : 'Sparkles everywhere, but everyone is fully grown!';
       ready.forEach(worldEvolve);
     } else if (p.type === 'fire') {
-      H.forEach(function (h, i) { if (!h.seen && dist(lead, h) < 1200) { revealHaz(i); n++; } });
+      H.forEach(function (h, i) { if (!h.seen && dist(lead, h) < 1200 * X) { revealHaz(i); n++; } });
       msg = n ? 'The flame lit up ' + n + ' hidden rune' + (n > 1 ? 's' : '') + '!' : 'The light shows nothing hidden nearby.';
-    } else if (p.type === 'water') { wardFor(20000); msg = 'A bubble surrounds your pets.';
     } else if (p.type === 'grass') {
-      S.team.forEach(function (q) { q.hun = Math.max(0, hunOf(q) - 40); }); S.food = Math.min(foodCap(), S.food + 2); msg = 'Berries sprout! Tummies are fuller and you got 2 food.';
+      S.team.forEach(function (q) { q.hun = Math.max(0, hunOf(q) - 40 * X); }); S.food = Math.min(foodCap(), S.food + 2 * X); msg = 'Berries sprout! Tummies are fuller and you got ' + 2 * X + ' food.';
     } else if (p.type === 'ice') {
-      w.ents.forEach(function (e) { if (e.kind === 'wild' && !e.merging && dist(e, lead) < 800) { setMood(e, 'happy', 12); n++; } });
+      w.ents.forEach(function (e) { if (e.kind === 'wild' && !e.merging && dist(e, lead) < 800 * X) { setMood(e, 'happy', 12 * X); n++; } });
       msg = n ? n + ' wild pet' + (n > 1 ? 's are' : ' is') + ' calm and happy. Use a Happy Stone now!' : 'No wild pets are near enough.';
-    } else if (p.type === 'earth') { var gain = 3 + Math.floor(Math.random() * 6); S.coins += gain; msg = 'You dug up ' + gain + ' coins!';
+    } else if (p.type === 'metal') { wardFor(25000 * X); msg = 'Steel plates shield everyone from cursed ground.';
+    } else if (p.type === 'light') {
+      H.forEach(function (h, i) { if (!h.seen && dist(lead, h) < 2400 * X) { revealHaz(i); n++; } }); S.team.forEach(function (q) { q.hun = Math.max(0, hunOf(q) - 20 * X); });
+      msg = n ? 'The sunbeam lit up ' + n + ' hidden rune' + (n > 1 ? 's' : '') + '!' : 'The sunbeam shows nothing hidden nearby.';
+    } else if (p.type === 'dragon' || p.type === 'music') {
+      var rr = (p.type === 'dragon' ? 1400 : 900) * X;
+      w.ents.forEach(function (e) { if (e.kind === 'wild' && !e.merging && dist(e, lead) < rr) { setMood(e, 'happy', 10 * X); n++; } });
+      if (p.type === 'music') S.team.forEach(function (q) { q.hun = Math.max(0, hunOf(q) - 30 * X); });
+      msg = n ? n + ' wild pet' + (n > 1 ? 's are' : ' is') + ' happy. Use a Happy Stone now!' : 'No wild pets are near enough.';
+    } else if (p.type === 'candy') {
+      S.food = Math.min(foodCap(), S.food + 4 * X); S.team.forEach(function (q) { q.hun = Math.max(0, hunOf(q) - 50 * X); }); msg = 'Candy rain! You got ' + 4 * X + ' food and tummies are fuller.';
     } else if (p.type === 'unicorn') {
-      S.team.forEach(function (q) { q.hun = 0; }); wardFor(15000); msg = 'A rainbow washes over everyone. Tummies are full!';
+      S.team.forEach(function (q) { q.hun = 0; }); wardFor(15000 * X); msg = 'A rainbow washes over everyone. Tummies are full!';
     }
-    p.pcd = Date.now() + PW.cd * 1000;
+    p.pcd = Date.now() + PW.cd * 1000 / X;
     worldBurst(lead.x, lead.y - 60); save(); updateHud();
-    later(function () { if (S.screen === 'world') updateHud(); }, PW.cd * 1000 + 150);
+    later(function () { if (S.screen === 'world') updateHud(); }, PW.cd * 1000 / X + 150);
     say(p.name + ' uses ' + PW.name + '! ' + msg, 5000);
     return true;
   }
@@ -2287,7 +2604,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var i = S.team.indexOf(p), cur = P();
     var fe = followerEnt(p); if (fe) { if (fe.el && fe.el.parentNode) fe.el.parentNode.removeChild(fe.el); var wi = w.ents.indexOf(fe); if (wi >= 0) w.ents.splice(wi, 1); }
     S.team.splice(i, 1); S.sel = Math.max(0, Math.min(S.team.indexOf(cur) < 0 ? 0 : S.team.indexOf(cur), S.team.length - 1));
-    S.away.push({ pet: p, t: t, until: Date.now() + PW.scout * 1000, from: S.cur });
+    S.away.push({ pet: p, t: t, until: Date.now() + PW.scout * 1000 / (p.stage >= 4 ? 2 : 1), from: S.cur });
     save(); updateHud(); worldBurst(w.ents[0].x, w.ents[0].y - 60);
     say(p.name + ' dashes off to find a ' + TYPES[t].name + ' pet! It will be back in about ' + (PW.scout >= 120 ? Math.round(PW.scout / 60) + ' minutes' : PW.scout + ' seconds') + '.', 6000);
     return true;
@@ -2313,6 +2630,28 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     h = '<div class="scoutgo">' + tg.slice(0, 3).map(function (x) { return '<button class="btn small primary" data-act="sendscout" data-id="' + p.id + '" data-t="' + x.t + '">Find ' + TYPES[x.t].name + '<em>for Guard ' + esc(x.guard) + '</em></button>'; }).join('') + '</div>';
     return h;
   }
+  var scoutSig = '';
+  function scoutFx() {
+    var el = $('#scoutfx');
+    if (!el) { el = document.createElement('div'); el.id = 'scoutfx'; el.setAttribute('aria-hidden', 'true'); document.body.appendChild(el); }
+    var on = S && (S.screen === 'world' || S.screen === 'play') && S.away && S.away.length;
+    if (!on) { if (scoutSig) { el.innerHTML = ''; scoutSig = ''; } return; }
+    var now = Date.now(), sig = S.away.map(function (a) { return a.pet.id + a.t; }).join(',') + S.screen;
+    if (sig !== scoutSig) {
+      scoutSig = sig;
+      el.innerHTML = S.away.map(function (a, i) {
+        return '<div class="scpill sc-' + a.pet.type + '" data-i="' + i + '"><div class="sctrack"><span class="scfx"></span><span class="scpet">' + petSVG(a.pet.type, a.pet.stage, '', a.pet.body) + '</span><span class="scgoal" style="background:' + TYPES[a.t].dot + '"></span></div>' +
+          '<div class="sctxt"><b>' + esc(a.pet.name) + '</b> seeks <i style="background:' + TYPES[a.t].dot + '"></i>' + TYPES[a.t].name + '<span class="sct"></span></div><div class="scbar"><i></i></div></div>';
+      }).join('');
+    }
+    S.away.forEach(function (a, i) {
+      var pill = el.children[i]; if (!pill) return;
+      var tot = (POWERS[a.pet.type].scout || 120) * 1000 / (a.pet.stage >= 4 ? 2 : 1), left = Math.max(0, a.until - now), f = Math.max(0, Math.min(1, 1 - left / tot)), s = Math.ceil(left / 1000);
+      pill.querySelector('.sct').textContent = left > 0 ? ' ' + Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2) : ' coming back!';
+      pill.querySelector('.scbar i').style.width = (f * 100).toFixed(0) + '%';
+    });
+  }
+  setInterval(function () { try { scoutFx(); } catch (e) { /* cosmetic */ } }, 1000);
   function awayHTML() {
     if (!S.away.length) return '';
     var now = Date.now();
@@ -2372,34 +2711,76 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     return h + '</div>';
   }
+  function renameHTML(p) {
+    return '<div class="sheet-card"><h3>Rename ' + esc(p.name) + '</h3><p class="srow-note">Pick a new name for your friend (up to 14 letters).</p>' +
+      '<input class="field" id="renin" maxlength="14" autocomplete="off" value="' + esc(p.name) + '" aria-label="New name">' +
+      '<div class="row"><button class="btn primary small" data-act="rensave" data-id="' + p.id + '">Save name</button><button class="btn ghost small" data-act="closesheet">Cancel</button></div></div>';
+  }
+  function renameSave(id) {
+    var p = S.team.filter(function (x) { return x.id === id; })[0] || S.away.map(function (a) { return a.pet; }).filter(function (x) { return x.id === id; })[0], inp = $('#renin');
+    if (!p) return;
+    var nm = ((inp && inp.value) || '').replace(/\s+/g, ' ').trim().slice(0, 14) || p.name;
+    p.name = nm;
+    var e = followerEnt(p); if (e) { e.name = nm; if (e.el) e.el.innerHTML = spriteHTML(e); }
+    save(); closeSheet();
+    if (S.screen === 'play') render(); else { updateHud(); openSheet(infoTeam()); say('Now it is called ' + nm + '!', 3500); }
+  }
+  function maxPairs() {
+    var by = {};
+    S.team.forEach(function (p) { if (p.stage === 3 && p.type !== 'unicorn' && !S.away.some(function (a) { return a.pet === p; })) (by[p.type] = by[p.type] || []).push(p); });
+    return Object.keys(by).filter(function (t) { return by[t].length >= 2; }).map(function (t) { return by[t]; });
+  }
+  function maxHTML() {
+    if (!farOn()) return '';
+    var h = ['<div class="powrow maxrow"><div class="dexface">' + petSVG(S.team[0].type, 4, '', S.team[0].body) + '</div><div class="powinfo"><b>Secret: Max Grown</b><span>Two fully grown pets of the same type can merge into one Max Grown pet. Its power and speed are doubled, and some far caves need one.' + (maxCount() ? ' You have ' + maxCount() + '.' : '') + '</span>'];
+    var pairs = maxPairs();
+    if (!pairs.length) h.push('<span class="scoutnote">You need two fully grown pets of the same type.</span>');
+    pairs.forEach(function (pr) { var t = pr[0].type; h.push('<button class="btn small primary" data-act="maxmerge" data-t="' + t + '">' + (S.maxAsk === t ? 'Tap again: both become one!' : 'Merge two ' + TYPES[t].name) + '</button>'); });
+    h.push('</div></div>');
+    return h.join('');
+  }
+  function maxMerge(t) {
+    var pr = maxPairs().filter(function (x) { return x[0].type === t; })[0];
+    if (!pr || !farOn()) return;
+    if (S.maxAsk !== t) { S.maxAsk = t; openSheet(powersHTML()); return; }
+    S.maxAsk = null;
+    var a = pr[0], b = pr[1], lead = S.world && S.world.ents[0];
+    removeTeamPet(b);
+    a.stage = 4; a.happy = 100; a.prog = { pet: 0, feed: 0, play: 0 }; a.pcd = 0;
+    var e = followerEnt(a);
+    if (e) { e.stage = 4; e.size = spriteSize(e); if (e.el) { e.el.style.width = e.size + 'px'; e.el.style.height = e.size + 'px'; e.el.innerHTML = spriteHTML(e); } }
+    if (lead) worldBurst(lead.x, lead.y - 60);
+    save(); updateHud(); openSheet(powersHTML());
+    say(a.name + ' is MAX GROWN! Its power and speed are doubled.', 6000);
+  }
   function powersHTML() {
     var gp = growPets(), h = ['<div class="sheet-card powsheet"><h3>Powers</h3><p class="srow-note">Every fully grown pet has a special power. Tap Use. Powers recharge by themselves.</p>'];
     if (!gp.length) h.push('<p class="srow-note">No pet is fully grown yet. Help a pet reach its last level to unlock its power!</p>');
     gp.forEach(function (p) {
       var PW = POWERS[p.type], left = powerLeft(p);
-      h.push('<div class="powrow' + (PW.scout ? ' scout' : '') + '"><div class="dexface">' + petSVG(p.type, 3, '', p.body) + '</div><div class="powinfo"><b>' + esc(p.name) + ' &middot; ' + PW.name + '</b><span>' + PW.d + (canFly(p) ? ' It can also fly.' : '') + '</span>' + (PW.scout ? scoutRowHTML(p) : '') + '</div>' + (PW.scout ? '' : '<button class="btn small primary" data-act="usepower" data-id="' + p.id + '"' + (left ? ' disabled' : '') + '>' + (left ? left + 's' : 'Use') + '</button>') + '</div>');
+      h.push('<div class="powrow' + (PW.scout ? ' scout' : '') + '"><div class="dexface">' + petSVG(p.type, 3, '', p.body) + '</div><div class="powinfo"><b>' + esc(p.name) + ' &middot; ' + PW.name + '</b><span>' + PW.d + preNote(p) + (canFly(p) ? ' It can also fly.' : '') + '</span>' + (PW.scout ? scoutRowHTML(p) : '') + (PW.tele ? '<span class="scoutnote">' + (left ? 'Recharging: ' + left + 's.' : 'Ready! Walk onto ' + (PW.tele === 'pond' ? 'a pond' : 'a berry patch') + '.') + '</span>' : '') + '</div>' + (PW.scout || PW.tele ? '' : '<button class="btn small primary" data-act="usepower" data-id="' + p.id + '"' + (left ? ' disabled' : '') + '>' + (left ? left + 's' : 'Use') + '</button>') + '</div>');
     });
-    h.push(awayHTML(), jumpRowHTML(), '<button class="btn ghost small" data-act="closesheet">Close</button></div>');
+    h.push(maxHTML(), awayHTML(), jumpRowHTML(), '<button class="btn ghost small" data-act="closesheet">Close</button></div>');
     return h.join('');
   }
 
   /* ----- the tidy top bar: four groups, one tap shows the details ----- */
   function infoWorld() {
     var base = worldInfoHTML(S.cur);
-    return uniHere(S.cur) ? base.replace('<div class="winfogrid">', '<p class="srow-note uspnote">A unicorn spirit roams this world! It runs and blinks around. Use a Happy Stone when it is happy.</p><div class="winfogrid">') : base;
+    return uniHere(S.cur) ? base.replace('<div class="winfogrid">', '<p class="srow-note uspnote">A unicorn spirit roams this world! It runs and blinks around and is always happy. Catch up and use a Happy Stone!</p><div class="winfogrid">') : base;
   }
   function infoLevel() {
     var gp = growPets().length, tot = S.team.length, n = Object.keys(S.caught).length, fl = S.team.filter(canFly);
     var li = [];
-    li.push('<li><b>Worlds</b> ' + WORLD_IDS.filter(worldOpen).length + ' of ' + WORLD_IDS.length + ' opened. Every new world is a new level.</li>');
-    li.push('<li><b>Types found</b> ' + n + ' of ' + TYPE_IDS.length + '.</li>');
+    li.push('<li><b>Worlds</b> ' + WORLD_IDS.filter(worldOpen).length + ' of ' + shownIds().length + ' opened. Every new world is a new level.</li>');
+    li.push('<li><b>Types found</b> ' + n + ' of ' + typeTotal() + '.</li>');
     li.push('<li><b>Powers</b> ' + gp + ' of ' + tot + ' pet' + (tot === 1 ? '' : 's') + ' fully grown and ready to use.</li>');
     li.push('<li><b>Flying</b> ' + (fl.length ? esc(fl[0].name) + ' can fly' + (canFly(S.team[0]) ? ' and leads the team. Use the Fly button.' : ', but it is not at the front yet.') : 'Fully grown fairies, birds, bats and owls can fly.') + '</li>');
+    if (level() > 10) li.push('<li><b>Trips home</b> ' + homeLeftText() + ' Free trips work from any world.</li>');
     li.push('<li><b>World Jump</b> ' + (level() <= 10 ? 'Unlocks after level 10 when every pet is fully grown.' : !jumpUnlocked() ? 'Every pet must be fully grown first.' : jumpReady() ? 'Ready! Open Powers to jump.' : 'Recharging: ' + Math.floor(S.jump) + '%. Keep walking!') + '</li>');
-    li.push('<li><b>Unicorn spirits</b> ' + UNI_LV.map(function (th) {
-      var uw = uniWorld(th);
-      return 'Level ' + th + ': ' + (level() < th || !uw ? 'not yet' : S.uni[th] ? esc(UNI_NAME[th]) + ' rescued' : 'roaming ' + esc(WORLDS[uw].name));
-    }).join(' &middot; ') + '</li>');
+    var uq = uniQuests(), roam = uq.filter(function (th) { return !S.uni[th]; }), nxt = UNI_LV.filter(function (th) { return level() < th; })[0], un = unicorns();
+    li.push('<li><b>Unicorn spirits</b> One roams every 2 worlds from level 10. ' + (roam.length ? 'Roaming now: ' + roam.map(function (th) { return esc(UNI_NAME[th]) + ' in ' + esc(WORLDS[uniWorld(th)].name); }).join(', ') + '. ' : '') + (nxt ? 'Next at level ' + nxt + '. ' : '') +
+      'A unicorn can open ' + UNI_CHARGES + ' guard caves with its rainbow power, then it fades away. You can carry ' + UNI_MAX + ' unicorns' + (un.length ? ' (you have ' + un.length + ').' : '.') + '</li>');
     return '<div class="sheet-card infosheet"><h3>Level ' + level() + '</h3><ul class="infolist">' + li.join('') + '</ul><div class="row"><button class="btn small" data-act="powers">Powers</button><button class="btn ghost small" data-act="dex">Petdex</button><button class="btn ghost small" data-act="closesheet">Close</button></div>' + CREDIT + '</div>';
   }
   function infoBag() {
@@ -2415,10 +2796,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function infoTeam() {
     var rows = S.team.map(function (p, i) {
       var PW = POWERS[p.type];
-      return '<div class="teamrow"><i class="tdot" style="background:' + TYPES[p.type].dot + '"></i><div><b>' + esc(p.name) + '</b> <span>' + TYPES[p.type].name + ' &middot; level ' + p.stage + (i === 0 ? ' &middot; leads the team' : '') + (canFly(p) ? ' &middot; can fly' : '') + '</span><div class="tummy">' + tummyHTML(p) + '</div>' + (p.stage >= 3 ? '<span class="tpow">Power: ' + PW.name + '</span>' : '') + '</div></div>';
+      return '<div class="teamrow"><i class="tdot" style="background:' + TYPES[p.type].dot + '"></i><div><b>' + esc(p.name) + '</b> <button class="renbtn small" data-act="rename" data-id="' + p.id + '" aria-label="Rename ' + esc(p.name) + '">&#9998;</button> <span>' + TYPES[p.type].name + ' &middot; ' + (p.stage >= 4 ? 'Max Grown' : 'level ' + p.stage) + (i === 0 ? ' &middot; leads the team' : '') + (canFly(p) ? ' &middot; can fly' : '') + '</span><div class="tummy">' + tummyHTML(p) + '</div>' + (p.stage >= 3 ? '<span class="tpow">Power: ' + PW.name + '</span>' : '') + '</div></div>';
     }).join('');
     var parts = ['Team size slows you ' + Math.round((1 - Math.max(0.05, 1 - 0.10 * (S.team.length - 1))) * 100) + '%'];
     if (S.boots) parts.push('boots help +' + Math.round(22 * S.boots) + '%');
+    if (maxCount()) parts.push('Max Grown pets help +' + 25 * maxCount() + '%');
     if (hungerSlow() < 1) parts.push('hungry pets slow you ' + Math.round((1 - hungerSlow()) * 100) + '%');
     return '<div class="sheet-card infosheet"><h3>Your team</h3><p class="srow-note">Speed ' + Math.round(speedMult() * 100) + '%. ' + parts.join(', ') + '.</p><div class="teamlist">' + rows + '</div>' + awayHTML() + '<div class="row"><button class="btn small" data-act="feedbag">Feed pets</button><button class="btn ghost small" data-act="closesheet">Close</button></div></div>';
   }
@@ -2512,7 +2894,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function dexHTML(closeAct) {
     var T = dexTotals(), h = ['<div class="sheet-card dexwrap"><h3>Petdex</h3><p class="srow-note">' + T[0] + ' of ' + T[1] + ' kinds of pets discovered. Meet a new one, hatch it or help it grow, and it appears here.</p><div class="dexdet" id="dexdet" hidden></div>'];
-    Object.keys(BODY_OPTIONS).forEach(function (t) {
+    dexTypes().forEach(function (t) {
       var list = BODY_OPTIONS[t], got = list.filter(function (b) { return S.dex[dexKey(t, b)]; }).length;
       h.push('<div class="dexsec"><h4><i style="--dot:' + TYPES[t].dot + '"></i>' + TYPES[t].name + '<span>' + got + ' / ' + list.length + '</span></h4>' + dexFoundIn(t) + '<div class="dexgrid">');
       list.forEach(function (b) {
@@ -2585,16 +2967,17 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     var w = S.world, near = w ? nearWild() : null, ng = w ? nearGuard() : null;
     if (ng) {
-      var miss = missingFor(ng.guard);
+      var miss = missingFor(ng.guard, ng);
       var head = 'Guard ' + ng.name + ' protects the ' + ng.spot.t + '. Its powers: ' + needText(ng.guard) + '.';
+      var ub = unicorns().length && !ng.guard.max ? '<button class="btn small uniunlock" data-act="uniopen">Unicorn unlock</button>' : '';
       return miss.length
-        ? '<span>' + head + ' Carry them with you to take it on. You still need ' + miss.join(' and ') + '.</span>'
-        : '<span>' + head + ' You carry them all! Ready to battle?</span><button class="btn primary small" data-act="challenge">Challenge!</button>';
+        ? '<span>' + head + ' Carry them with you to take it on. You still need ' + miss.join(' and ') + '.</span>' + ub
+        : '<span>' + head + ' You carry them all!' + (S.weak[ng.key] === undefined && preReady().length ? ' ' + preReady().map(function (r) { return r.p.name + ' will strike first (' + r.n + ' hits).'; }).join(' ') : '') + ' Ready to battle?</span><button class="btn primary small" data-act="challenge">Challenge!</button>' + ub;
     }
     if (!near && w && nearLab()) return '<span>Welcome to my lab! Sell me a pet for coins, and buy Speedster Boots, a bigger bag, a Home Portal, or a Portable Sun.</span><button class="btn primary small" data-act="shop">Open the shop</button>';
     if (near) {
       var nm = TYPES[near.type].name, rl = rarityById(near.rid).label;
-      var who = near.guardian ? 'The guardian Fairy unicorn (' + rl + ')!' : near.spirit ? 'A lost unicorn spirit (' + rl + ')! It runs and blinks around.' : 'A wild ' + nm + ' pet (' + rl + ')!';
+      var who = near.guardian ? 'The guardian Fairy unicorn (' + rl + ')!' : near.spirit ? 'A lost unicorn spirit (' + rl + ')! It is always happy, but it runs and blinks around.' : 'A wild ' + nm + ' pet (' + rl + ')!';
       if (near.cool && now < near.cool) return '<span>Give it a moment.</span>';
       if (!S.stones.length) return '<span>' + who + ' First get a Happy Stone: take a colorful ball to the Sunny Hill on Home Island.</span>';
       if (near.mood !== 'happy') return '<span>' + who + ' It looks ' + (near.mood === 'angry' ? 'angry' : near.mood === 'sad' ? 'sad' : 'calm') + '. A Happy Stone only works when a pet is happy. Wait for a smile!</span>';
@@ -2665,6 +3048,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return { x: pile.x, y: pile.y + 175 };
   }
   function spawnPoint() {
+    if (S.tele) {
+      var tk = S.tele, ts = WD().spots.filter(function (x) { return x.k === tk; })[0], ang, pt; S.tele = null;
+      if (ts) for (ang = 90; ang < 450; ang += 45) {
+        pt = clampPt({ x: ts.x + Math.cos(ang * Math.PI / 180) * (ts.r * 0.72 + 90), y: ts.y + Math.sin(ang * Math.PI / 180) * (ts.r * 0.72 + 90) }, WALK_R);
+        if (dist(pt, ts) > ts.r * 0.72 + 25) return pt;
+      }
+    }
     if (S.arrive) {
       var sp = WD().spots.filter(function (s) { return s.k === 'portal' && s.to === S.arrive; })[0];
       if (sp) {
@@ -2686,7 +3076,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       w.ents.push({ id: 'p' + p.id, kind: 'follower', pet: p, type: p.type, body: p.body, stage: p.stage, name: p.name, x: st.x - 40 * (i + 1), y: st.y + 20, tx: st.x, ty: st.y });
     });
     WD().spots.forEach(function (s, i) {
-      if (s.k !== 'portal' || !s.guard || S.beaten[S.cur + ':' + s.to]) return;
+      if (s.k !== 'portal' || !s.guard || s.twin || S.beaten[S.cur + ':' + s.to]) return;
       var dx = HX - s.x, dy = HY - s.y, L = Math.hypot(dx, dy) || 1, gq = clampPt({ x: s.x + dx / L * 115, y: s.y + dy / L * 115 }, WALK_R), gx = gq.x, gy = gq.y;
       w.ents.push({ id: 'g' + i, kind: 'guard', type: s.guard.type, body: s.guard.body, stage: 3, name: s.guard.name, guard: s.guard, spot: s, key: S.cur + ':' + s.to, x: gx, y: gy, tx: gx, ty: gy });
     });
@@ -2737,9 +3127,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var from = S.cur;
     S.cur = to; S.arrive = viaPortal ? null : from; S.world = null; S.birds = false;
     S.team.forEach(function (p) { if (p.stage < 3) addProg(p, mostNeeded(p), 1); });
-    var firstTime = !S.opened[to];
-    S.opened[to] = true;
-    S.travelMsg = viaPortal ? 'Whoosh! The Home Portal brought you back to ' + WORLDS[to].name + '. ' + S.portals + ' use' + (S.portals === 1 ? '' : 's') + ' left.' : ((firstTime ? 'New world opened! You are now level ' + level() + '. ' + uniNewMsg(to).trim() + ' ' : '') + 'Welcome to ' + WORLDS[to].name + '! Going to new places makes your pets happy.');
+    var firstTime = to !== 'home' && !S.opened[to];
+    if (to !== 'home') S.opened[to] = true;
+    S.travelMsg = viaPortal ? 'Whoosh! The Home Portal brought you back to ' + WORLDS[to].name + '. ' + homeLeftText() : ((firstTime ? 'New world opened! You are now level ' + level() + '. ' + uniNewMsg(to).trim() + ' ' : '') + 'Welcome to ' + WORLDS[to].name + '! Going to new places makes your pets happy.');
     save(); playWarp(from, to, viaPortal, render);
   }
 
@@ -2907,9 +3297,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       }
     }
   }
-  function worldArt(id) {
-    if (ART[id]) return ART[id];
-    var W = WORLDS[id], p = W.pal, R = rng(W.seed), o = [], i, a, d, x, y, SP = W.spots, paths = pathsFor(W);
+  function worldArt(id, split) {
+    if (!split && ART[id]) return ART[id];
+    var W = WORLDS[id], p = W.pal, R = rng(W.seed), o = [], i, a, d, x, y, SP = W.spots, paths = pathsFor(W), OB = split ? [] : null;
     var Z = W.s, CX = 800 * Z, CY = CX, M = Math.min(Z * Z * 0.7, 6.2), FULL = 1600 * Z;
     var LW = W.land || null, HXa = W.hub ? W.hub[0] : CX, HYa = W.hub ? W.hub[1] : CY, F = LW ? W.fill : 1;
     function rr(lo, hi) { return lo + R() * (hi - lo); }
@@ -2971,7 +3361,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     o.push('</g>');
     o.push('<circle cx="' + HXa + '" cy="' + HYa + '" r="112" fill="' + p.path + '"/><circle cx="' + HXa + '" cy="' + HYa + '" r="88" fill="none" stroke="' + p.edge + '" stroke-width="6" stroke-dasharray="4 14" stroke-linecap="round"/>');
     o.push(star(HXa, HYa, 52, '#fff3a8'));
-    SP.forEach(function (s, k) { drawSpot(o, s, k, W, R); });
+    SP.forEach(function (s, k) {
+      if (!OB || s.k === 'pond') { drawSpot(o, s, k, W, R); return; }
+      var so = []; drawSpot(so, s, k, W, R); OB.push({ k: s.k, i: k, s: s, svg: so.join('') });
+    });
     var nr = 0;
     for (i = 0; i < 300 * M && nr < 16 * M * F; i++) {
       var rq = sp2(660); x = rq.x; y = rq.y;
@@ -2988,17 +3381,22 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       trees.push({ x: x, y: y, s: rr(0.85, 1.35), pine: R() < 0.4 });
     }
     trees.sort(function (m, n) { return m.y - n.y; });
-    trees.forEach(function (t) { drawTree(o, t, p.trees); });
+    trees.forEach(function (t) {
+      if (!OB) { drawTree(o, t, p.trees); return; }
+      var to = []; drawTree(to, t, p.trees); OB.push({ k: 'tree', x: t.x, y: t.y, s: t.s, svg: to.join('') });
+    });
     var nPalm = Math.round(14 * Z);
     if (p.palms) for (i = 0; i < nPalm; i++) {
       a = (i / nPalm) * 6.2832 + rr(-0.12, 0.12); d = rr(722 * Z, 738 * Z);
       var px = CX + Math.cos(a) * d, py = CY + Math.sin(a) * d, s2 = rr(0.9, 1.25), lean = (px < CX ? -1 : 1) * 10 * s2;
-      var ptx = px + lean, pty = py - 50 * s2;
-      o.push('<path d="M' + px.toFixed(0) + ' ' + py.toFixed(0) + ' Q' + (px + lean * 0.2).toFixed(0) + ' ' + (py - 26 * s2).toFixed(0) + ' ' + ptx.toFixed(0) + ' ' + pty.toFixed(0) + '" stroke="#8a6a44" stroke-width="' + (7 * s2).toFixed(1) + '" fill="none" stroke-linecap="round"/>');
+      var ptx = px + lean, pty = py - 50 * s2, po = OB ? [] : o;
+      po.push('<path d="M' + px.toFixed(0) + ' ' + py.toFixed(0) + ' Q' + (px + lean * 0.2).toFixed(0) + ' ' + (py - 26 * s2).toFixed(0) + ' ' + ptx.toFixed(0) + ' ' + pty.toFixed(0) + '" stroke="#8a6a44" stroke-width="' + (7 * s2).toFixed(1) + '" fill="none" stroke-linecap="round"/>');
       [-160, -110, -60, -10, 40].forEach(function (ang) {
-        o.push('<ellipse cx="' + ptx.toFixed(0) + '" cy="' + pty.toFixed(0) + '" rx="' + (26 * s2).toFixed(0) + '" ry="' + (7 * s2).toFixed(0) + '" fill="#3fa65e" transform="rotate(' + ang + ' ' + ptx.toFixed(0) + ' ' + pty.toFixed(0) + ') translate(' + (22 * s2).toFixed(0) + ' 0)"/>');
+        po.push('<ellipse cx="' + ptx.toFixed(0) + '" cy="' + pty.toFixed(0) + '" rx="' + (26 * s2).toFixed(0) + '" ry="' + (7 * s2).toFixed(0) + '" fill="#3fa65e" transform="rotate(' + ang + ' ' + ptx.toFixed(0) + ' ' + pty.toFixed(0) + ') translate(' + (22 * s2).toFixed(0) + ' 0)"/>');
       });
+      if (OB) OB.push({ k: 'palm', x: px, y: py, s: s2, svg: po.join('') });
     }
+    if (split) return { ground: o.join(''), objs: OB };
     ART[id] = o.join('');
     return ART[id];
   }
@@ -3016,7 +3414,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       '<radialGradient id="pshade" cx="36%" cy="30%" r="80%"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#0a0630" stop-opacity=".62"/></radialGradient></defs>' +
       '<circle cx="' + CX + '" cy="' + CY + '" r="' + 836 * WS + '" fill="#8fd0ff" opacity=".2"/>' +
       '<g clip-path="url(#pclip)"><g id="spin">' + worldArt(S.cur).replace(/@@/g, 'b') + labels + hazSVG(true) + '<g id="bdots"></g></g></g>' +
-      '<circle cx="' + CX + '" cy="' + CY + '" r="' + CX + '" fill="url(#pshade)" pointer-events="none"/></svg><button class="atlasbtn" data-act="atlas">All worlds</button></div>';
+      '<circle cx="' + CX + '" cy="' + CY + '" r="' + CX + '" fill="url(#pshade)" pointer-events="none"/></svg><button class="atlasbtn" data-act="atlas">All worlds</button><button class="atlasbtn v3toggle" id="v3btn" data-act="view3d" aria-pressed="false">' + (V3.on ? 'Back to map view' : 'Walk view (3D)') + '</button></div>';
   }
 
 
@@ -3029,6 +3427,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       '<div class="wmeter"><div class="wmeter-row"><span id="wmood"></span><span id="wmnum"></span></div><div class="meter"><div class="meter-fill" id="wmfill" style="width:0"></div></div></div>' +
       '<button class="fsbtn padtog' + (padsOn() ? '' : ' off') + '" id="padtog" data-act="padtoggle" aria-label="Show or hide the control pads" aria-pressed="' + (padsOn() ? 'true' : 'false') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4v5M5.500 6.500h5M16 14v5M13.500 16.500h5"/><circle cx="16.500" cy="7" r="2.200"/><circle cx="7.500" cy="17" r="2.200"/></svg></button>' +
       '<button class="fsbtn sndbtn" data-act="sound" aria-label="Mute sound">' + SND_ICON + '</button>' +
+      '<button class="fsbtn hudtog" id="hudtog" data-act="hudmode" aria-label="Top bar: shown. Tap to fade it.">' + EYE_ICON + '</button>' +
       '<button class="fsbtn nomargin" id="fsbtn" data-act="fullscreen" aria-label="Full screen" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>' +
       '<div class="inv" id="winv"></div></div>' +
       '<div class="zoombtns"><button class="zbtn" data-act="zoomin" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>' +
@@ -3054,14 +3453,27 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return nm + ' x' + n + (l2 === n ? ' Lv 2' : l2 ? ' (' + l2 + ' Lv 2)' : '');
   }
   function reqChips(g) {
-    return Object.keys(g.need).map(function (t) { return '<span class="req' + (g.lv2 && g.lv2[t] ? ' lv2' : '') + '"><i style="background:' + TYPES[t].dot + '"></i>' + reqLabel(g, t) + '</span>'; }).join('');
+    var c = Object.keys(g.need).map(function (t) { return '<span class="req' + (g.lv2 && g.lv2[t] ? ' lv2' : '') + '"><i style="background:' + TYPES[t].dot + '"></i>' + reqLabel(g, t) + '</span>'; });
+    if (g.max) Object.keys(g.max).forEach(function (t) { c.push('<span class="req maxreq"><i style="background:' + TYPES[t].dot + '"></i>Max Grown ' + TYPES[t].name + '</span>'); });
+    if (g.toll) c.push('<span class="req tollreq"><i style="background:' + TYPES[g.toll].dot + '"></i>Toll: ' + TYPES[g.toll].name + ' pet</span>');
+    return c.join('');
   }
-  function needText(g) { return Object.keys(g.need).map(function (t) { return reqLabel(g, t, true); }).join(' + '); }
-  function missingFor(g) {
-    var have = {}, have2 = {}, miss = [], lv2 = g.lv2 || {};
+  function needText(g) {
+    var s = Object.keys(g.need).map(function (t) { return reqLabel(g, t, true); }).join(' + ');
+    if (g.max) s += ' + Max Grown ' + Object.keys(g.max).map(function (t) { return TYPES[t].name; }).join(' and ');
+    if (g.toll) s += ' (and a ' + TYPES[g.toll].name + ' pet to give up at the door)';
+    return s;
+  }
+  function missingFor(g, ge) {
+    var have = {}, have2 = {}, miss = [], lv2 = g.lv2 || {}, paid = ge && S.toll && S.toll[ge.key];
     S.team.forEach(function (p) { have[p.type] = (have[p.type] || 0) + 1; if (p.stage >= 2) have2[p.type] = (have2[p.type] || 0) + 1; });
+    if (g.max) Object.keys(g.max).forEach(function (t) {
+      if (S.team.filter(function (p) { return p.type === t && p.stage >= 4; }).length < g.max[t]) miss.push('a Max Grown ' + TYPES[t].name + ' pet (merge two fully grown ones)');
+    });
+    if (g.toll && !paid && !have[g.toll]) miss.push('a ' + TYPES[g.toll].name + ' pet to give up at the door');
     Object.keys(g.need).forEach(function (t) {
-      var short2 = Math.max(0, (lv2[t] || 0) - (have2[t] || 0)), shortAll = Math.max(0, g.need[t] - (have[t] || 0));
+      var tl = paid && g.toll === t ? 1 : 0;
+      var short2 = Math.max(0, (lv2[t] || 0) - tl - (have2[t] || 0)), shortAll = Math.max(0, g.need[t] - tl - (have[t] || 0));
       if (short2) miss.push(short2 + ' ' + TYPES[t].name + ' at level 2 (one that has evolved)');
       else if (shortAll) miss.push(shortAll + ' more ' + TYPES[t].name);
     });
@@ -3086,8 +3498,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function draw(e) {
     if (!e.el) return;
-    e.el.style.transform = 'translate(' + (e.x - e.size / 2).toFixed(1) + 'px,' + (e.y - e.size * 0.9).toFixed(1) + 'px)';
-    e.el.style.zIndex = (drag && drag.ent === e) ? 5000 : Math.round(e.y);
+    if (V3.on) V3.place(e);
+    else {
+      e.el.style.transform = 'translate(' + (e.x - e.size / 2).toFixed(1) + 'px,' + (e.y - e.size * 0.9).toFixed(1) + 'px)';
+      e.el.style.zIndex = (drag && drag.ent === e) ? 5000 : Math.round(e.y);
+    }
     e.el.classList.toggle('walk', !!e.moving);
     e.el.classList.toggle('air', (e.kind === 'hero' || e.kind === 'follower') && flyOn());
     var hb = e.kind === 'follower' ? hunBand(hunOf(e.pet)) : 0;
@@ -3117,7 +3532,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function syncHud() {
     var sc = $('#scene'), h = $('#hud'); if (!sc || !h) return;
-    var v = Math.max(10, h.offsetHeight - 6) + 'px';
+    var v = (hudMode === 'hide' && hudMobile() ? 10 : Math.max(10, h.offsetHeight - 6)) + 'px';
     if (sc.style.getPropertyValue('--hudh') !== v) sc.style.setProperty('--hudh', v);
   }
   function setZoomUser(v) {
@@ -3135,7 +3550,269 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (!worldEl) return;
     worldEl.style.transform = 'translate3d(' + (vw / 2 - cam.x * zoom).toFixed(1) + 'px,' + (vh / 2 - cam.y * zoom).toFixed(1) + 'px,0) scale(' + zoom.toFixed(3) + ')';
   }
-  function screenToWorld(px, py) { return { x: cam.x + (px - vw / 2) / zoom, y: cam.y + (py - vh / 2) / zoom }; }
+  /* ----- immersive walk view: a pseudo-3D chase camera behind your hero (toggle button) ----- */
+  var V3_KEY = 'magical-pets-view3d', V3ZMAX = 2800, V3NEAR = 70;
+  function v3Pref() { try { return localStorage.getItem(V3_KEY) === '1'; } catch (e) { return false; } }
+  function v3Save(on) { try { localStorage.setItem(V3_KEY, on ? '1' : '0'); } catch (e) { /* optional */ } }
+  function v3Hex(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
+  function splitFor(id) {
+    var c = V3.cache[id];
+    if (!c) { var sp = worldArt(id, true); c = V3.cache[id] = { ground: sp.ground, objs: sp.objs, ready: false, fail: false, started: false }; }
+    return c;
+  }
+  /* solid things: tree trunks, palm trunks, the body of each cave and the professor's lab. A cave can only be entered at its gate. */
+  function obsFor(id) {
+    if (OBS[id]) return OBS[id];
+    var cs = [], grid = {}, CELL = 160;
+    splitFor(id).objs.forEach(function (o) {
+      var s = o.s, t = o.s;
+      if (o.k === 'tree') cs.push({ x: o.x, y: o.y + 8 * t, r: 17 * t });
+      else if (o.k === 'palm') cs.push({ x: o.x, y: o.y, r: 9 * t });
+      else if (o.k === 'portal') { cs.push({ x: s.x - 112, y: s.y - 30, r: 76 }, { x: s.x + 112, y: s.y - 30, r: 76 }, { x: s.x, y: s.y - 150, r: 108 }); }
+      else if (o.k === 'prof') { cs.push({ x: s.x - 45, y: s.y + 20, r: 42 }, { x: s.x + 45, y: s.y + 20, r: 42 }, { x: s.x, y: s.y - 30, r: 56 }); }
+    });
+    cs.forEach(function (c) {
+      var i, j;
+      for (i = Math.floor((c.x - c.r) / CELL); i <= Math.floor((c.x + c.r) / CELL); i++) for (j = Math.floor((c.y - c.r) / CELL); j <= Math.floor((c.y + c.r) / CELL); j++) (grid[i + ',' + j] || (grid[i + ',' + j] = [])).push(c);
+    });
+    return (OBS[id] = { grid: grid, CELL: CELL });
+  }
+  /* push a walker out of whatever solid thing it ran into, sliding along the surface instead of sticking */
+  function collideEnt(e, rad, tgx, tgy) {
+    var ob = obsFor(S.cur), CELL = ob.CELL, gx = Math.floor(e.x / CELL), gy = Math.floor(e.y / CELL), i, j, k, list, c, dx, dy, d, m, nx, ny, mx, my, inw, side, tl;
+    var hasPrev = e.px !== undefined && Math.hypot(e.x - e.px, e.y - e.py) < 200;
+    for (i = gx - 1; i <= gx + 1; i++) for (j = gy - 1; j <= gy + 1; j++) {
+      list = ob.grid[i + ',' + j]; if (!list) continue;
+      for (k = 0; k < list.length; k++) {
+        c = list[k]; dx = e.x - c.x; dy = e.y - c.y; d = Math.hypot(dx, dy); m = c.r + rad;
+        if (d >= m) continue;
+        if (d < 0.01) { dx = 0; dy = 1; d = 1; }
+        nx = dx / d; ny = dy / d;
+        if (hasPrev) {
+          mx = e.x - e.px; my = e.y - e.py; inw = mx * nx + my * ny;
+          if (inw < 0) {
+            var tx2 = mx - inw * nx, ty2 = my - inw * ny, ml = Math.hypot(mx, my);
+            if (Math.hypot(tx2, ty2) < ml * 0.35) {
+              side = (tgx !== undefined) ? ((nx * (tgy - e.y) - ny * (tgx - e.x)) >= 0 ? 1 : -1) : 1;
+              tx2 += -ny * side * ml * 0.7; ty2 += nx * side * ml * 0.7;
+            }
+            e.x = e.px + tx2; e.y = e.py + ty2;
+            dx = e.x - c.x; dy = e.y - c.y; d = Math.hypot(dx, dy) || 1; nx = dx / d; ny = dy / d;
+          }
+        }
+        if (d < m) { e.x = c.x + nx * m; e.y = c.y + ny * m; }
+      }
+    }
+  }
+  V3.th = -Math.PI / 2; V3.fx = 0; V3.fy = -1; V3.rx = 1; V3.ry = 0; V3.cx = 0; V3.cy = 0;
+  V3.F = 400; V3.H = 150; V3.D = 300; V3.hzY = 150; V3.vw = 400; V3.vh = 400; V3.list = []; V3.hz = []; V3.manual = false;
+  V3.skyCols = function () {
+    var d = dangerOf(S.cur);
+    return [['#4fa9f5', '#d6efff'], ['#7a6ad8', '#f0d9ff'], ['#4d2f8c', '#c98ad8'], ['#2a1458', '#8a4aa0']][d] || ['#4fa9f5', '#d6efff'];
+  };
+  V3.size = function () {
+    var L = $('#w3'), cv = $('#w3floor'); if (!L || !cv) return;
+    V3.vw = vw; V3.vh = vh; V3.hzY = Math.round(vh * 0.4);
+    V3.F = Math.max(0.77 * vh, 0.45 * vw);
+    var s = Math.min(0.6, 720 / vw);
+    V3.is = s;
+    cv.width = Math.max(160, Math.round(vw * s)); cv.height = Math.max(40, Math.round((vh - V3.hzY) * s));
+    cv.style.top = V3.hzY + 'px'; cv.style.height = (vh - V3.hzY) + 'px';
+    V3.im = new ImageData(cv.width, cv.height); V3.d32 = new Uint32Array(V3.im.data.buffer);
+    var sk = V3.skyCols(), fc = v3Hex(sk[1]);
+    V3.fogRGB = fc; V3.fog32 = (255 << 24) | (fc[2] << 16) | (fc[1] << 8) | fc[0];
+    var pal = WD().pal, gc = v3Hex(pal.grass[1] && pal.grass[1].charAt(0) === '#' && pal.grass[1].length === 7 ? pal.grass[1] : '#5cbd6a');
+    V3.base32 = (255 << 24) | (gc[2] << 16) | (gc[1] << 8) | gc[0];
+    L.style.background = 'linear-gradient(' + sk[0] + ',' + sk[1] + ' ' + V3.hzY + 'px,' + (pal.grass[1] || '#5cbd6a') + ' ' + V3.hzY + 'px)';
+    var cl = $('#w3clouds'); if (cl) { cl.style.height = V3.hzY + 'px'; cl.style.opacity = dangerOf(S.cur) > 1 ? '.28' : '.9'; }
+  };
+  V3.raster = function (c) {
+    var T = 1536, svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + T + '" height="' + T + '" viewBox="0 0 ' + WORLD + ' ' + WORLD + '">' + c.ground.replace(/@@/g, 'z') + '</svg>';
+    var img = new Image(), url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    img.onload = function () {
+      try {
+        var cv = document.createElement('canvas'); cv.width = cv.height = T;
+        var x = cv.getContext('2d'); x.drawImage(img, 0, 0, T, T);
+        c.px = new Uint32Array(x.getImageData(0, 0, T, T).data.buffer); c.T = T; c.ready = true;
+      } catch (err) { c.fail = true; }
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = function () { c.fail = true; URL.revokeObjectURL(url); };
+    img.src = url;
+  };
+  V3.geom = function (o) {
+    var s = o.s, k = o.k, t;
+    if (k === 'tree') { t = o.s; return { ax: o.x, ay: o.y + 14 * t, vx: o.x - 70 * t, vy: o.y - 100 * t, vw: 140 * t, vh: 130 * t }; }
+    if (k === 'palm') { t = o.s; return { ax: o.x, ay: o.y + 2, vx: o.x - 50 * t, vy: o.y - 95 * t, vw: 100 * t, vh: 100 * t }; }
+    if (!s) return null;
+    if (k === 'portal') return { ax: s.x, ay: s.y + 54, vx: s.x - 215, vy: s.y - 285, vw: 430, vh: 390 };
+    if (k === 'bush') return { ax: s.x, ay: s.y + 50, vx: s.x - 175, vy: s.y - 125, vw: 350, vh: 230 };
+    if (k === 'pile') return { ax: s.x, ay: s.y + 44, vx: s.x - 140, vy: s.y - 70, vw: 280, vh: 130 };
+    if (k === 'prof') return { ax: s.x, ay: s.y + 58, vx: s.x - 100, vy: s.y - 135, vw: 200, vh: 210 };
+    if (k === 'hill') return { ax: s.x, ay: s.y + 30, vx: s.x - 270, vy: s.y - 345, vw: 540, vh: 490 };
+    return null;
+  };
+  V3.build = function () {
+    var id = S.cur, c = splitFor(id);
+    if (!c.started) { c.started = true; V3.raster(c); }
+    V3.tex = c;
+    var host = $('#w3obj'), fr = document.createDocumentFragment(), list = [];
+    c.objs.forEach(function (o) {
+      var g = V3.geom(o); if (!g) return;
+      var el = document.createElement('div'); el.className = 'w3item w3' + o.k;
+      el.style.width = g.vw.toFixed(0) + 'px'; el.style.height = g.vh.toFixed(0) + 'px'; el.style.display = 'none';
+      var lbl = '';
+      if (o.s && o.s.t && o.k !== 'bush') lbl = '<div class="w3lbl">' + esc(o.s.t) + (o.s.k === 'portal' && o.s.to && dangerOf(o.s.to) ? '<small>Danger: ' + DANGER_WORD[dangerOf(o.s.to)] + '</small>' : '') + '</div>';
+      else if (o.s && o.k === 'bush') lbl = '<div class="w3lbl w3small">' + esc(o.s.t || 'Berries') + '</div>';
+      var lbEl = null;
+      el.innerHTML = '<svg viewBox="' + [g.vx, g.vy, g.vw, g.vh].map(function (n) { return n.toFixed(0); }).join(' ') + '" width="' + g.vw.toFixed(0) + '" height="' + g.vh.toFixed(0) + '" aria-hidden="true" focusable="false">' + o.svg.replace(/@@/g, 'g') + '</svg>' + lbl;
+      fr.appendChild(el);
+      lbEl = el.querySelector('.w3lbl');
+      list.push({ el: el, lb: lbEl, near: false, ax: g.ax, ay: g.ay, vx: g.vx, vy: g.vy, vw: g.vw, vh: g.vh, vis: false });
+    });
+    host.innerHTML = ''; host.appendChild(fr); V3.list = list;
+    var hz = hazOf(S.cur), info = HZ[S.cur], hf = document.createDocumentFragment(); V3.hz = [];
+    hz.forEach(function (h, i) {
+      var el = document.createElement('div'); el.className = 'w3hz'; el.style.width = el.style.height = (h.r * 2) + 'px'; el.style.setProperty('--hc', info.c);
+      el.innerHTML = '<i></i>';
+      hf.appendChild(el); V3.hz.push({ el: el, h: h, vis: false });
+    });
+    host.appendChild(hf);
+  };
+  V3.mount = function () {
+    var sc = $('#scene'), ents = $('#ents'), lead = S.world && S.world.ents[0];
+    if (!sc || !ents || !lead || V3.on) return;
+    var L = document.createElement('div'); L.id = 'w3'; L.className = 'w3';
+    L.innerHTML = '<div class="w3clouds" id="w3clouds"></div><canvas class="w3floor" id="w3floor" aria-hidden="true"></canvas><div class="w3obj" id="w3obj"></div><div class="w3ents" id="w3ents"></div>';
+    var wx = sc.querySelector('.wxc'); if (wx) sc.insertBefore(L, wx); else sc.appendChild(L);
+    $('#w3ents').appendChild(ents);
+    sc.classList.add('v3on');
+    V3.on = true;
+    var dcx = CX - lead.x, dcy = CY - lead.y;
+    V3.th = Math.hypot(dcx, dcy) > 260 ? Math.atan2(dcy, dcx) : -Math.PI / 2;
+    V3.size(); V3.build(); V3.pose(lead, 0.016);
+    V3.syncBtn();
+  };
+  V3.unmount = function () {
+    if (!V3.on) return;
+    var sc = $('#scene'), ents = $('#ents'), world = $('#world'), L = $('#w3');
+    if (ents && world) world.appendChild(ents);
+    if (L) L.remove();
+    if (sc) sc.classList.remove('v3on');
+    V3.on = false; V3.list = []; V3.hz = [];
+    if (S.world) S.world.ents.forEach(function (e) { if (e.el) { e.el.style.display = ''; e.el.style.opacity = ''; } draw(e); });
+    fitScene(); clampCam(); applyCamera();
+    V3.syncBtn();
+  };
+  V3.syncBtn = function () {
+    var b = $('#v3btn'); if (!b) return;
+    b.setAttribute('aria-pressed', V3.on ? 'true' : 'false'); b.textContent = V3.on ? 'Back to map view' : 'Walk view (3D)';
+  };
+  V3.toggle = function () {
+    if (S.birds) toggleBirds();
+    if (V3.on) { V3.unmount(); v3Save(false); say('Back to the map view.', 2200); }
+    else { V3.mount(); v3Save(true); say('Walk view! Arrow keys or WASD: forward, back and turn. Tap the ground to walk there. Zoom changes how close the camera is.', 6500); }
+  };
+  V3.steerKeys = function (kx, ky, dt, lead) {
+    V3.manual = false;
+    if (kx) { V3.th += kx * 2.1 * dt; V3.manual = true; lead.way = null; lead.tx = lead.x; lead.ty = lead.y; }
+    V3.fx = Math.cos(V3.th); V3.fy = Math.sin(V3.th); V3.rx = -V3.fy; V3.ry = V3.fx;
+    var fw = -ky;
+    return { x: V3.fx * fw, y: V3.fy * fw };
+  };
+  V3.pose = function (lead, dt) {
+    var mx = lead.tx - lead.x, my = lead.ty - lead.y;
+    if (!V3.manual && lead.moving && Math.hypot(mx, my) > 70) {
+      var df = Math.atan2(my, mx) - V3.th;
+      while (df > Math.PI) df -= 2 * Math.PI; while (df < -Math.PI) df += 2 * Math.PI;
+      V3.th += df * Math.min(1, 2.6 * dt);
+    }
+    if (V3.th > Math.PI) V3.th -= 2 * Math.PI; else if (V3.th < -Math.PI) V3.th += 2 * Math.PI;
+    V3.fx = Math.cos(V3.th); V3.fy = Math.sin(V3.th); V3.rx = -V3.fy; V3.ry = V3.fx;
+    V3.D = Math.max(170, Math.min(620, 300 / Math.pow(zoomUser, 0.8)));
+    V3.H = 100 + 0.17 * V3.D;
+    V3.cx = lead.x - V3.fx * V3.D; V3.cy = lead.y - V3.fy * V3.D;
+  };
+  V3.slot = function (lead, i) {
+    var row = i >> 1, side = (i & 1) ? 1 : -1, fw = 80 + 62 * row, lat = side * (105 + 18 * row);
+    return { x: lead.x + V3.fx * fw + V3.rx * lat, y: lead.y + V3.fy * fw + V3.ry * lat };
+  };
+  V3.s2w = function (px, py) {
+    var dy = py - V3.hzY, z = dy < 8 ? V3ZMAX * 0.7 : Math.min(V3ZMAX * 0.7, V3.F * V3.H / dy), x = (px - V3.vw / 2) / V3.F * z;
+    return { x: V3.cx + V3.fx * z + V3.rx * x, y: V3.cy + V3.fy * z + V3.ry * x };
+  };
+  V3.place = function (e) {
+    var el = e.el, dx = e.x - V3.cx, dy = e.y - V3.cy, z = dx * V3.fx + dy * V3.fy;
+    if (z < V3NEAR || z > V3ZMAX) { if (el.style.display !== 'none') el.style.display = 'none'; return; }
+    var x = dx * V3.rx + dy * V3.ry, sc = Math.min(3, V3.F / z), sx = V3.vw / 2 + x * sc, gy = V3.hzY + V3.H * sc, w = e.size;
+    var air = (e.kind === 'hero' || e.kind === 'follower') && flyOn();
+    if (air) gy -= 46 * sc;
+    if (Math.abs(x) * sc > V3.vw * 0.75) { if (el.style.display !== 'none') el.style.display = 'none'; return; }
+    if (el.style.display === 'none') el.style.display = '';
+    el.style.transform = 'translate3d(' + (sx - w * sc / 2).toFixed(1) + 'px,' + (gy - w * 0.9 * sc).toFixed(1) + 'px,0) scale(' + sc.toFixed(4) + ')';
+    el.style.zIndex = (drag && drag.ent === e) ? 99999 : air ? 40000 - Math.round(z) : Math.max(2, 30000 - Math.round(z * 6));
+    el.style.opacity = z > 1700 ? Math.max(0, 1 - (z - 1700) / (V3ZMAX - 1700)).toFixed(2) : '';
+  };
+  V3.floor = function () {
+    var cv = $('#w3floor'), c = V3.tex; if (!cv || !V3.im) return;
+    var cw = cv.width, ch = cv.height, d32 = V3.d32, s = V3.is, Fi = V3.F * s, Hh = V3.H, hc = cw / 2;
+    var ready = !!(c && c.ready), tex = ready ? c.px : null, T = ready ? c.T : 0, k = ready ? T / WORLD : 0, lim = T - 1;
+    var fx = V3.fx, fy = V3.fy, rx = V3.rx, ry = V3.ry, cx = V3.cx, cy = V3.cy, fog32 = V3.fog32, base = V3.base32, fr = V3.fogRGB;
+    var r, i, z, a, ai, row, step, wx, wy, sx, sy, u, v, col, cr, cg, cb;
+    for (r = 0; r < ch; r++) {
+      z = Fi * Hh / (r + 0.5); row = r * cw;
+      a = z > V3ZMAX ? 1 : z > 900 ? (z - 900) / (V3ZMAX - 900) : 0;
+      if (a >= 0.995) { for (i = 0; i < cw; i++) d32[row + i] = fog32; continue; }
+      if (!ready) { for (i = 0; i < cw; i++) d32[row + i] = base; continue; }
+      step = z / Fi;
+      wx = (cx + fx * z - rx * hc * step) * k; wy = (cy + fy * z - ry * hc * step) * k; sx = rx * step * k; sy = ry * step * k;
+      if (a < 0.02) {
+        for (i = 0; i < cw; i++) { u = wx | 0; v = wy | 0; u = u < 0 ? 0 : u > lim ? lim : u; v = v < 0 ? 0 : v > lim ? lim : v; d32[row + i] = tex[v * T + u]; wx += sx; wy += sy; }
+      } else {
+        ai = (a * 256) | 0;
+        for (i = 0; i < cw; i++) {
+          u = wx | 0; v = wy | 0; u = u < 0 ? 0 : u > lim ? lim : u; v = v < 0 ? 0 : v > lim ? lim : v; col = tex[v * T + u];
+          cr = col & 255; cg = (col >> 8) & 255; cb = (col >> 16) & 255;
+          cr += ((fr[0] - cr) * ai) >> 8; cg += ((fr[1] - cg) * ai) >> 8; cb += ((fr[2] - cb) * ai) >> 8;
+          d32[row + i] = (255 << 24) | (cb << 16) | (cg << 8) | cr; wx += sx; wy += sy;
+        }
+      }
+    }
+    cv.getContext('2d').putImageData(V3.im, 0, 0);
+  };
+  V3.render = function () {
+    if (!V3.on) return;
+    if (V3.vw !== vw || V3.vh !== vh) V3.size();
+    V3.floor();
+    var F = V3.F, hw = V3.vw / 2, i, o, dx, dy, z, x, sc, sx, gy, q;
+    for (i = 0; i < V3.list.length; i++) {
+      o = V3.list[i]; dx = o.ax - V3.cx; dy = o.ay - V3.cy; z = dx * V3.fx + dy * V3.fy;
+      if (z < V3NEAR || z > V3ZMAX) { if (o.vis) { o.el.style.display = 'none'; o.vis = false; } continue; }
+      x = dx * V3.rx + dy * V3.ry; sc = F / z;
+      if (Math.abs(x) * sc > hw + o.vw * sc) { if (o.vis) { o.el.style.display = 'none'; o.vis = false; } continue; }
+      if (!o.vis) { o.el.style.display = ''; o.vis = true; }
+      if (o.lb) { q = z < 420; if (q !== o.near) { o.near = q; o.lb.style.display = q ? 'none' : ''; } }
+      sx = hw + x * sc; gy = V3.hzY + V3.H * sc;
+      o.el.style.transform = 'translate3d(' + (sx - (o.ax - o.vx) * sc).toFixed(1) + 'px,' + (gy - (o.ay - o.vy) * sc).toFixed(1) + 'px,0) scale(' + sc.toFixed(4) + ')';
+      o.el.style.zIndex = Math.max(2, 30000 - Math.round(z * 6));
+      o.el.style.opacity = (z < V3.D - 10 && Math.abs(x) * sc < o.vw * sc * 0.5 + 70 * V3.F / V3.D) ? '.28' : z > 1700 ? Math.max(0, 1 - (z - 1700) / (V3ZMAX - 1700)).toFixed(2) : '';
+    }
+    for (i = 0; i < V3.hz.length; i++) {
+      q = V3.hz[i]; dx = q.h.x - V3.cx; dy = q.h.y - V3.cy; z = dx * V3.fx + dy * V3.fy;
+      if (z < 30 || z > V3ZMAX) { if (q.vis) { q.el.style.display = 'none'; q.vis = false; } continue; }
+      x = dx * V3.rx + dy * V3.ry; sc = F / z;
+      if (Math.abs(x) - q.h.r > hw / sc) { if (q.vis) { q.el.style.display = 'none'; q.vis = false; } continue; }
+      if (!q.vis) { q.el.style.display = ''; q.vis = true; }
+      sx = hw + x * sc; gy = V3.hzY + V3.H * sc;
+      q.el.style.transform = 'translate3d(' + (sx - q.h.r * sc).toFixed(1) + 'px,' + (gy - q.h.r * sc * (V3.H / z)).toFixed(1) + 'px,0) scale(' + sc.toFixed(4) + ',' + (sc * V3.H / z).toFixed(4) + ')';
+      q.el.style.opacity = q.h.seen ? (z > 1700 ? Math.max(0, 1 - (z - 1700) / (V3ZMAX - 1700)).toFixed(2) : '') : '0.1';
+      q.el.style.zIndex = 1;
+    }
+    var cl = $('#w3clouds'); if (cl) cl.style.backgroundPositionX = (-V3.th * 420).toFixed(0) + 'px';
+  };
+  function screenToWorld(px, py) {
+    if (V3.on) return V3.s2w(px, py);
+    return { x: cam.x + (px - vw / 2) / zoom, y: cam.y + (py - vh / 2) / zoom }; }
   function planetToWorld(ev) {
     var svg = $('#planet'); if (!svg) return null;
     var r = svg.getBoundingClientRect(), s = Math.min(r.width, r.height) / (WORLD + 80 * WS);
@@ -3227,7 +3904,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var sb = $('#sunbtn'); if (sb) { sb.hidden = !(S.suns > 0 && S.sleeping > 0 && S.cur !== 'home'); sb.textContent = 'Use sun (' + S.suns + ')'; }
     var fb = $('#feedbtn'); if (fb) fb.textContent = 'Feed pets (' + S.food + ')';
     var xb = $('#dexbtn'); if (xb) { var xt = dexTotals(); xb.textContent = 'Petdex ' + xt[0] + '/' + xt[1]; }
-    if (pb) { pb.hidden = !(S.portals > 0 && S.cur !== 'home'); pb.textContent = 'Portal home (' + S.portals + ')'; }
+    if (pb) { pb.hidden = !(homeCan() && S.cur !== 'home'); pb.textContent = 'Portal home (' + (homeFree() ? homeFree() + ' free' + (S.portals ? ' + ' + S.portals : '') : S.portals) + ')'; }
   }
   function nearWild() {
     var w = S.world, lead = w.ents[0], best = null, bd = 95;
@@ -3386,6 +4063,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var HAPPY_WINDOW = { wild: 6, powerful: 4.4, super: 3.4, ultra: 2.6, legend: 2 };
   function crowd() { return Math.max(0.35, 1 - 0.06 * (S.team.length - 1)); }   // more friends, harder to make another
   function setMood(e, m, secs) {
+    if (e.spirit) { m = 'happy'; secs = 999; }   /* a lost unicorn spirit is always happy */
     e.mood = m; e.moodT = secs;
     if (e.el) e.el.dataset.mood = m;
   }
@@ -3412,14 +4090,15 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function foodCap() { return FOOD_CAP[S.bag]; }
   function portalCost() { return Math.min(40, 10 + 4 * (level() - 1)); }
   // every extra friend you carry slows you down
-  function speedMult() { return Math.max(0.05, 1 - 0.10 * (S.team.length - 1)) * (1 + 0.22 * S.boots) * hungerSlow(); }
+  function maxCount() { return S.team.filter(function (p) { return p.stage >= 4; }).length; }
+  function speedMult() { return Math.max(0.05, 1 - 0.10 * (S.team.length - 1)) * (1 + 0.22 * S.boots) * (1 + 0.25 * maxCount()) * hungerSlow(); }
   function sellPrice(p) { return (SELL[p.rid] || 2) + 2 * (p.stage - 1); }
   var battle = null;
-  function stopBattle() { if (battle && battle.raf) cancelAnimationFrame(battle.raf); battle = null; }
+  function stopBattle() { if (battle && battle.raf) cancelAnimationFrame(battle.raf); if (battle && battle.tm) battle.tm.forEach(clearTimeout); battle = null; }
   function openSheet(html) {
-    var sc = $('#scene'); if (!sc) return;
+    var sc = $('#scene') || (S && S.screen === 'play' ? document.body : null); if (!sc) return;
     var el = $('#sheet');
-    if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'sheet'; sc.appendChild(el); }
+    if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'sheet' + (sc === document.body ? ' homesheet' : ''); sc.appendChild(el); }
     el.innerHTML = html;
     var f = el.querySelector('button:not([disabled])'); if (f) f.focus({ preventScroll: true });
     soundBtns(); audioSync();
@@ -3511,9 +4190,23 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     save(); updateHud(); updateCatchBar(); worldBurst(h.x, h.y - 60, 'play'); flash();
     wmsg('The Portable Sun glowed and the ball turned ' + st.label + '. It is a Happy Stone now! ' + S.suns + ' use' + (S.suns === 1 ? '' : 's') + ' left.');
   }
+  /* above level 10, you get 2 free trips home from any world; each comes back after 10 more new worlds are opened */
+  var HOME_FREE = 2, HOME_WAIT = 10;
+  function homeBusy() { var c = Object.keys(S.opened).length; return (S.homeJ || []).filter(function (n) { return c - n < HOME_WAIT; }); }
+  function homeFree() { return level() > 10 ? Math.max(0, HOME_FREE - homeBusy().length) : 0; }
+  function homeCan() { return homeFree() + S.portals > 0; }
+  function homeLeftText() {
+    var f = homeFree(), c = Object.keys(S.opened).length, parts = [];
+    if (level() > 10) {
+      parts.push(f + ' free trip' + (f === 1 ? '' : 's'));
+      if (f < HOME_FREE) var wl = Math.min.apply(null, homeBusy().map(function (n) { return HOME_WAIT - (c - n); })); parts.push('the next free one is back after ' + wl + ' more new world' + (wl === 1 ? '' : 's'));
+    }
+    if (S.portals > 0) parts.push(S.portals + ' portal use' + (S.portals === 1 ? '' : 's'));
+    return parts.length ? parts.join(', ') + ' left.' : '';
+  }
   function usePortal() {
-    if (!S.world || S.cur === 'home' || S.portals < 1) return;
-    S.portals--;
+    if (!S.world || S.cur === 'home' || !homeCan()) return;
+    if (homeFree() > 0) { S.homeJ = homeBusy().concat([Object.keys(S.opened).length]); } else S.portals--;
     closeSheet();
     travel('home', true);
   }
@@ -3529,7 +4222,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return '<div class="sheet-card tired"><h3>You are worn out!</h3>' +
       '<p class="bt-msg">You carry ' + S.team.length + ' pets, so you only move at ' + Math.round(speedMult() * 100) + '% speed. Take a rest, or let some pets go.</p>' +
       '<button class="btn primary" data-act="rest">Take a rest</button>' +
-      (S.portals > 0 && S.cur !== 'home' ? '<button class="btn ghost" data-act="portalhome">Use Home Portal (' + S.portals + ' left)</button>' : '') +
+      (homeCan() && S.cur !== 'home' ? '<button class="btn ghost" data-act="portalhome">Go home (' + (homeFree() ? homeFree() + ' free' + (S.portals ? ' + ' + S.portals : '') : S.portals) + ' left)</button>' : '') +
       (nearLab() ? '<button class="btn ghost" data-act="shop">Sell pets at the lab for coins</button>' : '') +
       '<h4>Let a pet go (no coins)</h4>' + rows +
       '<p class="srow-note">Letting a pet go is forever, and you earn no coins. At the lab you would get coins for selling.</p></div>';
@@ -3592,6 +4285,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     moon: [-1380, -900], gale: [1330, -1280], forge: [1700, 260], ruins: [-1040, 1380], starfall: [-1980, -1250], rainbow: [1880, -1840],
     bonewood: [-1750, 2000], mire: [-2650, 1650], maw: [-2350, 2750], ashen: [2600, 800], crag: [3350, 1450], colossus: [3050, 2450],
     abyss: [-3000, -1950], voidw: [-3650, -2850], throne: [-2350, -3300], nightbloom: [2750, -2600] };
+  FAR_DEF.forEach(function (d) { UNI_POS[d.id] = d.pos; });
   var U = null;
   function uRadius(id) { return 30 * WORLDS[id].s; }
   function uVisible() {
@@ -3664,6 +4358,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       h.push('<circle cx="' + b[0] + '" cy="' + b[1] + '" r="' + b[2] + '" fill="url(#' + b[3] + ')"/>');
     });
     for (i = 0; i < 320; i++) h.push('<circle cx="' + Math.round(-4200 + R() * 8400) + '" cy="' + Math.round(-3700 + R() * 7200) + '" r="' + (2 + R() * 4).toFixed(1) + '" fill="#fff" opacity="' + (0.25 + R() * 0.55).toFixed(2) + '"/>');
+    if (farOn()) for (i = 0; i < 1100; i++) h.push('<circle cx="' + Math.round(-1500 + R() * 13000) + '" cy="' + Math.round(-9500 + R() * 18500) + '" r="' + (2 + R() * 4).toFixed(1) + '" fill="#fff" opacity="' + (0.25 + R() * 0.55).toFixed(2) + '"/>');
     edges.forEach(function (e) {
       var pa = UNI_POS[e.a], pb = UNI_POS[e.b], dx = pb[0] - pa[0], dy = pb[1] - pa[1], L = Math.hypot(dx, dy) || 1, ra = uRadius(e.a) + 12, rb = uRadius(e.b) + 12;
       var x1 = pa[0] + dx / L * ra, y1 = pa[1] + dy / L * ra, x2 = pb[0] - dx / L * rb, y2 = pb[1] - dy / L * rb;
@@ -3680,7 +4375,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (!wm) uniQuests().forEach(function (th) { var uw = uniWorld(th); if (!S.uni[th] && uw && vis[uw] && UNI_POS[uw]) h.push(uniSpiritSVG(uw, th)); });
     if (wm) { h.push('</g></svg><div class="umet"></div></div>'); return h.join(''); }
     h.push('</g></svg><div class="umet"></div>' +
-      '<div class="utop"><button class="btn ghost small" data-act="' + close + '" data-autofocus>Close</button><div class="utitle"><b>All worlds</b><span>' + n + ' of ' + WORLD_IDS.length + ' opened &middot; Level ' + level() + '</span></div><button class="fsbtn sndbtn" data-act="sound" aria-label="Mute sound">' + SND_ICON + '</button></div>' +
+      '<div class="utop"><button class="btn ghost small" data-act="' + close + '" data-autofocus>Close</button><div class="utitle"><b>All worlds</b><span>' + n + ' of ' + shownIds().length + ' opened &middot; Level ' + level() + '</span></div><button class="fsbtn sndbtn" data-act="sound" aria-label="Mute sound">' + SND_ICON + '</button></div>' +
       '<div class="uctrl"><button class="zbtn" data-act="uzoomin" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>' +
       '<button class="zbtn" data-act="uzoomout" aria-label="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>' +
       '<button class="zbtn txt" data-act="ufit" aria-label="Show every world">All</button><button class="zbtn txt" data-act="uhere" aria-label="Go to where you are">You</button></div>' +
@@ -3827,10 +4522,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       '<div class="bt-guard">' + petSVG(g.type, 3, b.ge.name, g.body) + '</div>' +
       '<div class="hpbar" aria-label="Guard strength"><i id="bthp" style="width:100%"></i></div>' +
       '<p class="bt-msg" id="btmsg" aria-live="polite">' + battleIntro(b) + '</p>' +
-      '<div class="track" id="bttrack" data-act="strike"><div id="btzones"></div><div class="marker" id="btmark"></div></div>' +
+      '<div class="btmode">' + BM[b.mode].name + ' &middot; Difficulty ' + b.tier + '</div>' +
+      BM[b.mode].html(b) +
       '<div class="hearts" id="bthearts"></div>' +
       '<div class="bt-team" aria-label="Your team">' + team + '</div>' +
-      '<button class="btn primary" id="btstrike" data-act="strike">Strike!</button>' +
+      (BM[b.mode].btn || HIDDEN_BTN) +
       '<button class="btn ghost small" data-act="closesheet">Run away</button></div>';
   }
   // Higher guards fight harder: tier 1 is plain timing, later tiers add red decoys, drifting and pulsing targets.
@@ -3843,9 +4539,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     6: { gold: 2, decoys: 3, drift: 0.12, pulse: 0.4, ramp: 0.06, shrink: 0.04 },
     7: { gold: 2, decoys: 3, drift: 0.14, pulse: 0.45, ramp: 0.08, shrink: 0.045 },
     8: { gold: 2, decoys: 3, drift: 0.16, pulse: 0.5, ramp: 0.09, shrink: 0.05 },
-    9: { gold: 2, decoys: 3, drift: 0.18, pulse: 0.55, ramp: 0.1, shrink: 0.055 }
+    9: { gold: 2, decoys: 3, drift: 0.18, pulse: 0.55, ramp: 0.1, shrink: 0.055 },
+    10: { gold: 2, decoys: 3, drift: 0.2, pulse: 0.58, ramp: 0.11, shrink: 0.058 },
+    11: { gold: 2, decoys: 3, drift: 0.22, pulse: 0.6, ramp: 0.12, shrink: 0.06 },
+    12: { gold: 2, decoys: 3, drift: 0.24, pulse: 0.62, ramp: 0.13, shrink: 0.062 }
   };
-  function battleIntro(b) {
+  function battleIntro(b) { return (level() > 10 ? 'Warning: you have lost ' + (S.losses || 0) + ' of 3 battles. ' : '') + battleIntro0(b); }
+  function battleIntro0(b) {
+    if (b.mode && b.mode !== 'strike') return BM[b.mode].intro;
     var sp = b.spec;
     if (sp.ramp) return 'Gold zones, RED zones, and it gets faster with every hit! Hit gold only.';
     if (sp.drift) return 'The zones drift and the marker speeds up and slows down. Hit the gold, avoid the red!';
@@ -3884,20 +4585,31 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     h.setAttribute('aria-label', b.hearts + ' hearts left');
   }
   function battleMsg(t) { var m = $('#btmsg'); if (m) m.textContent = t; }
-  function startBattle(ge) {
-    if (!ge || missingFor(ge.guard).length) return;
+  function startBattle(ge, keep) {
+    if (!ge || missingFor(ge.guard, ge).length) return;
+    if (level() > 10 && (S.losses || 0) >= 3) { openSheet(gameOverHTML()); return; }
     stopBattle();
-    var g = ge.guard, needN = Object.keys(g.need).reduce(function (a, t) { return a + g.need[t]; }, 0), spec = BATTLE_TIERS[g.tier || 1];
-    var zw = Math.min(0.42, g.zone + 0.02 * Math.max(0, S.team.length - needN));
+    var g = ge.guard, needN = Object.keys(g.need).reduce(function (a, t) { return a + g.need[t]; }, 0), tier = battleTier(g), spec = tierSpec(tier), lv = Math.max(0, level() - 5);
+    var zw = Math.min(0.42, g.zone + 0.02 * Math.max(0, S.team.length - needN)) * Math.max(0.7, 1 - 0.006 * lv);
+    var weak = S.weak[ge.key] || 0, preNames = [], preSum = 0;
+    if (S.weak[ge.key] === undefined) {
+      var hit = 0; preReady().forEach(function (r) { hit += r.n; r.p.px = openedCount(); preNames.push(r.p.name + ' (' + r.n + ')'); });
+      weak = Math.min(hit, g.hp - 1); preSum = hit; if (hit) { S.weak[ge.key] = weak; save(); }
+    }
     var foc = S.focus; if (foc) { S.focus = false; zw = Math.min(0.5, zw * 1.25); updateHud(); save(); }
-    var b = battle = { ge: ge, spec: spec, hp: g.hp, maxHp: g.hp, hearts: foc ? 4 : 3, maxHearts: foc ? 4 : 3, zoneW: zw, baseW: zw, speed: g.speed, ph: 0, last: performance.now(), pos: 0, zones: [], shift: 0, dir: 1, lo: 0, hi: 0, over: false, raf: 0, lock: 0 };
+    var mode = keep || battleMode(g); lastMode = mode;
+    var b = battle = { mode: mode, tier: tier, tm: [], ge: ge, spec: spec, weak: weak, preSum: preSum, hp: g.hp - weak, maxHp: g.hp, hearts: foc ? 4 : 3, maxHearts: foc ? 4 : 3, zoneW: zw, baseW: zw, speed: g.speed * Math.min(1.4, 1 + 0.006 * lv), ph: 0, last: performance.now(), pos: 0, zones: [], shift: 0, dir: 1, lo: 0, hi: 0, over: false, raf: 0, lock: 0 };
     openSheet(battleHTML(b));
-    battleZone(b); battleHearts(b);
+    battleHearts(b);
+    var hpb = $('#bthp'); if (hpb) hpb.style.width = (b.hp / b.maxHp * 100) + '%';
+    if (preNames.length) battleMsg(preNames.join(' and ') + ' struck first! ' + weak + ' hit' + (weak > 1 ? 's' : '') + ' landed' + (weak < b.preSum ? ' (the guard always keeps 1 for you)' : '') + '. ' + battleIntro(b));
+    if (b.mode !== 'strike') { BM[b.mode].start(b); return; }
+    battleZone(b);
     (function loop(now) {
       if (battle !== b) return;
       b.raf = requestAnimationFrame(loop);
       var dt = Math.min(0.05, (now - b.last) / 1000); b.last = now;
-      var f = (spec.pulse ? 1 + spec.pulse * Math.sin(now / 520) : 1) * (1 + spec.ramp * (b.maxHp - b.hp));
+      var f = (spec.pulse ? 1 + spec.pulse * Math.sin(now / 520) : 1) * (1 + spec.ramp * (b.maxHp - b.hp - b.weak));
       b.ph = (b.ph + dt * b.speed * 0.9 * f) % 2;
       b.pos = b.ph < 1 ? b.ph : 2 - b.ph;
       var m = $('#btmark'); if (m) m.style.left = (b.pos * 100).toFixed(1) + '%';
@@ -3910,40 +4622,304 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function strike() {
     var b = battle, now = performance.now();
-    if (!b || b.over || now < b.lock) return;
+    if (!b || b.over || b.mode !== 'strike' || now < b.lock) return;
     b.lock = now + 450;
     var hitGold = false, hitRed = false;
     b.zones.forEach(function (z) {
       if (Math.abs(b.pos - (z.c + b.shift)) <= z.w / 2) { if (z.kind === 'red') hitRed = true; else hitGold = true; }
     });
     if (hitGold && !hitRed) {
-      b.hp--;
-      var hp = $('#bthp'); if (hp) hp.style.width = (b.hp / b.maxHp * 100) + '%';
-      if (b.hp <= 0) { b.over = true; battleMsg('Direct hit! ' + b.ge.name + ' is beaten!'); later(function () { if (battle === b) beatGuard(b.ge); }, 700); return; }
-      battleMsg('Direct hit! ' + b.hp + ' more to go.');
+      if (bHit(b)) return;
       if (b.spec.shrink) b.zoneW = Math.max(0.1, b.zoneW * (1 - b.spec.shrink));
       battleZone(b);
+    } else bMiss(b, hitRed ? 'Ouch, that was the red zone! ' + b.ge.name + ' strikes back.' : 'Missed! ' + b.ge.name + ' strikes back.');
+  }
+  /* ----- guard battles come in five kinds: timing, echo, weak spots, dodge and memory ----- */
+  var BM = {};
+  var MODE_LIST = ['strike', 'echo', 'whack', 'dodge', 'match'];
+  function battleMode(g) {
+    try { var f = localStorage.getItem('magical-pets-mode'); if (f && BM[f]) return f; } catch (e) { /* default */ }
+    if (level() < 5) return 'strike';
+    var pool = MODE_LIST.filter(function (m) { return m !== lastMode; });
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  var lastMode = '';
+  /* difficulty = the guard's tier, plus 1 for every 5 levels above level 5 (up to 16) */
+  function battleTier(g) { return Math.min(16, (g.tier || 1) + Math.floor(Math.max(0, level() - 5) / 5)); }
+  function tierSpec(t) {
+    if (t <= 12) return BATTLE_TIERS[t];
+    var e = t - 12;
+    return { gold: 2, decoys: 3, drift: 0.24 + 0.02 * e, pulse: 0.62 + 0.02 * e, ramp: 0.13 + 0.01 * e, shrink: 0.062 + 0.002 * e };
+  }
+  function bTier(b) { return b.tier; }
+  function bAfter(b, fn, ms) { var id = setTimeout(function () { if (battle === b) fn(); }, ms); b.tm.push(id); return id; }
+  function bHit(b, msg) {
+    b.hp--; var hp = $('#bthp'); if (hp) hp.style.width = (Math.max(0, b.hp) / b.maxHp * 100) + '%';
+    auAct('hit');
+    if (b.hp <= 0) { b.over = true; battleMsg('Direct hit! ' + b.ge.name + ' is beaten!'); bAfter(b, function () { beatGuard(b.ge); }, 700); return true; }
+    battleMsg(msg || ('Direct hit! ' + b.hp + ' more to go.'));
+    return false;
+  }
+  function bLose(b) {
+    b.over = true;
+    var over3 = false;
+    if (level() > 10) { S.losses = (S.losses || 0) + 1; over3 = S.losses >= 3; save(); }
+    battleMsg(over3 ? 'You were pushed back. That is 3 lost battles. GAME OVER!' : 'You were pushed back!' + (level() > 10 ? ' That is ' + S.losses + ' of 3 lost battles.' : '') + ' Rest a moment, then try again.');
+    if (over3) later(function () { if (battle === b) openSheet(gameOverHTML()); }, 1200);
+    var s = $('#btstrike'); if (s) { s.hidden = false; s.textContent = 'Try again'; s.dataset.act = 'retry'; }
+    var tr = $('#bttrack'); if (tr) tr.removeAttribute('data-act');
+  }
+  // returns true when this miss lost the battle
+  function bMiss(b, msg) {
+    b.hearts--; battleHearts(b); auAct('nope');
+    if (b.hearts > 0) { battleMsg(msg); return false; }
+    bLose(b); return true;
+  }
+  function bLoop(b, fn) {
+    b.last = performance.now();
+    (function loop(now) {
+      if (battle !== b) return;
+      b.raf = requestAnimationFrame(loop);
+      var dt = Math.min(0.05, (now - b.last) / 1000); b.last = now;
+      if (!b.over) fn(now, dt);
+    })(performance.now());
+  }
+  var HIDDEN_BTN = '<button class="btn primary" id="btstrike" data-act="none" hidden></button>';
+
+  BM.strike = {
+    name: 'Timing battle', intro: '',
+    html: function () { return '<div class="track" id="bttrack" data-act="strike"><div id="btzones"></div><div class="marker" id="btmark"></div></div>'; },
+    btn: '<button class="btn primary" id="btstrike" data-act="strike">Strike!</button>'
+  };
+
+  /* Echo: copy the pattern the guard plays */
+  BM.echo = {
+    name: 'Echo battle', intro: 'Watch the pads light up, then tap them in the same order!',
+    html: function () { return '<div class="echo" id="btarea">' + [0, 1, 2, 3].map(function (i) { return '<button class="epad e' + i + '" data-act="echopad" data-i="' + i + '" aria-label="Pad ' + (i + 1) + '"><span>' + ['&#9733;', '&#9679;', '&#9650;', '&#9632;'][i] + '</span></button>'; }).join('') + '</div>'; },
+    start: function (b) { b.round = 0; b.input = false; b.show = Math.max(280, 720 - bTier(b) * 38); b.len0 = bTier(b) >= 12 ? 4 : bTier(b) >= 7 ? 3 : 2; echoNew(b); }
+  };
+  function echoNew(b) {
+    var L = Math.min(bTier(b) >= 14 ? 8 : 6, b.len0 + Math.floor(b.round / 3)), i; b.seq = [];
+    for (i = 0; i < L; i++) b.seq.push(Math.floor(Math.random() * 4));
+    echoPlay(b);
+  }
+  function echoFlash(b, i, ms) {
+    var p = document.querySelector('.epad.e' + i); if (!p) return;
+    p.classList.add('lit'); auAct('pad', i); bAfter(b, function () { p.classList.remove('lit'); }, ms);
+  }
+  function echoPlay(b) {
+    b.input = false; b.pos = 0; battleMsg('Watch closely...');
+    var i = 0;
+    function step() {
+      if (i >= b.seq.length) { b.input = true; battleMsg('Your turn! Tap the same pads.'); return; }
+      echoFlash(b, b.seq[i], b.show); i++; bAfter(b, step, b.show + 170);
+    }
+    bAfter(b, step, 700);
+  }
+  function echoTap(i) {
+    var b = battle; if (!b || b.mode !== 'echo' || !b.input || b.over) return;
+    echoFlash(b, i, 200);
+    if (i === b.seq[b.pos]) {
+      b.pos++;
+      if (b.pos >= b.seq.length) { b.input = false; b.round++; if (!bHit(b)) bAfter(b, function () { echoNew(b); }, 900); }
     } else {
-      b.hearts--; battleHearts(b);
-      if (b.hearts <= 0) {
-        b.over = true;
-        battleMsg('You were pushed back! Rest a moment, then try again.');
-        var s = $('#btstrike'); if (s) { s.textContent = 'Try again'; s.dataset.act = 'retry'; }
-        var tr = $('#bttrack'); if (tr) tr.removeAttribute('data-act');
-      } else battleMsg(hitRed ? 'Ouch, that was the red zone! ' + b.ge.name + ' strikes back.' : 'Missed! ' + b.ge.name + ' strikes back.');
+      b.input = false;
+      if (!bMiss(b, 'Wrong pad! ' + b.ge.name + ' strikes back. Watch again.')) bAfter(b, function () { echoPlay(b); }, 1100);
     }
   }
-  function beatGuard(ge) {
+
+  /* Weak spots: tap the gold spots before they fade, never the red ones */
+  BM.whack = {
+    name: 'Weak-spot battle', intro: 'Tap the GOLD weak spots before they fade! Do not touch the red decoys.',
+    html: function () { var h = '', i; for (i = 0; i < 9; i++) h += '<button class="hole" data-act="whackhole" data-i="' + i + '" aria-label="Spot ' + (i + 1) + '"></button>'; return '<div class="whack" id="btarea">' + h + '</div>'; },
+    start: function (b) {
+      var t = bTier(b); b.holes = []; b.every = Math.max(430, 900 - t * 38); b.life = Math.max(720, 1500 - t * 65); b.decoyP = Math.min(0.45, 0.18 + t * 0.025); b.next = performance.now() + 800;
+      bLoop(b, function (now) {
+        var els = document.querySelectorAll('.hole'), i, h, golds = 0;
+        for (i = 0; i < 9; i++) {
+          h = b.holes[i];
+          if (h && now >= h.until) {
+            b.holes[i] = null; els[i].className = 'hole';
+            if (h.kind === 'gold') { if (bMiss(b, 'Too slow! The weak spot faded. ' + b.ge.name + ' strikes back.')) return; }
+          }
+          if (b.holes[i] && b.holes[i].kind === 'gold') golds++;
+        }
+        if (now >= b.next) {
+          var free = []; for (i = 0; i < 9; i++) if (!b.holes[i]) free.push(i);
+          if (free.length) {
+            var k = free[Math.floor(Math.random() * free.length)], kind = (golds >= (bTier(b) >= 12 ? 3 : 2) || Math.random() < b.decoyP) ? 'red' : 'gold';
+            b.holes[k] = { kind: kind, until: now + b.life * (kind === 'red' ? 1.1 : 1) }; els[k].className = 'hole ' + kind;
+          }
+          b.next = now + b.every * (0.85 + Math.random() * 0.3);
+        }
+      });
+    }
+  };
+  function whackTap(i) {
+    var b = battle; if (!b || b.mode !== 'whack' || b.over) return;
+    var h = b.holes[i], el = document.querySelectorAll('.hole')[i]; if (!h) return;
+    b.holes[i] = null; if (el) el.className = 'hole';
+    if (h.kind === 'gold') bHit(b); else bMiss(b, 'Ouch, that was a decoy! ' + b.ge.name + ' strikes back.');
+  }
+
+  /* Dodge: slide to the safe lane before the bolts land */
+  BM.dodge = {
+    name: 'Dodge battle', intro: 'Bolts are coming! Tap a lane (or use the arrows) to stand in the safe one.',
+    html: function () {
+      var h = '', i; for (i = 0; i < 3; i++) h += '<button class="dlane" data-act="dodgelane" data-i="' + i + '" aria-label="Lane ' + (i + 1) + '"><i class="dbolt"></i></button>';
+      return '<div class="dodge" id="btarea">' + h + '<div class="dpet" id="dpet">' + petSVG(S.team[0].type, S.team[0].stage, '', S.team[0].body) + '</div></div>';
+    },
+    start: function (b) {
+      var t = bTier(b); b.lane = 1; dodgePlace(b); b.phase = 'rest'; b.until = performance.now() + 900; b.warn = Math.max(520, 1250 - t * 55); b.fall = Math.max(300, 560 - t * 18); b.feint = t >= 7;
+      bLoop(b, function (now) {
+        var lanes = document.querySelectorAll('.dlane'), i, bolt;
+        if (b.phase === 'rest' && now >= b.until) {
+          b.safe = Math.floor(Math.random() * 3); b.phase = 'warn'; b.until = now + b.warn; b.swapAt = b.feint && Math.random() < 0.5 ? now + b.warn * 0.55 : 0;
+          for (i = 0; i < 3; i++) lanes[i].classList.toggle('warn', i !== b.safe);
+          battleMsg('Move to the safe lane!');
+        } else if (b.phase === 'warn') {
+          if (b.swapAt && now >= b.swapAt) { b.swapAt = 0; b.safe = (b.safe + 1 + Math.floor(Math.random() * 2)) % 3; for (i = 0; i < 3; i++) lanes[i].classList.toggle('warn', i !== b.safe); battleMsg('It changed! Quick!'); }
+          if (now >= b.until) { b.phase = 'fall'; b.t0 = now; }
+        } else if (b.phase === 'fall') {
+          var y = Math.min(1, (now - b.t0) / b.fall);
+          for (i = 0; i < 3; i++) { bolt = lanes[i].firstChild; bolt.style.opacity = i !== b.safe ? 1 : 0; bolt.style.top = (y * 78).toFixed(1) + '%'; }
+          if (y >= 1) {
+            b.phase = 'rest'; b.until = now + 700;
+            for (i = 0; i < 3; i++) { lanes[i].classList.remove('warn'); lanes[i].firstChild.style.opacity = 0; lanes[i].firstChild.style.top = '0'; }
+            if (b.lane === b.safe) bHit(b, 'Dodged it! ' + (b.hp - 1) + ' more to go.'); else bMiss(b, 'Zap! You were in the bolt lane. ' + b.ge.name + ' strikes back.');
+          }
+        }
+      });
+    }
+  };
+  function dodgePlace(b) { var p = $('#dpet'); if (p) p.style.left = (b.lane * 33.333 + 16.666) + '%'; }
+  function dodgeGo(b, i) { if (!b || b.mode !== 'dodge' || b.over) return; b.lane = Math.max(0, Math.min(2, i)); dodgePlace(b); }
+
+  /* Memory: find every pair, a wrong guess costs a heart */
+  BM.match = {
+    name: 'Memory battle', intro: 'Remember where the pets are, then find every matching pair!',
+    html: function (b) {
+      var n = Math.min(bTier(b) >= 14 ? 8 : 6, Math.max(3, 3 + Math.floor((bTier(b) - 3) / 3))), ids = TYPE_IDS.filter(function (t) { return t !== 'unicorn'; }), pool = [], i, j;
+      ids.forEach(function (t) { BODY_OPTIONS[t].forEach(function (bd) { pool.push([t, bd]); }); });
+      for (i = pool.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); var x = pool[i]; pool[i] = pool[j]; pool[j] = x; }
+      b.pairs = n; b.cards = [];
+      for (i = 0; i < n; i++) { b.cards.push({ k: i, t: pool[i][0], b: pool[i][1] }, { k: i, t: pool[i][0], b: pool[i][1] }); }
+      for (i = b.cards.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); var y = b.cards[i]; b.cards[i] = b.cards[j]; b.cards[j] = y; }
+      return '<div class="match c' + (n * 2) + '" id="btarea">' + b.cards.map(function (c, k) { return '<button class="mcard" data-act="matchcard" data-i="' + k + '" aria-label="Card ' + (k + 1) + '"><span class="mfront">' + petSVG(c.t, 2, '', c.b) + '</span><span class="mback">?</span></button>'; }).join('') + '</div>';
+    },
+    start: function (b) {
+      var els = document.querySelectorAll('.mcard'), pre = Math.min(b.pairs - 1, Math.round(b.pairs * b.weak / b.maxHp)), i;
+      b.matched = pre; b.first = -1; b.lock = true; b.done = {};
+      b.cards.forEach(function (c, k) { if (c.k < pre) { b.done[k] = 1; els[k].classList.add('up', 'done'); } });
+      var hp = $('#bthp'); if (hp) hp.style.width = ((b.pairs - pre) / b.pairs * 100) + '%';
+      for (i = 0; i < els.length; i++) els[i].classList.add('up');
+      battleMsg('Remember the pets...');
+      bAfter(b, function () { b.cards.forEach(function (c, k) { if (!b.done[k]) els[k].classList.remove('up'); }); b.lock = false; battleMsg('Find the pairs!'); }, 1100 + b.pairs * 450);
+    }
+  };
+  function matchTap(i) {
+    var b = battle; if (!b || b.mode !== 'match' || b.over || b.lock || b.done[i] || i === b.first) return;
+    var els = document.querySelectorAll('.mcard'); els[i].classList.add('up'); auAct('pad', i % 4);
+    if (b.first < 0) { b.first = i; return; }
+    var a = b.first; b.first = -1;
+    if (b.cards[a].k === b.cards[i].k) {
+      b.done[a] = b.done[i] = 1; els[a].classList.add('done'); els[i].classList.add('done'); b.matched++; auAct('hit');
+      var hp = $('#bthp'); if (hp) hp.style.width = ((b.pairs - b.matched) / b.pairs * 100) + '%';
+      if (b.matched >= b.pairs) { b.over = true; battleMsg('All pairs found! ' + b.ge.name + ' is beaten!'); bAfter(b, function () { beatGuard(b.ge); }, 800); }
+      else battleMsg('A pair! ' + (b.pairs - b.matched) + ' to go.');
+    } else {
+      b.lock = true;
+      if (bMiss(b, 'No match! ' + b.ge.name + ' strikes back.')) return;
+      bAfter(b, function () { els[a].classList.remove('up'); els[i].classList.remove('up'); b.lock = false; }, 900);
+    }
+  }
+  function uniOpenHTML(ge) {
+    var rows = unicorns().map(function (p) {
+      var n = uniLeft(p), last = n <= 1;
+      return '<div class="srow"><div class="sface">' + petSVG(p.type, p.stage, p.name, p.body) + '</div><div class="sinfo"><b>' + esc(p.name) + '</b><span>' + n + ' power left' + (last ? '. This is its LAST power. It will fade away after opening the cave.' : '.') + '</span></div>' +
+        '<button class="btn small primary" data-act="uniunlock" data-id="' + p.id + '">Open</button></div>';
+    }).join('');
+    return '<div class="sheet-card"><h3>Unicorn unlock</h3><p class="srow-note">A unicorn can open the ' + esc(ge.spot.t) + ' without a battle. Each unicorn has ' + UNI_CHARGES + ' powers, then it fades away forever.</p>' + rows + '<button class="btn ghost small" data-act="closesheet">Not now</button></div>';
+  }
+  function unicornFade(p) { removeTeamPet(p); }
+  function removeTeamPet(p) {
+    var e = followerEnt(p);
+    if (e) { if (e.el && e.el.parentNode) e.el.parentNode.removeChild(e.el); if (e.dot && e.dot.parentNode) e.dot.parentNode.removeChild(e.dot); S.world.ents.splice(S.world.ents.indexOf(e), 1); }
+    var idx = S.team.indexOf(p), cur = S.team[S.sel];
+    S.team.splice(idx, 1); S.sel = Math.max(0, Math.min(S.team.indexOf(cur) < 0 ? 0 : S.team.indexOf(cur), S.team.length - 1));
+  }
+  function uniUnlock(id) {
+    var p = S.team.filter(function (x) { return x.id === id && x.type === 'unicorn'; })[0], ge = S.world && nearGuard();
+    if (!p || !ge || ge.guard.max) return;
+    var last = uniLeft(p) <= 1;
+    if (last && S.team.length <= 1) { wmsg(p.name + ' is your only pet, so it cannot fade away. Bring a friend first!'); return; }
+    p.uc = uniLeft(p) - 1;
+    var farewell = '';
+    if (last) { farewell = ' ' + p.name + ' used all its power and faded into a rainbow. Thank you, ' + p.name + '!'; unicornFade(p); }
+    beatGuard(ge, p.name + "'s rainbow opened the " + ge.spot.t + '!' + farewell);
+  }
+  /* a Light pet strikes a guard 2 times, and a Dragon pet 3 times, before the challenge begins.
+     After use, that pet is ready again once 3 more caves have been opened. */
+  var PRE_HIT = { light: 2, dragon: 3 }, PRE_WAIT = 3;
+  function openedCount() { return Object.keys(S.opened).length; }
+  function preLeft(p) { return p.px == null ? 0 : Math.max(0, PRE_WAIT - (openedCount() - p.px)); }
+  function preReady() {
+    var out = [];
+    Object.keys(PRE_HIT).forEach(function (t) { var p = S.team.filter(function (q) { return q.type === t && preLeft(q) === 0; })[0]; if (p) out.push({ p: p, n: PRE_HIT[t] }); });
+    return out;
+  }
+  function preNote(p) {
+    if (!PRE_HIT[p.type]) return '';
+    var l = preLeft(p);
+    return ' Owner bonus: it strikes a guard ' + PRE_HIT[p.type] + ' times as a challenge begins, then needs ' + PRE_WAIT + ' more caves to open before it can again. ' + (l ? 'Ready after ' + l + ' more cave' + (l > 1 ? 's' : '') + '.' : 'Ready!');
+  }
+  function reviveCost() { return 30 + 5 * Math.max(0, level() - 11); }
+  function gameOverHTML() {
+    var c = reviveCost();
+    return '<div class="sheet-card gameover"><h3>Game over</h3><p class="srow-note">You lost 3 guard battles. Past level 10, three lost battles end the game.</p>' +
+      (S.coins >= c ? '<p class="srow-note">But you can pay <b>' + c + ' coins</b> to keep playing. (Each level costs more.)</p><button class="btn primary" data-act="revive">Pay ' + c + ' coins and continue</button>'
+        : '<p class="srow-note">To keep playing you need <b>' + c + ' coins</b>, and you have ' + S.coins + '. Each level costs more.</p>') +
+      '<button class="btn ghost small" data-act="gostart">Start again (your Petdex is kept)</button></div>';
+  }
+  function tollHTML(ge) {
+    var g = ge.guard, tp = S.team.filter(function (p) { return p.type === g.toll && !S.away.some(function (a) { return a.pet === p; }); }), W2 = WORLDS[ge.spot.to];
+    var rows = tp.map(function (p) {
+      return '<div class="srow"><div class="sface">' + petSVG(p.type, p.stage, p.name, p.body) + '</div><div class="sinfo"><b>' + esc(p.name) + '</b><span>' + (p.stage >= 4 ? 'Max Grown' : 'Level ' + p.stage) + '</span></div>' +
+        '<button class="btn small primary" data-act="tollpay" data-id="' + p.id + '" data-m="x">Exchange</button><button class="btn small ghost" data-act="tollpay" data-id="' + p.id + '" data-m="g"' + (S.team.length < 2 ? ' disabled' : '') + '>Give up</button></div>';
+    }).join('');
+    return '<div class="sheet-card"><h3>The toll</h3><p class="srow-note">Guard ' + esc(ge.name) + ' wants one ' + TYPES[g.toll].name + ' pet before you can enter. <b>Exchange</b>: you get a new level 1 pet from ' + esc(W2.name) + ' in return. <b>Give up</b>: the pet stays here and the guard pays you ' + tollCoins(g) + ' coins. You only pay once.</p>' + rows + '<button class="btn ghost small" data-act="closesheet">Not now</button></div>';
+  }
+  function tollCoins(g) { return 6 * Math.max(1, (g.tier || 9) - 8); }
+  function tollPay(id, m) {
+    var ge = S.world && nearGuard(), p = S.team.filter(function (x) { return x.id === id; })[0];
+    if (!ge || !p || !ge.guard.toll || p.type !== ge.guard.toll || S.toll[ge.key]) return;
+    if (m === 'g' && S.team.length < 2) return;
+    var W2 = WORLDS[ge.spot.to], msg;
+    S.toll[ge.key] = true;
+    removeTeamPet(p);
+    if (m === 'x') {
+      var types = W2.types.filter(function (t) { return t !== 'unicorn' && t !== ge.guard.toll && BODY_OPTIONS[t]; }), ty = types.length ? pick(types) : ge.guard.toll;
+      var np = newPet(ty, 'powerful', pick(BODY_OPTIONS[ty])); np.name = freeName(S.world); S.team.push(np); S.caught[ty] = true; addFollowerEnt(np);
+      msg = 'You traded ' + p.name + ' for a new ' + TYPES[ty].name + ' pet, ' + np.name + '!';
+    } else { S.coins += tollCoins(ge.guard); msg = p.name + ' stays with the guard. You got ' + tollCoins(ge.guard) + ' coins.'; }
+    save(); updateHud(); closeSheet(); say(msg + ' Now you can battle!', 5000);
+    nearId = null; updateCatchBar();
+  }
+  function beatGuard(ge, via) {
+    S.losses = 0;
     var to = ge.spot.to, firstTime = !S.opened[to], hero = S.world.ents[0];
     var firstEver = !Object.keys(S.beaten).some(function (k) { return S.beaten[k]; });
+    var twinTo = ge.spot.twinTo, twinNew = false;
     S.beaten[ge.key] = true; S.opened[to] = true;
-    if (!firstEver) S.prize = { tier: (ge.spot.guard || ge).tier || 1, name: ge.name };
+    if (twinTo) { S.beaten[S.cur + ':' + twinTo] = true; if (!S.opened[twinTo]) { S.opened[twinTo] = true; twinNew = true; } }
+    syncFar();
+    if (!firstEver && !via) S.prize = { tier: (ge.spot.guard || ge).tier || 1, name: ge.name };
     closeSheet();
     if (ge.el && ge.el.parentNode) ge.el.parentNode.removeChild(ge.el);
     if (ge.dot && ge.dot.parentNode) ge.dot.parentNode.removeChild(ge.dot);
     var i = S.world.ents.indexOf(ge); if (i >= 0) S.world.ents.splice(i, 1);
     save(); updateHud(); nearId = null; updateCatchBar(); flash(); worldBurst(hero.x, hero.y - 60);
-    say('You beat Guard ' + ge.name + '! The ' + ge.spot.t + ' is open.' + (firstTime ? ' New world opened! You are now level ' + level() + '.' + uniNewMsg(to) : ''), 7000);
+    say((via || 'You beat Guard ' + ge.name + '! The ' + ge.spot.t + ' is open.') + (firstTime ? (twinNew ? ' TWO new worlds opened: ' + WORLDS[to].name + ' and ' + WORLDS[twinTo].name + '! You are now level ' + level() + '.' : ' New world opened! You are now level ' + level() + '.') + uniNewMsg(to) : ''), 7000);
     if (S.prize) openSheet(prizeHTML());
   }
   /* ----- discovered tools (player level 5+): a few small helpers for strategy ----- */
@@ -4026,9 +5002,28 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     wmsg(msg);
   }
   function guardianHere() { return S.cur === 'crystal' && !S.freed.crystal; }
+  var teleAsk = null, teleSkip = 0;
+  function teleTry(s, key) {
+    var now = performance.now(), kind = s.k;
+    if (now < teleSkip || S.screen !== 'world') return false;
+    var p = S.team.filter(function (q) { return q.stage >= 3 && POWERS[q.type] && POWERS[q.type].tele === kind && powerLeft(q) === 0 && !S.away.some(function (a) { return a.pet === q; }); })[0];
+    if (!p) return false;
+    var dests = Object.keys(WORLDS).filter(function (id) { return id !== S.cur && worldOpen(id) && shown(id) && WORLDS[id].spots.some(function (x) { return x.k === kind; }); });
+    if (!dests.length) return false;
+    S.world.cd[key] = now + 6000; teleAsk = { p: p, kind: kind };
+    openSheet(teleHTML(p, dests));
+    return true;
+  }
+  function teleHTML(p, dests) {
+    var PW = POWERS[p.type], kindName = PW.tele === 'pond' ? 'pond' : 'berry patch';
+    return '<div class="sheet-card"><h3>' + PW.name + '</h3><p class="srow-note">' + esc(p.name) + ' can warp you to a ' + kindName + ' in another world. Where to?</p>' +
+      dests.map(function (id) { return '<div class="srow"><div class="sinfo"><b>' + esc(WORLDS[id].name) + '</b><span>' + (dangerOf(id) ? 'Danger: ' + DANGER_WORD[dangerOf(id)] : 'Calm') + '</span></div><button class="btn small primary" data-act="telego" data-w="' + id + '">Go</button></div>'; }).join('') +
+      '<button class="btn ghost small" data-act="telestay">Stay here</button></div>';
+  }
   function spotEffect(s, idx) {
     var w = S.world, now = performance.now(), hero = w.ents[0], key = s.k + idx, n = P() ? P().name : 'Your pet';
     if (w.cd[key] && now < w.cd[key]) return;
+    if ((s.k === 'bush' || s.k === 'pond') && teleTry(s, key)) return;
     if (s.k === 'bush') {
       w.cd[key] = now + 6000;
       var bs = w.stock[idx] || (w.stock[idx] = { n: 6, t: now }), grow = Math.floor((now - bs.t) / 12000);
@@ -4150,7 +5145,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     var FLY = flyOn();
     if (FLY && sp > 0) sp = Math.max(sp, 0.55);
-    ents.forEach(function (e) { e.moving = false; });
+    ents.forEach(function (e) { e.moving = false; e.px = e.x; e.py = e.y; });
 
     // dragging: edge-scroll the camera, and keep the held pet under the finger
     if (drag) {
@@ -4168,6 +5163,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var pm = padVec('move');
     var kx = ((keys.arrowright || keys.d) ? 1 : 0) - ((keys.arrowleft || keys.a) ? 1 : 0) + pm.x;
     var ky = ((keys.arrowdown || keys.s) ? 1 : 0) - ((keys.arrowup || keys.w) ? 1 : 0) + pm.y;
+    if (V3.on) { var vk = V3.steerKeys(kx, ky, dt, lead); kx = vk.x; ky = vk.y; }
     if (lead.way && lead.way.length) {
       var wp0 = lead.way[0];
       if (lead.way.length > 1 && Math.hypot(lead.x - wp0.x, lead.y - wp0.y) < 20) { lead.way.shift(); wp0 = lead.way[0]; }
@@ -4182,9 +5178,21 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       } else moveToward(lead, lead.tx, lead.ty, 210 * sp * dt * (FLY ? 2.6 : 1), 2);
     }
 
-    var chain = lead;
+    var chain = lead, fslot = 0;
     ents.forEach(function (e) {
       if (e.kind !== 'follower') return;
+      if (V3.on) {
+        var sl = V3.slot(lead, fslot++);
+        if (!(drag && drag.ent === e)) {
+          var d3 = dist(e, sl), hx3 = e.x, hy3 = e.y;
+          if (LAND && d3 > 520) { var sq3 = clampPt(sl, WALK_R); e.x = sq3.x; e.y = sq3.y; d3 = 0; }
+          if (d3 > 4) {
+            moveToward(e, sl.x, sl.y, Math.min(Math.max(190, 230 * sp) * (FLY ? 2.8 : 1) * dt, d3), 0);
+            if (e.pet) hungerAdd(e.pet, Math.hypot(e.x - hx3, e.y - hy3), FLY ? (e.pet === S.team[0] ? 0.9 : 0.4) : 1);
+          }
+        }
+        chain = e; return;
+      }
       if (!(drag && drag.ent === e)) {
         var d = dist(e, chain);
         if (LAND && d > 520) { var sq = clampPt({ x: chain.x - 24, y: chain.y + 10 }, WALK_R); e.x = sq.x; e.y = sq.y; d = 40; }
@@ -4220,10 +5228,17 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       moveToward(e, e.tx, e.ty, (e.spirit ? 95 : 45) * dt, 2);
     });
 
+    ents.forEach(function (e) {
+      if ((drag && drag.ent === e) || e.merging) return;
+      if (e.kind === 'hero') { if (!FLY) collideEnt(e, 14, e.tx, e.ty); }
+      else if (e.kind === 'follower') { if (!FLY) collideEnt(e, 11); }
+      else if (e.kind === 'wild') collideEnt(e, 11);
+    });
     if (LAND) ents.forEach(function (e) { if (e.kind === 'find' || (drag && drag.ent === e) || (FLY && (e.kind === 'hero' || e.kind === 'follower'))) return; var q = clampPt(e, e.kind === 'wild' ? WALK_R * 0.97 : WALK_R); e.x = q.x; e.y = q.y; });
     if (!drag) {
       var k = Math.min(1, 5 * dt), pc = padVec('cam');
       var cvx = (S.birds ? 0 : pc.x) + ((keys.l ? 1 : 0) - (keys.j ? 1 : 0)), cvy = (S.birds ? 0 : pc.y) + ((keys.k ? 1 : 0) - (keys.i ? 1 : 0));
+      if (V3.on) { V3.th += cvx * 1.8 * dt; cvx = 0; cvy = 0; }
       if (cvx || cvy) { var cn = Math.hypot(cvx, cvy); camOff.x += cvx / cn * 680 * dt / zoom; camOff.y += cvy / cn * 680 * dt / zoom; }
       var hw = vw / 2 / zoom, hh = vh / 2 / zoom;
       if (hw * 2 < WORLD) camOff.x = Math.max(hw - lead.x, Math.min(WORLD - hw - lead.x, camOff.x)); else camOff.x = 0;
@@ -4234,6 +5249,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var pds = $('#pads'); if (pds) pds.classList.toggle('nocam', !!S.birds);
     }
     applyCamera();
+    if (V3.on) V3.pose(lead, dt);
 
     w.jT = (w.jT || 0) - dt;
     if (w.jT <= 0) {
@@ -4267,13 +5283,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     if (S.screen !== 'world' || S.world !== w) return;
     var nw = nearWild(), ng = nearGuard(), cooling = !!(nw && nw.cool && performance.now() < nw.cool), nmood = nw ? nw.mood : '';
-    var key = ng ? 'g' + ng.id + ':' + missingFor(ng.guard).length : nw ? 'w' + nw.id + ':' + cooling + ':' + nmood : nearLab() ? 'lab' : '';
+    var key = ng ? 'g' + ng.id + ':' + missingFor(ng.guard, ng).length : nw ? 'w' + nw.id + ':' + cooling + ':' + nmood : nearLab() ? 'lab' : '';
     if (key !== nearId) { nearId = key; updateCatchBar(); }
     w.saveT += dt;
     if (w.saveT > 5) { w.saveT = 0; save(); }
     updateMini();
 
     ents.forEach(draw);
+    if (V3.on) V3.render();
     wxTick(dt);
     updateBirds(dt);
     raf = requestAnimationFrame(tick);
@@ -4376,6 +5393,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     cam.x = lead.x; cam.y = lead.y - 36;
     clampCam(); applyCamera();
     w.ents.forEach(makeEl);
+    obsFor(S.cur);
+    V3.on = false; V3.list = []; V3.hz = [];
+    if (v3Pref()) V3.mount();
     bLabels = [].slice.call(document.querySelectorAll('.blabel')).map(function (el) {
       return { el: el, x: el.getAttribute('x'), y: el.getAttribute('y') };
     });
@@ -4595,6 +5615,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   /* root = midi note; step = seconds per beat; mel = melody voice, dens = chance per beat; oct = octaves it may use;
      pad = soft chords; drone = low hum; tex = constant background; ev = random sounds (chance per beat); perc = steady beat */
   var THEMES = {
+    cozy:     { root: 57, sc: 'pent', step: 0.7, wet: 0.45, mel: 'celesta', dens: 0.32, oct: [0, 1], pad: { type: 'triangle', cut: 900, vol: 0.04, every: 8 }, tex: [['wind', 0.012, 500]], ev: [['bird', 0.08]] },
     home:     { root: 60, sc: 'pent', step: 0.55, wet: 0.35, mel: 'pluck', dens: 0.45, oct: [0, 1], pad: { type: 'triangle', cut: 1200, vol: 0.05, every: 8 }, tex: [['wind', 0.025, 700]], ev: [['bird', 0.22]] },
     crystal:  { root: 64, sc: 'lyd', step: 0.7, wet: 0.7, mel: 'bell', dens: 0.5, oct: [1, 2], pad: { type: 'sine', cut: 2000, vol: 0.06, every: 8 }, tex: [], ev: [['spark', 0.45]] },
     snow:     { root: 62, sc: 'minp', step: 0.95, wet: 0.6, mel: 'celesta', dens: 0.3, oct: [1, 2], pad: { type: 'sine', cut: 1500, vol: 0.05, every: 8 }, tex: [['wind', 0.06, 500]], ev: [['gust', 0.05]] },
@@ -4622,6 +5643,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     throne:   { root: 46, sc: 'harm', step: 0.65, wet: 0.6, mel: 'bell', dens: 0.3, oct: [0, 1], pad: { type: 'sawtooth', cut: 420, vol: 0.035, every: 8 }, drone: { type: 'sine', gain: 0.09 }, tex: [['rain', 0.03, 3000]], ev: [['thunder', 0.08], ['zap', 0.1]], perc: ['drum', 4] },
     cosmos:   { root: 57, sc: 'lyd', step: 1.3, wet: 0.85, mel: 'bell', dens: 0.18, oct: [1, 2], pad: { type: 'sine', cut: 1800, vol: 0.06, every: 6 }, tex: [], ev: [] }
   };
+  FAR_DEF.forEach(function (d) { THEMES[d.id] = d.th; });
   function midiF(m) { return 440 * Math.pow(2, (m - 69) / 12); }
   function auInit() {
     if (AU.ctx) return true;
@@ -4786,7 +5808,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function audioSync() {
     var c = AU.ctx; if (!c) return;
     var id = null;
-    if (AU.on && S) { if ($('#uni') || AU.warp) id = 'cosmos'; else if (S.screen === 'world' && THEMES[themeFor(S.cur)]) id = themeFor(S.cur); }
+    if (AU.on && S) { if ($('#uni') || AU.warp) id = 'cosmos'; else if (S.screen === 'world' && THEMES[themeFor(S.cur)]) id = themeFor(S.cur); else if (S.screen === 'play') id = 'cozy'; }
     var sh = $('#sheet'), duck = !!(sh && !$('#uni')), dk = (sh && sh.querySelector('.infosheet, .winfo')) ? 0.7 : 0.35;
     var now = c.currentTime;
     AU.master.gain.setTargetAtTime(AU.on ? 0.6 : 0, now, 0.15);
@@ -4812,10 +5834,44 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       o.connect(g); g.connect(AU.master); o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.7);
     });
   }
+  /* sounds for the home screen: a delighted chime and purr (pet), a crunch (feed), a boing (play) */
+  function auAct(kind, n) {
+    if (!AU.on || !AU.ctx || !AU.master || AU.ctx.state !== 'running') return;
+    var c = AU.ctx, t = c.currentTime + 0.02, TH = { bus: AU.master, stops: [] }, i;
+    if (kind === 'pet') {
+      [79, 83, 86, 91].forEach(function (m, j) { aVoice(TH, 'celesta', midiF(m), t + j * 0.1, 0.11); });
+      var o = c.createOscillator(), l = c.createOscillator(), lg = c.createGain(), g = c.createGain(), env = c.createGain();
+      o.type = 'sine'; o.frequency.value = 92; l.frequency.value = 23; lg.gain.value = 0.04; g.gain.value = 0.05;
+      l.connect(lg); lg.connect(g.gain); o.connect(g); g.connect(env); env.connect(AU.master); aEnv(env, t + 0.1, 0.12, 1, 0.8);
+      o.start(t); o.stop(t + 1.2); l.start(t); l.stop(t + 1.2);
+    } else if (kind === 'feed') {
+      for (i = 0; i < 3; i++) { aNoise(TH, t + i * 0.14, 0.06, 'bandpass', 2300 + i * 350, 1.4, 0.4); aTone(TH, 'sine', 170 - i * 14, t + i * 0.14, 0.003, 0.09, 0.28); }
+      [67, 72, 76].forEach(function (m, j) { aVoice(TH, 'marimba', midiF(m), t + 0.55 + j * 0.09, 0.12); });
+    } else if (kind === 'play') {
+      [0, 0.34].forEach(function (d, j) {
+        var o2 = c.createOscillator(), g2 = c.createGain(), f0 = j ? 340 : 260;
+        o2.type = 'sine'; o2.frequency.setValueAtTime(f0, t + d); o2.frequency.exponentialRampToValueAtTime(f0 * 2.4, t + d + 0.09); o2.frequency.exponentialRampToValueAtTime(f0 * 0.95, t + d + 0.3);
+        aEnv(g2, t + d, 0.01, 0.2, 0.3); o2.connect(g2); g2.connect(AU.master); o2.start(t + d); o2.stop(t + d + 0.5);
+      });
+      [72, 76, 79, 84].forEach(function (m, j) { aVoice(TH, 'marimba', midiF(m), t + 0.7 + j * 0.07, 0.1); });
+    } else if (kind === 'pad') { aTone(TH, 'sine', [523, 659, 784, 988][n % 4], t, 0.005, 0.3, 0.2); aTone(TH, 'triangle', [523, 659, 784, 988][n % 4] * 2, t, 0.005, 0.12, 0.05);
+    } else if (kind === 'hit') { [76, 83].forEach(function (m, j) { aVoice(TH, 'marimba', midiF(m), t + j * 0.07, 0.14); });
+    } else if (kind === 'nope') { aTone(TH, 'sine', 210, t, 0.005, 0.18, 0.2); aTone(TH, 'sine', 160, t + 0.12, 0.005, 0.22, 0.18); }
+  }
   function soundBtns() {
     [].forEach.call(document.querySelectorAll('.sndbtn'), function (b) {
       b.classList.toggle('off', !AU.on); b.classList.toggle('wait', !!(AU.on && (!AU.ctx || AU.ctx.state !== 'running'))); b.setAttribute('aria-label', AU.on ? 'Mute sound' : 'Turn sound on'); b.setAttribute('aria-pressed', AU.on ? 'false' : 'true');
     });
+  }
+  var EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path class="eyeslash" d="M4 4l16 16"/></svg>';
+  var HUD_MODES = ['show', 'fade', 'hide'], hudMode = 'show';
+  try { var hm0 = localStorage.getItem('magical-pets-hud'); if (HUD_MODES.indexOf(hm0) >= 0) hudMode = hm0; } catch (e) { /* default */ }
+  function hudMobile() { return !!(window.matchMedia && window.matchMedia('(pointer: coarse), (max-width: 760px)').matches); }
+  function applyHud() {
+    document.body.classList.toggle('hudm-fade', hudMode === 'fade'); document.body.classList.toggle('hudm-hide', hudMode === 'hide');
+    var b = $('#hudtog');
+    if (b) { b.setAttribute('aria-label', hudMode === 'show' ? 'Top bar: shown. Tap to fade it.' : hudMode === 'fade' ? 'Top bar: faded. Tap to hide it.' : 'Top bar: hidden. Tap to show it.'); b.dataset.m = hudMode; }
+    if (S && S.screen === 'world') syncHud();
   }
   var SND_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path class="snd-on" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="snd-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>';
   ['pointerdown', 'pointerup', 'keydown', 'touchstart', 'touchend', 'click'].forEach(function (ev) { document.addEventListener(ev, auUnlock, true); });
@@ -4977,6 +6033,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     raf2 = requestAnimationFrame(frame);
   }
   function render() {
+    syncFar();
     stopWorld();
     var root = $('#app');
     root.classList.toggle('wide', S.screen === 'world');
@@ -4989,7 +6046,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (S.screen === 'world') startWorld();
     bindDrags();
     if (S.screen === 'atlas') initUniverse();
-    soundBtns(); audioSync();
+    soundBtns(); audioSync(); applyHud();
   }
 
   /* ---------- play helpers ---------- */
@@ -5076,6 +6133,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (S.screen === 'world') { openSheet(universeHTML('closesheet')); var sh = $('#sheet'); if (sh) sh.classList.add('uni-sheet'); initUniverse(); }
       else { S.screen = 'atlas'; render(); }
     },
+    hudmode: function () {
+      hudMode = HUD_MODES[(HUD_MODES.indexOf(hudMode) + 1) % 3];
+      try { localStorage.setItem('magical-pets-hud', hudMode); } catch (e) { /* optional */ }
+      applyHud();
+      wmsg(hudMode === 'show' ? 'Top bar is back.' : hudMode === 'fade' ? 'Top bar is faded. Only the map stays bright.' : 'Top bar is hidden. Only the map shows. Tap the eye to bring it back.');
+    },
     sound: function () {
       AU.on = !AU.on;
       try { localStorage.setItem('magical-pets-sound', AU.on ? 'on' : 'off'); } catch (e) { /* ignore */ }
@@ -5131,18 +6194,19 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var p = P(), k = btn.dataset.kind, loved = p.fav === k;
       if (k === 'feed' && hunOf(p) > 0) p.hun = Math.max(0, hunOf(p) - 25);
       if (p.stage >= 3) {
+        auAct(k);
         react(k, p);
         S.msg = reactLine(p, k, false);
         $('#msg').textContent = S.msg;
         return;
       }
       if (isFull(p, k)) {
-        react('nope', p);
+        auAct('nope'); react('nope', p);
         S.msg = p.name + ' has had plenty of ' + LABEL[k] + ' for now. Try something else!';
         $('#msg').textContent = S.msg;
         return;
       }
-      react(k, p);
+      auAct(k); react(k, p);
       addProg(p, k, loved ? 2 : 1);
       S.msg = reactLine(p, k, loved);
       updatePlay();
@@ -5156,9 +6220,44 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       document.querySelectorAll('.act').forEach(function (b) { b.classList.toggle('wanted', p.stage < 3 && b.dataset.kind === p.fav); });
       setTimeout(function () { document.querySelectorAll('.act.wanted').forEach(function (b) { b.classList.remove('wanted'); }); }, 3200);
     },
-    challenge: function () { if (S.world) startBattle(nearGuard()); },
+    challenge: function () {
+      if (!S.world) return;
+      var g = nearGuard();
+      if (g && g.guard.toll && !S.toll[g.key] && !missingFor(g.guard, g).length) { openSheet(tollHTML(g)); return; }
+      startBattle(g);
+    },
+    tollpay: function (btn) { tollPay(+btn.dataset.id, btn.dataset.m); },
+    revive: function () {
+      var c = reviveCost(); if (S.coins < c) return;
+      S.coins -= c; S.losses = 0; save(); updateHud(); closeSheet(); say('You paid ' + c + ' coins and got back in the game. Be careful!', 5000);
+    },
+    gostart: function () {
+      var dex = S.dex; stopBattle(); closeSheet(); unlockLandscape();
+      try { localStorage.removeItem(SAVE_KEY); } catch (x) { /* optional */ }
+      newGame(); S.dex = dex; S.hasSave = false; S.stone = pick(STONES); S.look = defaultLook(); S.lookReturn = 'sun'; S.screen = 'look'; render();
+    },
+    rename: function (btn) {
+      var p = S.team.filter(function (x) { return String(x.id) === btn.dataset.id; })[0]; if (!p) return;
+      openSheet(renameHTML(p)); setTimeout(function () { var i = $('#renin'); if (i) { i.focus(); i.select(); } }, 60);
+    },
+    rensave: function (btn) { renameSave(+btn.dataset.id); },
+    maxmerge: function (btn) { maxMerge(btn.dataset.t); },
+    telego: function (btn) {
+      var to = btn.dataset.w, a = teleAsk; if (!a || !WORLDS[to] || !worldOpen(to)) return;
+      var PW = POWERS[a.p.type], X = a.p.stage >= 4 ? 2 : 1;
+      a.p.pcd = Date.now() + PW.cd * 1000 / X; teleAsk = null; S.tele = a.kind;
+      closeSheet(); travel(to);
+    },
+    telestay: function () { teleAsk = null; teleSkip = performance.now() + 10000; closeSheet(); },
+    echopad: function (btn) { echoTap(+btn.dataset.i); },
+    whackhole: function (btn) { whackTap(+btn.dataset.i); },
+    dodgelane: function (btn) { dodgeGo(battle, +btn.dataset.i); },
+    matchcard: function (btn) { matchTap(+btn.dataset.i); },
+    none: function () {},
+    uniopen: function () { var g = S.world && nearGuard(); if (g && unicorns().length && !g.guard.max) openSheet(uniOpenHTML(g)); },
+    uniunlock: function (btn) { uniUnlock(+btn.dataset.id); },
     strike: function () { strike(); },
-    retry: function () { if (battle) startBattle(battle.ge); },
+    retry: function () { if (battle) startBattle(battle.ge, battle.mode); },
     shop: function () { if (S.world && nearLab()) { S.sellAsk = null; openSheet(shopHTML()); } },
     sell: function (btn) { sellPet(+btn.dataset.id); },
     rest: function () { startRest(); },
@@ -5183,6 +6282,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         else goLandscape(true);
       } catch (x) { /* not allowed here */ }
     },
+    view3d: function () { V3.toggle(); },
     zoomin: function () { setZoomUser(zoomUser * 1.25); },
     zoomout: function () { setZoomUser(zoomUser / 1.25); },
     dismissrotate: function () { rotateDismissed = true; var h = $('#rotatehint'); if (h) h.remove(); },
@@ -5274,8 +6374,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         nearId = null; updateCatchBar();
         return;
       }
+      if (e.type === 'unicorn' && unicorns().length >= UNI_MAX) { e.cool = now + 4000; e.wait = 2; wmsg('You already carry ' + UNI_MAX + ' unicorns! Use up a unicorn power, or sell one, to make room. Your Happy Stone is safe.'); nearId = null; updateCatchBar(); return; }
       var lucky = S.luck; S.luck = false; if (lucky) updateHud();
-      var ok = Math.random() < Math.min(0.97, rarityById(e.rid).merge * crowd() + (lucky ? 0.25 : 0));
+      var ok = e.spirit ? true : Math.random() < Math.min(0.97, rarityById(e.rid).merge * crowd() + (lucky ? 0.25 : 0));   /* a lost spirit is always happy and always says yes */
       if (e.el) { e.el.style.setProperty('--s1', st.s1); e.el.style.setProperty('--s2', st.s2); }
       if (!ok) {
         // the stones did not merge: the Happy Stone is not used up, try another pet or try again later
@@ -5289,7 +6390,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       e.merging = true;
       var wasGuardian = !!e.guardian, wasSpirit = e.spirit || 0;
       if (e.el) e.el.classList.add('merge');
-      var p = newPet(e.type, e.rid, e.body);
+      var p = newPet(e.type, e.rid, e.body); if (p.type === 'unicorn') p.uc = UNI_CHARGES;
       p.name = wasGuardian ? 'Starlight' : wasSpirit ? UNI_NAME[wasSpirit] : freeName(w);
       S.team.push(p); S.caught[p.type] = true;
       if (wasGuardian) S.freed.crystal = true;
@@ -5332,7 +6433,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (fn) fn(b, e);
   });
   document.addEventListener('keydown', function (e) {
+    if (battle && battle.mode === 'dodge' && !battle.over && !/INPUT|TEXTAREA/.test(e.target.tagName)) {
+      var k = e.key;
+      if (k === 'ArrowLeft' || k === 'a' || k === 'A') { dodgeGo(battle, battle.lane - 1); e.preventDefault(); }
+      else if (k === 'ArrowRight' || k === 'd' || k === 'D') { dodgeGo(battle, battle.lane + 1); e.preventDefault(); }
+    }
     if (e.key === 'Enter' && e.target && e.target.id === 'petname') handlers.hello();
+    if (e.key === 'Enter' && e.target && e.target.id === 'renin') { var rb = document.querySelector('[data-act=rensave]'); if (rb) renameSave(+rb.dataset.id); }
   });
 
   newGame();
