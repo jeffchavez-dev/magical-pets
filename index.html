@@ -1369,9 +1369,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function readSave() {
     try { var raw = localStorage.getItem(SAVE_KEY); return raw ? JSON.parse(raw) : null; } catch (x) { return null; }
   }
+  function savePet(p) { return { id: p.id, type: p.type, body: p.body, rid: p.rid, stage: p.stage, happy: p.happy, fav: p.fav, name: p.name, prog: p.prog, hun: Math.round(hunOf(p)), uc: p.uc, ut: p.ut, px: p.px }; }
   function baseState() {
     return { screen: 'intro', stone: STONES[0], awake: false, awakening: false, chosen: null, merging: false, eggs: null, taps: 0, hatch: null, suggest: '',
-      look: defaultLook(), lookReturn: 'sun', uni: {}, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
+      look: defaultLook(), lookReturn: 'sun', uni: {}, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
       evolving: false, justEvolved: null, msg: '', world: null, birds: false, hasSave: !!(readSave() && readSave().team && readSave().team.length) };
   }
   function newGame() {
@@ -1386,7 +1387,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!S.team.length) return;
       dexSync();
       stashWorld();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(function (p) { return { id: p.id, type: p.type, body: p.body, rid: p.rid, stage: p.stage, happy: p.happy, fav: p.fav, name: p.name, prog: p.prog, hun: Math.round(hunOf(p)), uc: p.uc, ut: p.ut, px: p.px }; }), sel: S.sel, weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, cage: S.cage.map(savePet), sel: S.sel, weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
         stones: S.stones.map(function (s) { return s.id; }), caught: S.caught, wilds: S.wilds, freed: S.freed, opened: S.opened, beaten: S.beaten, coins: S.coins, boots: S.boots, bag: S.bag, portals: S.portals, suns: S.suns, food: S.food,
         cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)), uc: q.uc, px: q.px } }; }) }));
     } catch (x) { /* storage can be unavailable; the game still works */ }
@@ -1406,7 +1407,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.dex = {};
     Object.keys(d.dex || {}).forEach(function (k) { var v = d.dex[k], pr = k.split(':'); if (v && BODY_OPTIONS[pr[0]] && BODY_OPTIONS[pr[0]].indexOf(pr[1]) >= 0) S.dex[k] = { s: (v.s | 0) & 7, r: Math.max(0, Math.min(4, v.r | 0)), o: v.o ? 1 : 0 }; });
     S.opened = d.opened || {}; S.beaten = d.beaten || {}; S.coins = d.coins || 0; S.boots = d.boots || 0; S.bag = Math.min(3, d.bag || 0); S.portals = d.portals || 0; S.suns = d.suns || 0; S.food = d.food === undefined ? 5 : Math.max(0, d.food | 0);
-    S.team.forEach(function (p) { if (!p.body) p.body = bodyFor(p.type, p.id); if (!p.prog) migrateProg(p); });
+    S.cageLv = Math.max(0, Math.min(4, d.cageLv | 0));
+    S.cage = (Array.isArray(d.cage) ? d.cage : []).filter(function (p) { return p && TYPES[p.type]; }).slice(0, S.cageLv ? CAGE_CAP[S.cageLv - 1] : 0);
+    S.team.concat(S.cage).forEach(function (p) { if (!p.body) p.body = bodyFor(p.type, p.id); if (!p.prog) migrateProg(p); });
     S.cur = WORLDS[d.cur] ? d.cur : 'home';
     if (worldLocked(S.cur)) S.cur = 'home'; S.nextPetId = d.nextPetId || (d.team.length + 1); S.tipsSeen = !!d.tipsSeen;
     ['chime', 'clover', 'focus', 'ward'].forEach(function (k) { S.tools[k] = Math.max(0, Math.min(3, (d.tools && +d.tools[k]) || 0)); });
@@ -2809,13 +2812,20 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function infoTeam() {
     var rows = S.team.map(function (p, i) {
       var PW = POWERS[p.type];
-      return '<div class="teamrow"><i class="tdot" style="background:' + TYPES[p.type].dot + '"></i><div><b>' + esc(p.name) + '</b> <button class="renbtn small" data-act="rename" data-id="' + p.id + '" aria-label="Rename ' + esc(p.name) + '">&#9998;</button> <span>' + TYPES[p.type].name + ' &middot; ' + (p.stage >= 4 ? 'Max Grown' : 'level ' + p.stage) + (i === 0 ? ' &middot; leads the team' : '') + (canFly(p) ? ' &middot; can fly' : '') + '</span><div class="tummy">' + tummyHTML(p) + '</div>' + (p.stage >= 3 ? '<span class="tpow">Power: ' + PW.name + '</span>' : '') + '</div></div>';
+      return '<div class="teamrow"><i class="tdot" style="background:' + TYPES[p.type].dot + '"></i><div><b>' + esc(p.name) + '</b> <button class="renbtn small" data-act="rename" data-id="' + p.id + '" aria-label="Rename ' + esc(p.name) + '">&#9998;</button> <span>' + TYPES[p.type].name + ' &middot; ' + (p.stage >= 4 ? 'Max Grown' : 'level ' + p.stage) + (i === 0 ? ' &middot; leads the team' : '') + (canFly(p) ? ' &middot; can fly' : '') + '</span><div class="tummy">' + tummyHTML(p) + '</div>' + (p.stage >= 3 ? '<span class="tpow">Power: ' + PW.name + '</span>' : '') + '</div>' + (S.cageLv ? '<button class="btn small ghost" data-act="cagein" data-id="' + p.id + '"' + (cageCanStore(p) ? '' : ' disabled') + '>To cage</button>' : '') + '</div>';
     }).join('');
     var parts = ['Team size slows you ' + Math.round((1 - Math.max(0.05, 1 - 0.10 * (S.team.length - 1))) * 100) + '%'];
     if (S.boots) parts.push('boots help +' + Math.round(22 * S.boots) + '%');
     if (maxCount()) parts.push('Max Grown pets help +' + 25 * maxCount() + '%');
     if (hungerSlow() < 1) parts.push('hungry pets slow you ' + Math.round((1 - hungerSlow()) * 100) + '%');
-    return '<div class="sheet-card infosheet"><h3>Your team</h3><p class="srow-note">Speed ' + Math.round(speedMult() * 100) + '%. ' + parts.join(', ') + '.</p><div class="teamlist">' + rows + '</div>' + awayHTML() + '<div class="row"><button class="btn small" data-act="feedbag">Feed pets</button><button class="btn ghost small" data-act="closesheet">Close</button></div></div>';
+    return '<div class="sheet-card infosheet"><h3>Your team</h3><p class="srow-note">Speed ' + Math.round(speedMult() * 100) + '%. ' + parts.join(', ') + '.</p><div class="teamlist">' + rows + '</div>' + cageHTML() + awayHTML() + '<div class="row"><button class="btn small" data-act="feedbag">Feed pets</button><button class="btn ghost small" data-act="closesheet">Close</button></div></div>';
+  }
+  function cageHTML() {
+    if (!S.cageLv) return '';
+    var rows = S.cage.map(function (p) {
+      return '<div class="teamrow"><i class="tdot" style="background:' + TYPES[p.type].dot + '"></i><div><b>' + esc(p.name) + '</b> <span>' + TYPES[p.type].name + ' &middot; ' + (p.stage >= 4 ? 'Max Grown' : 'level ' + p.stage) + '</span></div><button class="btn small primary" data-act="cageout" data-id="' + p.id + '">Take out</button></div>';
+    }).join('');
+    return '<h4>' + CAGE_NAME[S.cageLv - 1] + ' (' + S.cage.length + '/' + cageCap() + ')</h4><div class="teamlist">' + (rows || '<p class="srow-note">The cage is empty.</p>') + '</div><p class="srow-note">Pets in the cage do not walk with you, do not slow you down and do not get hungry. Their powers do not work and they do not count for what a guard asks. Unicorns and your last pet cannot go in.</p>';
   }
   function infoHTML(k) { return k === 'world' ? infoWorld() : k === 'level' ? infoLevel() : k === 'bag' ? infoBag() : infoTeam(); }
 
@@ -2969,7 +2979,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     '</svg>'
   ].join('');
   function peekHTML() {
-    return '<div class="peek" id="peek"><button class="peek-bot" data-act="help" aria-label="Ask Professor Bolt for help">' + PEEK_SVG + '</button>' +
+    return '<div class="peek" id="peek"><button class="peek-bot" data-act="help" aria-label="Open the Professor\'s shop">' + PEEK_SVG + '</button>' +
       '<div class="bubble peek-bubble" id="peekText" aria-live="polite"></div></div>';
   }
   function peekContent() {
@@ -4095,6 +4105,37 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   var BOOT_COST = [8, 20, 45];
   var SELL = { wild: 2, powerful: 4, super: 8, ultra: 16, legend: 40 };
+  // Tool Cage (level 15+): pets kept in it do not walk with you and do not slow you down
+  var CAGE_LV = 15, CAGE_NAME = ['Small Cage', 'Travel Cage', 'Big Cage', 'Grand Cage'], CAGE_CAP = [2, 4, 6, 8], CAGE_COST = [40, 90, 160, 260];
+  function cageCap() { return S.cageLv ? CAGE_CAP[S.cageLv - 1] : 0; }
+  function cageCanStore(p) { return S.cageLv && S.cage.length < cageCap() && S.team.length > 1 && p.type !== 'unicorn' && !S.away.some(function (a) { return a.pet === p; }); }
+  function cageStore(id) {
+    var p = S.team.filter(function (x) { return x.id === id; })[0];
+    if (!p || !cageCanStore(p)) return;
+    removeTeamPet(p); S.cage.push(p);
+    save(); updateHud(); openSheet(infoTeam()); say(p.name + ' rests in the cage. You walk lighter now!', 3500);
+  }
+  function cageTake(id) {
+    var p = S.cage.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    S.cage.splice(S.cage.indexOf(p), 1); S.team.push(p); addFollowerEnt(p);
+    save(); updateHud(); openSheet(infoTeam()); say(p.name + ' is back with you.', 3500);
+  }
+  function buyCage() {
+    var cost = CAGE_COST[S.cageLv];
+    if (level() < CAGE_LV || cost === undefined || S.coins < cost) return;
+    S.coins -= cost; S.cageLv++;
+    save(); updateHud(); openSheet(shopHTML());
+    wmsg('A ' + CAGE_NAME[S.cageLv - 1].toLowerCase() + '! It keeps up to ' + cageCap() + ' pets safe while you travel.');
+  }
+  function cageRow() {
+    if (level() < CAGE_LV) return '<p class="srow-note">The Tool Cage unlocks at level ' + CAGE_LV + '.</p>';
+    var cost = CAGE_COST[S.cageLv];
+    var now = '<p class="srow-note">' + (S.cageLv ? 'You have: ' + CAGE_NAME[S.cageLv - 1] + ' (' + S.cage.length + ' of ' + cageCap() + ' pets inside). Move pets in and out from the Team button.' : 'A cage keeps pets safe while you travel. Pets inside do not walk with you, so they do not slow you down.') + '</p>';
+    if (cost === undefined) return now + '<p class="srow-note">Your cage is the biggest there is!</p>';
+    return now + '<div class="srow"><div class="sface boots">&#129693;</div><div class="sinfo"><b>' + CAGE_NAME[S.cageLv] + '</b><span>Keeps ' + CAGE_CAP[S.cageLv] + ' pets' + (S.cageLv ? ' (replaces your current cage)' : '') + '</span></div>' +
+      '<button class="btn small primary" data-act="buycage"' + (S.coins < cost ? ' disabled' : '') + '>Buy ' + cost + '</button></div>';
+  }
   var BAG_CAP = [3, 6, 10, 15], FOOD_CAP = [10, 16, 24, 36], BAG_COST = [10, 24, 50], BAG_NAME = ['Basic bag', 'Satchel', 'Backpack', 'Big backpack'];
   var PORTAL_USES = 3, PORTAL_MAX = 6;
   function carryCap() { return BAG_CAP[S.bag]; }
@@ -4134,10 +4175,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       ? '<p class="srow-note">Your Speedster Boots are the best there is!</p>'
       : '<div class="srow"><div class="sface boots">&#128095;</div><div class="sinfo"><b>Speedster Boots ' + (S.boots + 1) + '</b><span>Walk 22% faster</span></div><button class="btn small primary" data-act="buyboots"' + (S.coins < cost ? ' disabled' : '') + '>Buy ' + cost + '</button></div>';
     return '<div class="sheet-card"><h3>Professor Bolt\'s shop</h3><p class="coins">Coins: <b>' + S.coins + '</b></p>' +
-      '<h4>Sell a pet</h4>' + rows + (only ? '<p class="srow-note">Keep at least one pet with you!</p>' : '<p class="srow-note">A sold pet leaves for good. Rarer and evolved pets are worth more.</p>') +
+      '<p class="srow-note">Tap Professor Bolt any time to shop. His free colorful balls are only at his lab on Home Island.</p>' + '<h4>Sell a pet</h4>' + rows + (only ? '<p class="srow-note">Keep at least one pet with you!</p>' : '<p class="srow-note">A sold pet leaves for good. Rarer and evolved pets are worth more.</p>') +
       '<h4>Speedster Boots</h4>' + boots +
-      '<h4>Bag</h4>' + bagRow() + '<h4>Home Portal</h4>' + portalRow() + '<h4>Portable Sun</h4>' + sunRow() +
-      '<button class="btn ghost small" data-act="closesheet">Close</button></div>';
+      '<h4>Bag</h4>' + bagRow() + '<h4>Tool Cage</h4>' + cageRow() + '<h4>Home Portal</h4>' + portalRow() + '<h4>Portable Sun</h4>' + sunRow() +
+      '<div class="row"><button class="btn ghost small" data-act="tips">Tips from the Professor</button><button class="btn ghost small" data-act="closesheet">Close</button></div></div>';
   }
   function bagRow() {
     var next = BAG_COST[S.bag];
@@ -6279,6 +6320,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     tools: function () { if (S.world && !$('#sheet')) openSheet(toolsHTML()); },
     usetool: function (b) { useTool(b.dataset.k); },
     buybag: function () { buyBag(); },
+    buycage: function () { buyCage(); },
+    cagein: function (b) { cageStore(+b.dataset.id); },
+    cageout: function (b) { cageTake(+b.dataset.id); },
     buyportal: function () { buyPortal(); },
     portalhome: function () { usePortal(); },
     buysun: function () { buySun(); },
@@ -6286,7 +6330,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     feedbag: function () { feedFromBag(); },
     closesheet: function () { closeSheet(); },
     tipnext: function () { nextTip(); },
-    help: function () { startTips(); },
+    help: function () { if (S.world && !$('#sheet')) { S.sellAsk = null; openSheet(shopHTML()); } else if (!S.world) startTips(); },
+    tips: function () { closeSheet(); startTips(); },
     birds: function () { toggleBirds(); },
     fullscreen: function () {
       try {

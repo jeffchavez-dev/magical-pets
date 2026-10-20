@@ -94,6 +94,12 @@ When you reach level 20, 25 more worlds appear (they are not counted before that
 ## Names, home sounds and phones
 The pencil beside a pet's name (on its page and in the Team sheet) renames it. On the home screen there are different sounds for petting (a chime and purr), feeding (a crunch) and playing (a boing), plus soft background music and a sound button. On phones, an eye button in the top bar cycles: show, fade or hide the top bar (the map stays). While a scout is away, a small side panel shows an animation, the pet's name, the target type and a countdown.
 
+## Tool Cage (level 15+)
+From level 15 Professor Bolt sells a Tool Cage in four sizes (Small Cage 2 pets for 40 coins, Travel Cage 4 pets for 90, Big Cage 6 pets for 160, Grand Cage 8 pets for 260). Each bigger cage replaces the one before. Open the **Team** button and tap **To cage** to move a pet into the cage, or **Take out** to bring it back. Every pet you carry slows you down, so a pet in the cage does not walk with you and does not slow you down. Caged pets do not get hungry, but their powers do not work and they do not count for what a guard asks, so take them out when you need them. Unicorns and your last pet cannot go in the cage.
+
+## Professor Bolt's shop anywhere
+Tap Professor Bolt (the robot peeking in at the corner) in any world to open his shop and buy or sell. His free colorful balls are still handed out only at his lab on Home Island. The shop has a **Tips from the Professor** button for the old help tips.
+
 ## Weather and meteors
 Every world has its own weather: snow, rain with lightning, falling leaves, floating embers, bubbles, fireflies, ash and more. Meteors fly across the universe map. Everything is turned off for players who ask their device to reduce motion.
 
