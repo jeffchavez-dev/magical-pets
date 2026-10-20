@@ -2498,6 +2498,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function uniTierFor(th) { return th >= 40 ? 11 : th >= 30 ? 10 : th >= 20 ? 9 : UNI_TIER; }
   function uniCap(p) { return p.ut || UNI_TIER; }
   function uniCan(g, p) { return !g.max && (g.tier || 1) <= (p ? uniCap(p) : Math.max.apply(null, unicorns().map(uniCap).concat(0))); }
+  // a unicorn's first power is a gift; its second (last) power also needs at least 1 pet of a type the guard asks for
+  function uniNeedTypes(g) { return Object.keys(g.need || {}).filter(function (t) { return t !== 'unicorn'; }); }
+  function uniNeedOk(g, p) {
+    if (uniLeft(p) >= UNI_CHARGES) return true;
+    var want = uniNeedTypes(g);
+    return !want.length || S.team.some(function (q) { return q !== p && q.type !== 'unicorn' && want.indexOf(q.type) >= 0; });
+  }
+  function uniNeedText(g) { return 'Needs at least 1 ' + uniNeedTypes(g).map(function (t) { return TYPES[t] ? TYPES[t].name : t; }).join(' or ') + ' pet on your team'; }
   function uniSpeed(th) { return 95 + 2 * Math.max(0, th - 10); }   // later spirits run faster
   function unicorns() { return S.team.filter(function (p) { return p.type === 'unicorn'; }); }
   function uniLeft(p) { return p.uc == null ? UNI_CHARGES : p.uc; }
@@ -2785,7 +2793,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     li.push('<li><b>World Jump</b> ' + (level() <= 10 ? 'Unlocks after level 10 when every pet is fully grown.' : !jumpUnlocked() ? 'Every pet must be fully grown first.' : jumpReady() ? 'Ready! Open Powers to jump.' : 'Recharging: ' + Math.floor(S.jump) + '%. Keep walking!') + '</li>');
     var uq = uniQuests(), roam = uq.filter(function (th) { return !S.uni[th]; }), nxt = UNI_LV.filter(function (th) { return level() < th; })[0], un = unicorns();
     li.push('<li><b>Unicorn spirits</b> One roams every 3 levels from level 10. ' + (roam.length ? 'Roaming now: ' + roam.map(function (th) { return esc(UNI_NAME[th]) + ' in ' + esc(WORLDS[uniWorld(th)].name); }).join(', ') + '. ' : '') + (nxt ? 'Next at level ' + nxt + '. ' : '') +
-      'A unicorn can open ' + UNI_CHARGES + ' guard caves with its rainbow power (older rescues open tougher guards; the Max Grown guards always need a battle), then it fades away. You can carry ' + UNI_MAX + ' unicorns' + (un.length ? ' (you have ' + un.length + ').' : '.') + '</li>');
+      'A unicorn can open ' + UNI_CHARGES + ' guard caves with its rainbow power (its last power also needs a pet the guard asks for; older rescues open tougher guards; the Max Grown guards always need a battle), then it fades away. You can carry ' + UNI_MAX + ' unicorns' + (un.length ? ' (you have ' + un.length + ').' : '.') + '</li>');
     return '<div class="sheet-card infosheet"><h3>Level ' + level() + '</h3><ul class="infolist">' + li.join('') + '</ul><div class="row"><button class="btn small" data-act="powers">Powers</button><button class="btn ghost small" data-act="dex">Petdex</button><button class="btn ghost small" data-act="closesheet">Close</button></div>' + CREDIT + '</div>';
   }
   function infoBag() {
@@ -4839,11 +4847,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function uniOpenHTML(ge) {
     var rows = unicorns().filter(function (p) { return uniCan(ge.guard, p); }).map(function (p) {
-      var n = uniLeft(p), last = n <= 1;
-      return '<div class="srow"><div class="sface">' + petSVG(p.type, p.stage, p.name, p.body) + '</div><div class="sinfo"><b>' + esc(p.name) + '</b><span>' + n + ' power left' + (last ? '. This is its LAST power. It will fade away after opening the cave.' : '.') + '</span></div>' +
-        '<button class="btn small primary" data-act="uniunlock" data-id="' + p.id + '">Open</button></div>';
+      var n = uniLeft(p), last = n <= 1, ok = uniNeedOk(ge.guard, p);
+      return '<div class="srow"><div class="sface">' + petSVG(p.type, p.stage, p.name, p.body) + '</div><div class="sinfo"><b>' + esc(p.name) + '</b><span>' + n + ' power left' + (last ? '. This is its LAST power. It will fade away after opening the cave.' : '.') + (ok ? '' : ' ' + esc(uniNeedText(ge.guard)) + ' to use it.') + '</span></div>' +
+        (ok ? '<button class="btn small primary" data-act="uniunlock" data-id="' + p.id + '">Open</button>' : '<button class="btn small" disabled>Locked</button>') + '</div>';
     }).join('');
-    return '<div class="sheet-card"><h3>Unicorn unlock</h3><p class="srow-note">A unicorn can open the ' + esc(ge.spot.t) + ' without a battle. Each unicorn has ' + UNI_CHARGES + ' powers, then it fades away forever. A unicorn cannot open a guard tougher than its own power (this guard is difficulty ' + ge.guard.tier + ').</p>' + rows + '<button class="btn ghost small" data-act="closesheet">Not now</button></div>';
+    return '<div class="sheet-card"><h3>Unicorn unlock</h3><p class="srow-note">A unicorn can open the ' + esc(ge.spot.t) + ' without a battle. Each unicorn has ' + UNI_CHARGES + ' powers, then it fades away forever. Its first power is free. Its last power also needs a pet of a type this guard asks for on your team. A unicorn cannot open a guard tougher than its own power (this guard is difficulty ' + ge.guard.tier + ').</p>' + rows + '<button class="btn ghost small" data-act="closesheet">Not now</button></div>';
   }
   function unicornFade(p) { removeTeamPet(p); }
   function removeTeamPet(p) {
@@ -4854,7 +4862,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function uniUnlock(id) {
     var p = S.team.filter(function (x) { return x.id === id && x.type === 'unicorn'; })[0], ge = S.world && nearGuard();
-    if (!p || !ge || !uniCan(ge.guard, p)) return;
+    if (!p || !ge || !uniCan(ge.guard, p) || !uniNeedOk(ge.guard, p)) return;
     var last = uniLeft(p) <= 1;
     if (last && S.team.length <= 1) { wmsg(p.name + ' is your only pet, so it cannot fade away. Bring a friend first!'); return; }
     p.uc = uniLeft(p) - 1;
