@@ -70,9 +70,9 @@ Moving fast is handled by flying, so no power overlaps with it.
 Above level 10, once every pet is fully grown, you can jump to a world 2 or 3 caves away and skip the worlds in between (only worlds you have already opened). After a jump it recharges while you walk.
 
 ## Unicorn spirits
-Every 2 worlds from level 10 (10, 12, 14 ... 50), a unicorn spirit starts roaming the world that you just opened (you can see it drifting near that world on the universe map). It runs and blinks around. It is always happy and the rescue always works, so you only need to catch up to it and use a Happy Stone. A shimmering, echoing chime plays when it is near, when it blinks to a new spot, and when you open the universe map while one is roaming.
+Every 3 levels from level 10 (10, 13, 16 ... 49), a unicorn spirit starts roaming the world that you just opened (you can see it drifting near that world on the universe map). It runs and blinks around, and later spirits run faster. Like any wild pet it is only happy for a moment, so you must catch up to it and use a Happy Stone while it smiles. Once it is happy the rescue always works. A shimmering, echoing chime plays when it is near, when it blinks to a new spot, and when you open the universe map while one is roaming.
 
-**Unicorn unlock:** at any level, a unicorn can open a guard cave for you without a battle (tap **Unicorn unlock** near a guard). Each unicorn has 3 powers; after the last one it fades away. You can carry at most 3 unicorns at a time. A unicorn cannot open caves that need a Max Grown pet.
+**Unicorn unlock:** at any level, a unicorn can open a guard cave for you without a battle (tap **Unicorn unlock** near a guard). Each unicorn has 2 powers; after the last one it fades away. You can carry at most 3 unicorns at a time. A unicorn cannot open the toughest guards (difficulty above 7) or caves that need a Max Grown pet; those must be won in battle.
 
 ## Far worlds (level 20+)
 When you reach level 20, 25 more worlds appear (they are not counted before that). A cave appears at the end of each of the four old paths and leads to the Crossroads, a hub from which three caves continue. Some worlds have two caves behind one guard (beat the guard once and two worlds open). The universe map grows, and so does the list of types (metal, light, dragon, cosmic, music, candy) and the Petdex.

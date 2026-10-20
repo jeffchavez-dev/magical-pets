@@ -2490,10 +2490,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   /* ----- credit ----- */
   var CREDIT = '<p class="credit">A game by Mira &middot; made with love by Daddy <svg viewBox="0 0 24 24" aria-label="heart" role="img"><path d="M12 21s-7.500-4.700-9.500-9.200C1 8 3.200 4.500 6.800 4.500c2 0 3.700 1.100 5.200 3 1.500-1.900 3.200-3 5.200-3 3.600 0 5.800 3.500 4.300 7.300C19.500 16.300 12 21 12 21z" fill="#ff7eb6"/></svg></p>';
 
-  /* ----- unicorn spirits: one waits to be rescued every 2 worlds from level 10 ----- */
+  /* ----- unicorn spirits: one waits to be rescued every 3 levels from level 10 ----- */
   var UNI_LV = [], UNI_NAME = {}, UNI_NAMES = ['Aurora', 'Celeste', 'Lumi', 'Nova', 'Prism', 'Stella', 'Opal', 'Aster', 'Solara', 'Willow', 'Ember', 'Comet', 'Pearl', 'Breeze', 'Dewdrop', 'Twinkle', 'Maple', 'Lyra', 'Halo', 'Misty', 'Orion'];
-  UNI_NAMES.forEach(function (n, i) { UNI_LV.push(10 + 2 * i); UNI_NAME[10 + 2 * i] = n; });
-  var UNI_CHARGES = 3, UNI_MAX = 3;   // each unicorn can open 3 caves, then it fades away; you can carry 3 unicorns
+  UNI_NAMES.slice(0, 14).forEach(function (n, i) { UNI_LV.push(10 + 3 * i); UNI_NAME[10 + 3 * i] = n; });   // levels 10, 13, 16 ... 49
+  var UNI_CHARGES = 2, UNI_MAX = 3, UNI_TIER = 7;   // each unicorn can open 2 caves, then it fades away; you can carry 3 unicorns; it cannot open guards above tier 7
+  function uniCan(g) { return !g.max && (g.tier || 1) <= UNI_TIER; }
+  function uniSpeed(th) { return 95 + 2 * Math.max(0, th - 10); }   // later spirits run faster
   function unicorns() { return S.team.filter(function (p) { return p.type === 'unicorn'; }); }
   function uniLeft(p) { return p.uc == null ? UNI_CHARGES : p.uc; }
   function uniWorld(th) { return Object.keys(S.opened)[th - 2] || null; }
@@ -2767,7 +2769,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   /* ----- the tidy top bar: four groups, one tap shows the details ----- */
   function infoWorld() {
     var base = worldInfoHTML(S.cur);
-    return uniHere(S.cur) ? base.replace('<div class="winfogrid">', '<p class="srow-note uspnote">A unicorn spirit roams this world! It runs and blinks around and is always happy. Catch up and use a Happy Stone!</p><div class="winfogrid">') : base;
+    return uniHere(S.cur) ? base.replace('<div class="winfogrid">', '<p class="srow-note uspnote">A unicorn spirit roams this world! It runs and blinks around, and it is only happy for a moment. Catch up and use a Happy Stone while it smiles!</p><div class="winfogrid">') : base;
   }
   function infoLevel() {
     var gp = growPets().length, tot = S.team.length, n = Object.keys(S.caught).length, fl = S.team.filter(canFly);
@@ -2779,8 +2781,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (level() > 10) li.push('<li><b>Trips home</b> ' + homeLeftText() + ' Free trips work from any world.</li>');
     li.push('<li><b>World Jump</b> ' + (level() <= 10 ? 'Unlocks after level 10 when every pet is fully grown.' : !jumpUnlocked() ? 'Every pet must be fully grown first.' : jumpReady() ? 'Ready! Open Powers to jump.' : 'Recharging: ' + Math.floor(S.jump) + '%. Keep walking!') + '</li>');
     var uq = uniQuests(), roam = uq.filter(function (th) { return !S.uni[th]; }), nxt = UNI_LV.filter(function (th) { return level() < th; })[0], un = unicorns();
-    li.push('<li><b>Unicorn spirits</b> One roams every 2 worlds from level 10. ' + (roam.length ? 'Roaming now: ' + roam.map(function (th) { return esc(UNI_NAME[th]) + ' in ' + esc(WORLDS[uniWorld(th)].name); }).join(', ') + '. ' : '') + (nxt ? 'Next at level ' + nxt + '. ' : '') +
-      'A unicorn can open ' + UNI_CHARGES + ' guard caves with its rainbow power, then it fades away. You can carry ' + UNI_MAX + ' unicorns' + (un.length ? ' (you have ' + un.length + ').' : '.') + '</li>');
+    li.push('<li><b>Unicorn spirits</b> One roams every 3 levels from level 10. ' + (roam.length ? 'Roaming now: ' + roam.map(function (th) { return esc(UNI_NAME[th]) + ' in ' + esc(WORLDS[uniWorld(th)].name); }).join(', ') + '. ' : '') + (nxt ? 'Next at level ' + nxt + '. ' : '') +
+      'A unicorn can open ' + UNI_CHARGES + ' guard caves with its rainbow power (not guards above difficulty ' + UNI_TIER + '), then it fades away. You can carry ' + UNI_MAX + ' unicorns' + (un.length ? ' (you have ' + un.length + ').' : '.') + '</li>');
     return '<div class="sheet-card infosheet"><h3>Level ' + level() + '</h3><ul class="infolist">' + li.join('') + '</ul><div class="row"><button class="btn small" data-act="powers">Powers</button><button class="btn ghost small" data-act="dex">Petdex</button><button class="btn ghost small" data-act="closesheet">Close</button></div>' + CREDIT + '</div>';
   }
   function infoBag() {
@@ -2969,7 +2971,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (ng) {
       var miss = missingFor(ng.guard, ng);
       var head = 'Guard ' + ng.name + ' protects the ' + ng.spot.t + '. Its powers: ' + needText(ng.guard) + '.';
-      var ub = unicorns().length && !ng.guard.max ? '<button class="btn small uniunlock" data-act="uniopen">Unicorn unlock</button>' : '';
+      var ub = unicorns().length && uniCan(ng.guard) ? '<button class="btn small uniunlock" data-act="uniopen">Unicorn unlock</button>' : '';
       return miss.length
         ? '<span>' + head + ' Carry them with you to take it on. You still need ' + miss.join(' and ') + '.</span>' + ub
         : '<span>' + head + ' You carry them all!' + (S.weak[ng.key] === undefined && preReady().length ? ' ' + preReady().map(function (r) { return r.p.name + ' will strike first (' + r.n + ' hits).'; }).join(' ') : '') + ' Ready to battle?</span><button class="btn primary small" data-act="challenge">Challenge!</button>' + ub;
@@ -2977,7 +2979,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (!near && w && nearLab()) return '<span>Welcome to my lab! Sell me a pet for coins, and buy Speedster Boots, a bigger bag, a Home Portal, or a Portable Sun.</span><button class="btn primary small" data-act="shop">Open the shop</button>';
     if (near) {
       var nm = TYPES[near.type].name, rl = rarityById(near.rid).label;
-      var who = near.guardian ? 'The guardian Fairy unicorn (' + rl + ')!' : near.spirit ? 'A lost unicorn spirit (' + rl + ')! It is always happy, but it runs and blinks around.' : 'A wild ' + nm + ' pet (' + rl + ')!';
+      var who = near.guardian ? 'The guardian Fairy unicorn (' + rl + ')!' : near.spirit ? 'A lost unicorn spirit (' + rl + ')! It runs and blinks around and is only happy for a moment.' : 'A wild ' + nm + ' pet (' + rl + ')!';
       if (near.cool && now < near.cool) return '<span>Give it a moment.</span>';
       if (!S.stones.length) return '<span>' + who + ' First get a Happy Stone: take a colorful ball to the Sunny Hill on Home Island.</span>';
       if (near.mood !== 'happy') return '<span>' + who + ' It looks ' + (near.mood === 'angry' ? 'angry' : near.mood === 'sad' ? 'sad' : 'calm') + '. A Happy Stone only works when a pet is happy. Wait for a smile!</span>';
@@ -4063,7 +4065,6 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var HAPPY_WINDOW = { wild: 6, powerful: 4.4, super: 3.4, ultra: 2.6, legend: 2 };
   function crowd() { return Math.max(0.35, 1 - 0.06 * (S.team.length - 1)); }   // more friends, harder to make another
   function setMood(e, m, secs) {
-    if (e.spirit) { m = 'happy'; secs = 999; }   /* a lost unicorn spirit is always happy */
     e.mood = m; e.moodT = secs;
     if (e.el) e.el.dataset.mood = m;
   }
@@ -4839,7 +4840,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       return '<div class="srow"><div class="sface">' + petSVG(p.type, p.stage, p.name, p.body) + '</div><div class="sinfo"><b>' + esc(p.name) + '</b><span>' + n + ' power left' + (last ? '. This is its LAST power. It will fade away after opening the cave.' : '.') + '</span></div>' +
         '<button class="btn small primary" data-act="uniunlock" data-id="' + p.id + '">Open</button></div>';
     }).join('');
-    return '<div class="sheet-card"><h3>Unicorn unlock</h3><p class="srow-note">A unicorn can open the ' + esc(ge.spot.t) + ' without a battle. Each unicorn has ' + UNI_CHARGES + ' powers, then it fades away forever.</p>' + rows + '<button class="btn ghost small" data-act="closesheet">Not now</button></div>';
+    return '<div class="sheet-card"><h3>Unicorn unlock</h3><p class="srow-note">A unicorn can open the ' + esc(ge.spot.t) + ' without a battle. Each unicorn has ' + UNI_CHARGES + ' powers, then it fades away forever. It cannot open the toughest guards (difficulty above ' + UNI_TIER + ').</p>' + rows + '<button class="btn ghost small" data-act="closesheet">Not now</button></div>';
   }
   function unicornFade(p) { removeTeamPet(p); }
   function removeTeamPet(p) {
@@ -4850,7 +4851,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function uniUnlock(id) {
     var p = S.team.filter(function (x) { return x.id === id && x.type === 'unicorn'; })[0], ge = S.world && nearGuard();
-    if (!p || !ge || ge.guard.max) return;
+    if (!p || !ge || !uniCan(ge.guard)) return;
     var last = uniLeft(p) <= 1;
     if (last && S.team.length <= 1) { wmsg(p.name + ' is your only pet, so it cannot fade away. Bring a friend first!'); return; }
     p.uc = uniLeft(p) - 1;
@@ -5225,7 +5226,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         e.tx = wq.x; e.ty = wq.y;
         return;
       }
-      moveToward(e, e.tx, e.ty, (e.spirit ? 95 : 45) * dt, 2);
+      moveToward(e, e.tx, e.ty, (e.spirit ? uniSpeed(e.spirit) : 45) * dt, 2);
     });
 
     ents.forEach(function (e) {
@@ -6254,7 +6255,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     dodgelane: function (btn) { dodgeGo(battle, +btn.dataset.i); },
     matchcard: function (btn) { matchTap(+btn.dataset.i); },
     none: function () {},
-    uniopen: function () { var g = S.world && nearGuard(); if (g && unicorns().length && !g.guard.max) openSheet(uniOpenHTML(g)); },
+    uniopen: function () { var g = S.world && nearGuard(); if (g && unicorns().length && uniCan(g.guard)) openSheet(uniOpenHTML(g)); },
     uniunlock: function (btn) { uniUnlock(+btn.dataset.id); },
     strike: function () { strike(); },
     retry: function () { if (battle) startBattle(battle.ge, battle.mode); },
@@ -6376,7 +6377,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       }
       if (e.type === 'unicorn' && unicorns().length >= UNI_MAX) { e.cool = now + 4000; e.wait = 2; wmsg('You already carry ' + UNI_MAX + ' unicorns! Use up a unicorn power, or sell one, to make room. Your Happy Stone is safe.'); nearId = null; updateCatchBar(); return; }
       var lucky = S.luck; S.luck = false; if (lucky) updateHud();
-      var ok = e.spirit ? true : Math.random() < Math.min(0.97, rarityById(e.rid).merge * crowd() + (lucky ? 0.25 : 0));   /* a lost spirit is always happy and always says yes */
+      var ok = e.spirit ? true : Math.random() < Math.min(0.97, rarityById(e.rid).merge * crowd() + (lucky ? 0.25 : 0));   /* a lost spirit always says yes, but only while it is happy */
       if (e.el) { e.el.style.setProperty('--s1', st.s1); e.el.style.setProperty('--s2', st.s2); }
       if (!ok) {
         // the stones did not merge: the Happy Stone is not used up, try another pet or try again later
