@@ -691,6 +691,57 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- Max Grown merge cinematic ---------- */
+.mfx { position: fixed; inset: 0; z-index: 9500; overflow: hidden; background: #07031a; cursor: pointer; animation: mfxIn .5s ease-out both; --c: #b388ff; }
+@keyframes mfxIn { from { opacity: 0; } to { opacity: 1; } }
+.mfx.out { animation: mfxOut .5s ease-in forwards; }
+@keyframes mfxOut { to { opacity: 0; } }
+.mfx-stage { position: absolute; inset: 0; animation: mfxShake 2.6s linear both; }
+@keyframes mfxShake { 0%,62% { transform: none; } 66% { transform: translate(-3px,2px); } 70% { transform: translate(4px,-3px); } 74% { transform: translate(-5px,3px); } 78% { transform: translate(5px,2px); } 82% { transform: translate(-6px,-3px); } 86% { transform: translate(4px,4px); } 90%,100% { transform: none; } }
+.mfx-bg { position: absolute; inset: -20%; background: radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--c) 70%, #fff 0%) 0%, rgba(40,15,100,.55) 34%, #07031a 70%); opacity: .55; animation: mfxPulse 1.2s ease-in-out infinite alternate; }
+@keyframes mfxPulse { from { transform: scale(.92); opacity: .4; } to { transform: scale(1.08); opacity: .75; } }
+.mfx-star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; opacity: 0; animation: mfxTw 2.2s ease-in-out infinite; }
+@keyframes mfxTw { 50% { opacity: .95; transform: scale(1.8); } }
+.mfx-orbit { position: absolute; left: 50%; top: 46%; width: 0; height: 0; animation: mfxSpin 2.4s cubic-bezier(.55,0,.9,.6) .5s both; }
+@keyframes mfxSpin { from { transform: rotate(0); } to { transform: rotate(900deg); } }
+.mfx-pet { position: absolute; width: min(34vw, 150px); aspect-ratio: 1; margin: calc(min(34vw, 150px) / -2) 0 0 calc(min(34vw, 150px) / -2); filter: drop-shadow(0 0 18px var(--c)) drop-shadow(0 0 40px var(--c)); }
+.mfx-pet svg { width: 100%; height: 100%; display: block; }
+.mfx-pet .mfx-in { width: 100%; height: 100%; animation: mfxUp 2.4s cubic-bezier(.55,0,.9,.6) .5s both; }
+@keyframes mfxUp { from { transform: rotate(0); } to { transform: rotate(-900deg) scale(.55); } }
+.mfx-pet.a { animation: mfxA 2.9s cubic-bezier(.5,0,.8,.5) both; }
+.mfx-pet.b { animation: mfxB 2.9s cubic-bezier(.5,0,.8,.5) both; }
+@keyframes mfxA { 0% { transform: translateX(-70vw); opacity: 0; } 17% { transform: translateX(min(-20vw, -100px)); opacity: 1; } 100% { transform: translateX(0); opacity: 1; } }
+@keyframes mfxB { 0% { transform: translateX(70vw); opacity: 0; } 17% { transform: translateX(min(20vw, 100px)); opacity: 1; } 100% { transform: translateX(0); opacity: 1; } }
+.mfx-orbit.gone, .mfx-pet.gone { display: none; }
+.mfx-dot { position: absolute; left: 50%; top: 46%; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px 3px var(--c); opacity: 0; animation: mfxDot 1.5s ease-in infinite; }
+@keyframes mfxDot { 0% { transform: translate(var(--x), var(--y)) scale(.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: translate(0, 0) scale(1.2); opacity: 0; } }
+.mfx-flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: mfxFlash 1s ease-out 2.9s both; }
+@keyframes mfxFlash { 0% { opacity: 0; } 12% { opacity: 1; } 100% { opacity: 0; } }
+.mfx-ring { position: absolute; left: 50%; top: 46%; width: 40px; height: 40px; margin: -20px; border-radius: 50%; border: 6px solid #fff; box-shadow: 0 0 30px var(--c), inset 0 0 30px var(--c); opacity: 0; animation: mfxRing 1.5s cubic-bezier(.1,.7,.3,1) both; }
+@keyframes mfxRing { 0% { transform: scale(.3); opacity: 1; } 100% { transform: scale(26); opacity: 0; border-width: 1px; } }
+.mfx-rays { position: absolute; left: 50%; top: 46%; width: 190vmax; height: 190vmax; margin: -95vmax; opacity: 0; background: repeating-conic-gradient(from 0deg, rgba(255,216,107,.55) 0 7deg, rgba(255,126,182,.0) 7deg 15deg, rgba(120,200,255,.5) 15deg 22deg, rgba(179,136,255,0) 22deg 30deg); -webkit-mask-image: radial-gradient(circle, #000 0, transparent 38%); mask-image: radial-gradient(circle, #000 0, transparent 38%); animation: mfxRays 24s linear 2.9s infinite, mfxFade 1.2s ease-out 2.9s both; }
+@keyframes mfxRays { to { transform: rotate(360deg); } }
+@keyframes mfxFade { from { opacity: 0; } to { opacity: 1; } }
+.mfx-res { position: absolute; left: 50%; top: 46%; width: min(58vw, 270px); aspect-ratio: 1; margin: calc(min(58vw, 270px) / -2) 0 0 calc(min(58vw, 270px) / -2); opacity: 0; animation: mfxPop 1s cubic-bezier(.2,1.6,.4,1) 2.95s both; filter: drop-shadow(0 0 22px #ffd86b) drop-shadow(0 0 60px var(--c)); }
+.mfx-res svg { width: 100%; height: 100%; display: block; animation: mfxFloat 2.6s ease-in-out 3.9s infinite; }
+@keyframes mfxPop { 0% { transform: scale(0) rotate(-200deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes mfxFloat { 50% { transform: translateY(-12px) scale(1.04); } }
+.mfx-title { position: absolute; left: 0; right: 0; top: 68%; text-align: center; font-family: inherit; font-weight: 900; font-size: clamp(38px, 11vw, 68px); line-height: 1.1; letter-spacing: .04em; -webkit-text-stroke: 1px rgba(60,20,100,.45); background: linear-gradient(90deg, #ffd86b, #ff7eb6, #7fd8ff, #ffd86b); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 0 rgba(0,0,0,.35)) drop-shadow(0 0 18px rgba(255,216,107,.7)); opacity: 0; animation: mfxTitle .8s cubic-bezier(.2,1.5,.4,1) 3.5s both, mfxShine 3s linear 4.3s infinite; }
+@keyframes mfxTitle { from { transform: scale(2.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes mfxShine { to { background-position: 300% 0; } }
+.mfx-sub { position: absolute; left: 0; right: 0; top: calc(68% + clamp(56px, 15vw, 88px)); text-align: center; padding: 0 20px; color: var(--cream); font-size: clamp(15px, 4vw, 20px); text-wrap: balance; opacity: 0; animation: mfxFade .8s ease-out 4.1s both; }
+.mfx-tap { position: absolute; left: 0; right: 0; bottom: 6%; text-align: center; color: rgba(255,246,251,.7); font-size: 14px; opacity: 0; animation: mfxFade .6s ease-out 5.2s both; }
+.mfx-conf { position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 2px; opacity: 0; animation: mfxConf 3.4s linear infinite; }
+@keyframes mfxConf { 0% { transform: translate(0, -20px) rotate(0); opacity: 0; } 8% { opacity: 1; } 100% { transform: translate(var(--dx), 112vh) rotate(var(--rot)); opacity: 1; } }
+.mfx-spark { position: absolute; left: 50%; top: 46%; width: 14px; height: 14px; margin: -7px; background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: mfxSpark 1.6s ease-out both; opacity: 0; }
+@keyframes mfxSpark { 0% { transform: translate(0,0) scale(.2) rotate(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1.8) rotate(240deg); opacity: 0; } }
+.mfx.reduce .mfx-stage, .mfx.reduce .mfx-bg { animation: none; }
+.mfx.reduce .mfx-res { animation: mfxFade .6s ease-out both; }
+.mfx.reduce .mfx-title { animation: mfxFade .6s ease-out .3s both; }
+.mfx.reduce .mfx-sub { animation: mfxFade .6s ease-out .6s both; }
+.mfx.reduce .mfx-tap { animation: mfxFade .6s ease-out 1.2s both; }
+.mfx.reduce .mfx-res svg, .mfx.reduce .mfx-rays { animation: none; }
 </style>
 </head>
 <body>
@@ -2755,19 +2806,76 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     h.push('</div></div>');
     return h.join('');
   }
+
+  /* ----- the Max Grown merge cinematic: two pets spiral together, flash, and a Max Grown pet is born ----- */
+  function auMaxMerge() {
+    if (!AU.on || !AU.ctx || !AU.master || AU.ctx.state !== 'running') return;
+    var c = AU.ctx, t = c.currentTime + 0.05, o = c.createOscillator(), g = c.createGain();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(110, t + 0.5); o.frequency.exponentialRampToValueAtTime(1500, t + 2.85);
+    g.gain.setValueAtTime(0.0001, t + 0.5); g.gain.linearRampToValueAtTime(0.07, t + 2.6); g.gain.linearRampToValueAtTime(0.0001, t + 2.95);
+    var lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(400, t + 0.5); lp.frequency.exponentialRampToValueAtTime(5000, t + 2.85);
+    o.connect(lp); lp.connect(g); g.connect(AU.master); o.start(t + 0.5); o.stop(t + 3);
+    [60, 67, 72, 76, 79, 84, 88].forEach(function (m, i) {
+      var q = c.createOscillator(), e = c.createGain(); q.type = i % 2 ? 'triangle' : 'sine'; q.frequency.value = midiF(m);
+      aEnv(e, t + 2.9 + i * 0.04, 0.02, 0.2 - i * 0.015, 2.2); q.connect(e); e.connect(AU.master); q.start(t + 2.9 + i * 0.04); q.stop(t + 5.4);
+    });
+    [88, 91, 95, 100, 95, 103].forEach(function (m, i) {
+      var q = c.createOscillator(), e = c.createGain(); q.type = 'sine'; q.frequency.value = midiF(m);
+      aEnv(e, t + 3.3 + i * 0.12, 0.01, 0.1, 0.7); q.connect(e); e.connect(AU.master); q.start(t + 3.3 + i * 0.12); q.stop(t + 4.4 + i * 0.12);
+    });
+  }
+  function maxCinematic(t, beforeA, beforeB, after, name, done) {
+    var T = TYPES[t], col = T.dot, host = document.createElement('div'), h = [], i, ang, r;
+    host.className = 'mfx' + (REDUCE ? ' reduce' : ''); host.style.setProperty('--c', col);
+    host.setAttribute('role', 'dialog'); host.setAttribute('aria-label', name + ' became Max Grown');
+    h.push('<div class="mfx-stage"><div class="mfx-bg"></div>');
+    for (i = 0; i < 36; i++) h.push('<i class="mfx-star" style="left:' + (Math.random() * 100).toFixed(1) + '%;top:' + (Math.random() * 100).toFixed(1) + '%;animation-delay:-' + (Math.random() * 2).toFixed(2) + 's"></i>');
+    if (!REDUCE) {
+      for (i = 0; i < 40; i++) { ang = Math.random() * 6.283; r = 140 + Math.random() * 220; h.push('<i class="mfx-dot" style="--x:' + Math.round(Math.cos(ang) * r) + 'px;--y:' + Math.round(Math.sin(ang) * r) + 'px;animation-delay:' + (0.6 + Math.random() * 1.9).toFixed(2) + 's;animation-iteration-count:1"></i>'); }
+      h.push('<div class="mfx-orbit" id="mfxOrbit"><div class="mfx-pet a" id="mfxA"><div class="mfx-in">' + beforeA + '</div></div><div class="mfx-pet b" id="mfxB"><div class="mfx-in">' + beforeB + '</div></div></div>');
+      h.push('<div class="mfx-ring" style="animation-delay:2.9s"></div><div class="mfx-ring" style="animation-delay:3.1s;border-color:#ffd86b"></div><div class="mfx-ring" style="animation-delay:3.35s;border-color:#ff7eb6"></div>');
+      for (i = 0; i < 18; i++) { ang = (i / 18) * 6.283; r = 150 + Math.random() * 170; h.push('<i class="mfx-spark" style="--dx:' + Math.round(Math.cos(ang) * r) + 'px;--dy:' + Math.round(Math.sin(ang) * r) + 'px;animation-delay:' + (2.9 + Math.random() * 0.3).toFixed(2) + 's"></i>'); }
+      h.push('<div class="mfx-rays"></div>');
+    }
+    h.push('<div class="mfx-res">' + after + '</div></div>');
+    if (!REDUCE) {
+      var cols = ['#ffd86b', '#ff7eb6', '#7fd8ff', '#b388ff', '#9be37f', '#ffffff', col];
+      for (i = 0; i < 70; i++) h.push('<i class="mfx-conf" style="left:' + (Math.random() * 100).toFixed(1) + '%;background:' + cols[i % cols.length] + ';--dx:' + Math.round((Math.random() - 0.5) * 160) + 'px;--rot:' + Math.round(360 + Math.random() * 720) + 'deg;animation-delay:' + (3 + Math.random() * 2.2).toFixed(2) + 's;animation-duration:' + (2.6 + Math.random() * 1.8).toFixed(2) + 's"></i>');
+      h.push('<div class="mfx-flash"></div>');
+    }
+    h.push('<div class="mfx-title">MAX GROWN!</div><div class="mfx-sub">' + esc(name) + ' and its friend became one. Power and speed are doubled!</div><div class="mfx-tap">Tap to continue</div>');
+    host.innerHTML = h.join('');
+    document.body.appendChild(host);
+    var closed = false, ready = performance.now() + (REDUCE ? 1200 : 5200);
+    function close() {
+      if (closed) return; closed = true;
+      host.classList.add('out'); setTimeout(function () { if (host.parentNode) host.parentNode.removeChild(host); }, 520);
+      if (done) done();
+    }
+    host.addEventListener('click', function () { if (performance.now() >= ready) close(); });
+    setTimeout(close, REDUCE ? 6000 : 10500);
+    if (!REDUCE) {
+      setTimeout(function () { var o = $('#mfxOrbit'); if (o) o.classList.add('gone'); }, 2950);
+      auMaxMerge();
+    }
+  }
   function maxMerge(t) {
     var pr = maxPairs().filter(function (x) { return x[0].type === t; })[0];
     if (!pr || !farOn()) return;
     if (S.maxAsk !== t) { S.maxAsk = t; openSheet(powersHTML()); return; }
     S.maxAsk = null;
     var a = pr[0], b = pr[1], lead = S.world && S.world.ents[0];
+    var svgA = petSVG(t, 3, a.name, a.body), svgB = petSVG(t, 3, b.name, b.body);
     removeTeamPet(b);
     a.stage = 4; a.happy = 100; a.prog = { pet: 0, feed: 0, play: 0 }; a.pcd = 0;
     var e = followerEnt(a);
     if (e) { e.stage = 4; e.size = spriteSize(e); if (e.el) { e.el.style.width = e.size + 'px'; e.el.style.height = e.size + 'px'; e.el.innerHTML = spriteHTML(e); } }
-    if (lead) worldBurst(lead.x, lead.y - 60);
-    save(); updateHud(); openSheet(powersHTML());
-    say(a.name + ' is MAX GROWN! Its power and speed are doubled.', 6000);
+    save(); updateHud();
+    maxCinematic(t, svgA, svgB, petSVG(t, 4, a.name, a.body), a.name, function () {
+      if (lead) worldBurst(lead.x, lead.y - 60);
+      openSheet(powersHTML());
+      say(a.name + ' is MAX GROWN! Its power and speed are doubled.', 6000);
+    });
   }
   function powersHTML() {
     var gp = growPets(), h = ['<div class="sheet-card powsheet"><h3>Powers</h3><p class="srow-note">Every fully grown pet has a special power. Tap Use. Powers recharge by themselves.</p>'];

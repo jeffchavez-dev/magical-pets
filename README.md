@@ -77,7 +77,7 @@ Every 3 levels from level 10 (10, 13, 16 ... 49), a unicorn spirit starts roamin
 ## Far worlds (level 20+)
 When you reach level 20, 25 more worlds appear (they are not counted before that). A cave appears at the end of each of the four old paths and leads to the Crossroads, a hub from which three caves continue. Some worlds have two caves behind one guard (beat the guard once and two worlds open). The universe map grows, and so does the list of types (metal, light, dragon, cosmic, music, candy) and the Petdex.
 
-**Max Grown (secret, level 20+):** two fully grown pets of the same type can be merged from the Powers sheet into one Max Grown pet. Its power effects are doubled, its recharge and scouting times are halved, and each Max Grown pet adds 25% to your walking speed. The deepest caves need one.
+**Max Grown (secret, level 20+):** two fully grown pets of the same type can be merged from the Powers sheet into one Max Grown pet. Its power effects are doubled, its recharge and scouting times are halved, and each Max Grown pet adds 25% to your walking speed. The deepest caves need one. The merge plays a full-screen celebration: the two pets spiral together with a rising whoosh, flash, and the Max Grown pet bursts out with rays, rings, confetti and a chime. Tap to continue. It is much shorter and calmer for players who ask their device to reduce motion.
 
 **Light and Dragon strike first:** if you carry a Light pet, it strikes a guard 2 times as a challenge begins; a Dragon pet strikes 3 times (the guard always keeps 1 hit for you, and the damage stays if you retry). After use, that pet is ready again once 3 more caves have been opened.
 
