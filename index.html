@@ -742,6 +742,25 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .mfx.reduce .mfx-sub { animation: mfxFade .6s ease-out .6s both; }
 .mfx.reduce .mfx-tap { animation: mfxFade .6s ease-out 1.2s both; }
 .mfx.reduce .mfx-res svg, .mfx.reduce .mfx-rays { animation: none; }
+
+/* ---------- Friendly guard games ---------- */
+.bt-says { margin: 6px 0 2px; padding: 6px 12px; border-radius: 14px; background: rgba(255,255,255,.12); font-size: 15px; text-wrap: balance; }
+.qa { display: grid; gap: 10px; justify-items: center; margin: 6px 0; }
+.qprompt { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.qex { width: 46px; height: 46px; display: inline-block; } .qex svg { width: 100%; height: 100%; }
+.qitems { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; min-height: 64px; padding: 8px 12px; border-radius: 16px; background: rgba(255,255,255,.1); transition: opacity .3s; }
+.qitems.hide { opacity: 0; }
+.qstar { font-size: 34px; line-height: 1; display: inline-block; text-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.qplus { font-size: 30px; font-weight: 900; margin: 0 6px; }
+.qbtns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.qbtn { min-width: 64px; min-height: 56px; font-size: 26px; font-weight: 900; }
+.qbtn.wrong { opacity: .35; text-decoration: line-through; }
+.sortgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; max-width: 380px; }
+.sortcell { aspect-ratio: 1; padding: 4px; border: 0; border-radius: 16px; background: rgba(255,255,255,.12); cursor: pointer; transition: transform .15s, background .2s; }
+.sortcell:active { transform: scale(.94); }
+.sortcell svg { width: 100%; height: 100%; display: block; }
+.sortcell.done { background: rgba(155,227,127,.35); box-shadow: 0 0 0 3px #9be37f inset; }
+.sortcell.wrong { animation: shake .25s linear 2; background: rgba(255,90,90,.3); }
 </style>
 </head>
 <body>
@@ -1423,7 +1442,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function savePet(p) { return { id: p.id, type: p.type, body: p.body, rid: p.rid, stage: p.stage, happy: p.happy, fav: p.fav, name: p.name, prog: p.prog, hun: Math.round(hunOf(p)), uc: p.uc, ut: p.ut, px: p.px }; }
   function baseState() {
     return { screen: 'intro', stone: STONES[0], awake: false, awakening: false, chosen: null, merging: false, eggs: null, taps: 0, hatch: null, suggest: '',
-      look: defaultLook(), lookReturn: 'sun', uni: {}, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
+      look: defaultLook(), lookReturn: 'sun', uni: {}, friendly: friendlyPref(), gf: {}, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
       evolving: false, justEvolved: null, msg: '', world: null, birds: false, hasSave: !!(readSave() && readSave().team && readSave().team.length) };
   }
   function newGame() {
@@ -1438,7 +1457,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!S.team.length) return;
       dexSync();
       stashWorld();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, cage: S.cage.map(savePet), sel: S.sel, weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
         stones: S.stones.map(function (s) { return s.id; }), caught: S.caught, wilds: S.wilds, freed: S.freed, opened: S.opened, beaten: S.beaten, coins: S.coins, boots: S.boots, bag: S.bag, portals: S.portals, suns: S.suns, food: S.food,
         cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)), uc: q.uc, px: q.px } }; }) }));
     } catch (x) { /* storage can be unavailable; the game still works */ }
@@ -1453,6 +1472,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.caught = d.caught || {}; S.wilds = d.ws === 2 ? (d.wilds || {}) : {}; S.freed = d.freed || {};
     S.look = fixLook(d.look);
     S.homeStyle = d.homeStyle === undefined ? 'meadow' : (HOMES[d.homeStyle] ? d.homeStyle : null); applyHome();
+    S.friendly = d.friendly === undefined ? friendlyPref() : !!d.friendly; S.gf = d.gf && typeof d.gf === 'object' ? d.gf : {};
     S.losses = d.losses | 0; S.toll = d.toll || {}; S.weak = d.weak || {}; S.homeJ = Array.isArray(d.homeJ) ? d.homeJ.filter(function (n) { return typeof n === 'number'; }) : [];
     S.uni = d.uni || {}; S.jump = d.jump == null ? null : d.jump; S.away = Array.isArray(d.away) ? d.away.filter(function (a) { return a && a.pet && TYPES[a.pet.type] && TYPES[a.t]; }) : [];
     S.dex = {};
@@ -2903,6 +2923,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (level() > 10) li.push('<li><b>Trips home</b> ' + homeLeftText() + ' Free trips work from any world.</li>');
     li.push('<li><b>World Jump</b> ' + (level() <= 10 ? 'Unlocks after level 10 when every pet is fully grown.' : !jumpUnlocked() ? 'Every pet must be fully grown first.' : jumpReady() ? 'Ready! Open Powers to jump.' : 'Recharging: ' + Math.floor(S.jump) + '%. Keep walking!') + '</li>');
     var uq = uniQuests(), roam = uq.filter(function (th) { return !S.uni[th]; }), nxt = UNI_LV.filter(function (th) { return level() < th; })[0], un = unicorns();
+    li.push('<li><b>Guard friends</b> ' + gfriendsText() + '</li>');
     li.push('<li><b>Unicorn spirits</b> One roams every 3 levels from level 10. ' + (roam.length ? 'Roaming now: ' + roam.map(function (th) { return esc(UNI_NAME[th]) + ' in ' + esc(WORLDS[uniWorld(th)].name); }).join(', ') + '. ' : '') + (nxt ? 'Next at level ' + nxt + '. ' : '') +
       'A unicorn can open ' + UNI_CHARGES + ' guard caves with its rainbow power (its last power also needs a pet the guard asks for; older rescues open tougher guards; the Max Grown guards always need a battle), then it fades away. You can carry ' + UNI_MAX + ' unicorns' + (un.length ? ' (you have ' + un.length + ').' : '.') + '</li>');
     return '<div class="sheet-card infosheet"><h3>Level ' + level() + '</h3><ul class="infolist">' + li.join('') + '</ul><div class="row"><button class="btn small" data-act="powers">Powers</button><button class="btn ghost small" data-act="dex">Petdex</button><button class="btn ghost small" data-act="closesheet">Close</button></div>' + CREDIT + '</div>';
@@ -4285,8 +4306,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return '<div class="sheet-card"><h3>Professor Bolt\'s shop</h3><p class="coins">Coins: <b>' + S.coins + '</b></p>' +
       '<p class="srow-note">Tap Professor Bolt any time to shop. His free colorful balls are only at his lab on Home Island.</p>' + '<h4>Sell a pet</h4>' + rows + (only ? '<p class="srow-note">Keep at least one pet with you!</p>' : '<p class="srow-note">A sold pet leaves for good. Rarer and evolved pets are worth more.</p>') +
       '<h4>Speedster Boots</h4>' + boots +
-      '<h4>Bag</h4>' + bagRow() + '<h4>Tool Cage</h4>' + cageRow() + '<h4>Home Portal</h4>' + portalRow() + '<h4>Portable Sun</h4>' + sunRow() +
+      '<h4>Guard games</h4>' + modeRow() + '<h4>Bag</h4>' + bagRow() + '<h4>Tool Cage</h4>' + cageRow() + '<h4>Home Portal</h4>' + portalRow() + '<h4>Portable Sun</h4>' + sunRow() +
       '<div class="row"><button class="btn ghost small" data-act="tips">Tips from the Professor</button><button class="btn ghost small" data-act="closesheet">Close</button></div></div>';
+  }
+  function modeRow() {
+    return '<p class="srow-note">Friendly: easier, slower games, no game over, and kind guards. Normal: the original hard guard games.</p>' +
+      '<div class="row"><button class="btn small ' + (S.friendly ? 'primary' : 'ghost') + '" data-act="setfriendly" data-v="1" aria-pressed="' + !!S.friendly + '">Friendly</button><button class="btn small ' + (S.friendly ? 'ghost' : 'primary') + '" data-act="setfriendly" data-v="0" aria-pressed="' + !S.friendly + '">Normal</button></div>';
   }
   function bagRow() {
     var next = BAG_COST[S.bag];
@@ -4682,8 +4707,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return '<div class="sheet-card battle"><h3>Guard ' + esc(b.ge.name) + '</h3>' +
       '<div class="bt-guard">' + petSVG(g.type, 3, b.ge.name, g.body) + '</div>' +
       '<div class="hpbar" aria-label="Guard strength"><i id="bthp" style="width:100%"></i></div>' +
+      '<p class="bt-says" id="btsays"><b>' + esc(b.ge.name) + ':</b> ' + esc(guardVoice(g)[0]) + '</p>' +
       '<p class="bt-msg" id="btmsg" aria-live="polite">' + battleIntro(b) + '</p>' +
-      '<div class="btmode">' + BM[b.mode].name + ' &middot; Difficulty ' + b.tier + '</div>' +
+      '<div class="btmode">' + BM[b.mode].name + ' &middot; ' + (S.friendly ? 'Friendly' : 'Difficulty ' + b.tier) + '</div>' +
       BM[b.mode].html(b) +
       '<div class="hearts" id="bthearts"></div>' +
       '<div class="bt-team" aria-label="Your team">' + team + '</div>' +
@@ -4705,7 +4731,46 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     11: { gold: 2, decoys: 3, drift: 0.22, pulse: 0.6, ramp: 0.12, shrink: 0.06 },
     12: { gold: 2, decoys: 3, drift: 0.24, pulse: 0.62, ramp: 0.13, shrink: 0.062 }
   };
-  function battleIntro(b) { return (level() > 10 ? 'Warning: you have lost ' + (S.losses || 0) + ' of 3 battles. ' : '') + battleIntro0(b); }
+
+  /* ----- Friendly mode (the default): gentler guard fights for young players. Normal keeps the old hard rules. ----- */
+  var FRIENDLY_TIER = 5, FRIENDLY_HP = 5;
+  function friendlyPref() { try { var v = localStorage.getItem('magical-pets-friendly'); return v === null ? true : v === '1'; } catch (e) { return true; } }
+  function setFriendly(on) { S.friendly = !!on; try { localStorage.setItem('magical-pets-friendly', on ? '1' : '0'); } catch (e) { /* fine */ } if (on) S.losses = 0; save(); }
+  function hpMax(g) { return S.friendly ? Math.min(g.hp, FRIENDLY_HP) : g.hp; }
+  function friendlySpec(sp, tier) { return S.friendly ? { gold: 1, decoys: tier >= 3 ? 1 : 0, drift: 0, pulse: 0, ramp: 0, shrink: 0 } : sp; }
+  function qrnd(n) { return Math.floor(Math.random() * n); }
+  function qshuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = qrnd(i + 1), x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
+  /* each guard talks like its type: [hello, cheers when you do well, kind words when you slip, goodbye when you are friends] */
+  var VOICE = {
+    fairy: ['Hello, little friend! Let us play a sparkly game!', ['Sparkle-tastic!', 'You are magic!', 'Twinkle twinkle, well done!'], ['Oopsie, wings and giggles! Try again!', 'Almost! Sprinkle some courage!'], 'You are so kind! Please visit my sparkly woods again!'],
+    fire: ['Hot hot hot! Ready to play?', ['Whoosh, nice one!', 'You are blazing!', 'Hot shot!'], ['Oops, that fizzled! Try again!', 'Almost! Keep the flame going!'], 'That was warm and wonderful! You are my friend now!'],
+    water: ['Splish splash! Do you want to play with me?', ['Splashing good!', 'Wave hello to success!', 'Bubbly job!'], ['Plop! Try again, you can do it!', 'Just a little ripple! Keep going!'], 'Splash! We are friends now! Come swim any time!'],
+    grass: ['Hello hello! The grass is happy to see you!', ['Growing great!', 'You bloom so well!', 'Leafy hooray!'], ['Oh, a little wilt! Try again!', 'Take a breath, you can do it!'], 'You helped me grow! Thank you, friend!'],
+    ice: ['Brrr-ave of you to come! Want to play?', ['Cool move!', 'Ice work!', 'That was so chill!'], ['Slip! Stand up and try again!', 'Brrr, almost! Keep going!'], 'My heart melted a tiny bit. You are my friend!'],
+    earth: ['Rumble rumble! Let us have a game!', ['Rock solid!', 'You are gem-tastic!', 'Solid job!'], ['Oops, a bump! Try again!', 'Almost there! Dig deep!'], 'You are as strong as a mountain! Friends forever!'],
+    electric: ['Zzzap! Hello, friend! Want to play?', ['Shock-ingly good!', 'Zippy!', 'Bzzt, bravo!'], ['Zzz-oops! Try again!', 'Almost! Charge up and go!'], 'You lit up my day! Come back soon!'],
+    wind: ['Whoosh! Hello up there! Let us play!', ['Wind in your wings!', 'Swoosh, so good!', 'Flying high!'], ['Whoops, a gust! Try again!', 'Almost! Catch the breeze!'], 'You are a breeze of fresh air! Friends!'],
+    psychic: ['I knew you were coming! Shall we play?', ['I knew you could!', 'Brilliant mind!', 'So clever!'], ['Hmm, think again. You can do it!', 'Almost! Trust your thoughts!'], 'I saw this coming! We are friends now!'],
+    shadow: ['Boo! Just kidding, hello! Let us play!', ['Shadow-tastic!', 'Sneaky good!', 'Wow, so quick!'], ['Oops, who turned off the light? Try again!', 'Almost! Go on, be brave!'], 'You are not scared of me! Best friends!'],
+    metal: ['Clink clank! Welcome! Want to play a game?', ['Gear-ific!', 'Clank, so good!', 'Shiny work!'], ['Clunk! Oil up and try again!', 'Almost! Turn the gears again!'], 'Ding! Friend mode switched on!'],
+    light: ['Hello, bright one! Shall we play?', ['Shining star!', 'So bright!', 'Glowing great!'], ['Dim for a second! Try again!', 'Almost! Let your light shine!'], 'You made my day brighter! Friends!'],
+    dragon: ['Roar! Hello! I am friendly, I promise! Play with me?', ['Roar-some!', 'Fire and wings!', 'Mighty good!'], ['Oops, a wobble! Try again!', 'Almost! Breathe and go!'], 'A dragon hug for you! We are friends now!'],
+    cosmic: ['Greetings from the stars! Want to play?', ['Out of this world!', 'Stellar!', 'A shooting star!'], ['Oops, a comet! Try again!', 'Almost! Reach for the stars!'], 'You are my favorite star! Friends across the galaxy!'],
+    music: ['La la la! Hello! Let us play a tune!', ['Bravo!', 'In perfect tune!', 'What a happy beat!'], ['Off-key, that is okay! Try again!', 'Almost! Hum along and go!'], 'Let us sing together! We are friends now!'],
+    candy: ['Yummy to meet you! Want to play?', ['Sweet success!', 'Sugar-tastic!', 'Tasty move!'], ['Oops, a crumb! Try again!', 'Almost! A sweet try!'], 'You are the sweetest! Come share a treat any time!']
+  };
+  var VOICE_DEFAULT = ['Hello, friend! Let us play a game!', ['Great job!', 'Well done!', 'Hooray!'], ['Oops! Try again, you can do it!', 'Almost! Keep going!'], 'You are my friend now! Thank you for playing!'];
+  function guardVoice(g) { return VOICE[g.type] || VOICE_DEFAULT; }
+  function gsay(b, kind) {
+    var el = $('#btsays'); if (!el || !b) return;
+    var v = guardVoice(b.ge.guard), t = kind === 'bye' ? v[3] : kind === 'oops' ? pick(v[2]) : pick(v[1]);
+    el.innerHTML = '<b>' + esc(b.ge.name) + ':</b> ' + esc(t);
+  }
+  function gfriendsText() {
+    var ks = Object.keys(S.gf || {});
+    return ks.length ? ks.length + ' guard' + (ks.length === 1 ? '' : 's') + ' became your friends: ' + ks.map(function (k) { return esc(k.split('|')[0]); }).join(', ') + '.' : 'Win a guard game and the guard becomes your friend!';
+  }
+  function battleIntro(b) { return (level() > 10 && !S.friendly ? 'Warning: you have lost ' + (S.losses || 0) + ' of 3 battles. ' : '') + battleIntro0(b); }
   function battleIntro0(b) {
     if (b.mode && b.mode !== 'strike') return BM[b.mode].intro;
     var sp = b.spec;
@@ -4748,18 +4813,19 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function battleMsg(t) { var m = $('#btmsg'); if (m) m.textContent = t; }
   function startBattle(ge, keep) {
     if (!ge || missingFor(ge.guard, ge).length) return;
-    if (level() > 10 && (S.losses || 0) >= 3) { openSheet(gameOverHTML()); return; }
+    if (level() > 10 && !S.friendly && (S.losses || 0) >= 3) { openSheet(gameOverHTML()); return; }
     stopBattle();
-    var g = ge.guard, needN = Object.keys(g.need).reduce(function (a, t) { return a + g.need[t]; }, 0), tier = battleTier(g), spec = tierSpec(tier), lv = Math.max(0, level() - 5);
-    var zw = Math.min(0.42, g.zone + 0.02 * Math.max(0, S.team.length - needN)) * Math.max(0.7, 1 - 0.006 * lv);
+    var g = ge.guard, needN = Object.keys(g.need).reduce(function (a, t) { return a + g.need[t]; }, 0), tier = battleTier(g), spec = friendlySpec(tierSpec(tier), tier), lv = Math.max(0, level() - 5);
+    var zw = Math.min(0.42, g.zone + 0.02 * Math.max(0, S.team.length - needN)) * Math.max(0.7, 1 - 0.006 * lv) * (S.friendly ? 1.3 : 1);
     var weak = S.weak[ge.key] || 0, preNames = [], preSum = 0;
     if (S.weak[ge.key] === undefined) {
       var hit = 0; preReady().forEach(function (r) { hit += r.n; r.p.px = openedCount(); preNames.push(r.p.name + ' (' + r.n + ')'); });
-      weak = Math.min(hit, g.hp - 1); preSum = hit; if (hit) { S.weak[ge.key] = weak; save(); }
+      weak = Math.min(hit, hpMax(g) - 1); preSum = hit; if (hit) { S.weak[ge.key] = weak; save(); }
     }
     var foc = S.focus; if (foc) { S.focus = false; zw = Math.min(0.5, zw * 1.25); updateHud(); save(); }
+    var hrt = (S.friendly ? 5 : 3) + (foc ? 1 : 0);
     var mode = keep || battleMode(g); lastMode = mode;
-    var b = battle = { mode: mode, tier: tier, tm: [], ge: ge, spec: spec, weak: weak, preSum: preSum, hp: g.hp - weak, maxHp: g.hp, hearts: foc ? 4 : 3, maxHearts: foc ? 4 : 3, zoneW: zw, baseW: zw, speed: g.speed * Math.min(1.4, 1 + 0.006 * lv), ph: 0, last: performance.now(), pos: 0, zones: [], shift: 0, dir: 1, lo: 0, hi: 0, over: false, raf: 0, lock: 0 };
+    var b = battle = { mode: mode, tier: tier, tm: [], ge: ge, spec: spec, weak: weak, preSum: preSum, hp: hpMax(g) - weak, maxHp: hpMax(g), hearts: hrt, maxHearts: hrt, zoneW: zw, baseW: zw, speed: g.speed * Math.min(1.4, 1 + 0.006 * lv) * (S.friendly ? 0.7 : 1), ph: 0, last: performance.now(), pos: 0, zones: [], shift: 0, dir: 1, lo: 0, hi: 0, over: false, raf: 0, lock: 0 };
     openSheet(battleHTML(b));
     battleHearts(b);
     var hpb = $('#bthp'); if (hpb) hpb.style.width = (b.hp / b.maxHp * 100) + '%';
@@ -4797,7 +4863,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   /* ----- guard battles come in five kinds: timing, echo, weak spots, dodge and memory ----- */
   var BM = {};
-  var MODE_LIST = ['strike', 'echo', 'whack', 'dodge', 'match'];
+  var MODE_LIST = ['strike', 'echo', 'whack', 'dodge', 'match', 'count', 'sort'];
   function battleMode(g) {
     try { var f = localStorage.getItem('magical-pets-mode'); if (f && BM[f]) return f; } catch (e) { /* default */ }
     if (level() < 5) return 'strike';
@@ -4806,7 +4872,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   var lastMode = '';
   /* difficulty = the guard's tier, plus 1 for every 5 levels above level 5 (up to 16) */
-  function battleTier(g) { return Math.min(16, (g.tier || 1) + Math.floor(Math.max(0, level() - 5) / 5)); }
+  function battleTier(g) {
+    if (S.friendly) return Math.min(FRIENDLY_TIER, Math.ceil((g.tier || 1) / 2) + Math.floor(Math.max(0, level() - 5) / 15));
+    return Math.min(16, (g.tier || 1) + Math.floor(Math.max(0, level() - 5) / 5));
+  }
   function tierSpec(t) {
     if (t <= 12) return BATTLE_TIERS[t];
     var e = t - 12;
@@ -4817,15 +4886,16 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function bHit(b, msg) {
     b.hp--; var hp = $('#bthp'); if (hp) hp.style.width = (Math.max(0, b.hp) / b.maxHp * 100) + '%';
     auAct('hit');
-    if (b.hp <= 0) { b.over = true; battleMsg('Direct hit! ' + b.ge.name + ' is beaten!'); bAfter(b, function () { beatGuard(b.ge); }, 700); return true; }
-    battleMsg(msg || ('Direct hit! ' + b.hp + ' more to go.'));
+    if (b.hp <= 0) { b.over = true; gsay(b, 'bye'); battleMsg(S.friendly ? 'Hooray! ' + b.ge.name + ' wants to be friends!' : 'Direct hit! ' + b.ge.name + ' is beaten!'); bAfter(b, function () { beatGuard(b.ge); }, 700); return true; }
+    battleMsg(msg || ((S.friendly ? 'Great! ' : 'Direct hit! ') + b.hp + ' more to go.'));
+    gsay(b, 'cheer');
     return false;
   }
   function bLose(b) {
     b.over = true;
     var over3 = false;
-    if (level() > 10) { S.losses = (S.losses || 0) + 1; over3 = S.losses >= 3; save(); }
-    battleMsg(over3 ? 'You were pushed back. That is 3 lost battles. GAME OVER!' : 'You were pushed back!' + (level() > 10 ? ' That is ' + S.losses + ' of 3 lost battles.' : '') + ' Rest a moment, then try again.');
+    if (level() > 10 && !S.friendly) { S.losses = (S.losses || 0) + 1; over3 = S.losses >= 3; save(); }
+    battleMsg(over3 ? 'You were pushed back. That is 3 lost battles. GAME OVER!' : 'You were pushed back!' + (level() > 10 && !S.friendly ? ' That is ' + S.losses + ' of 3 lost battles.' : '') + ' Rest a moment, then try again.');
     if (over3) later(function () { if (battle === b) openSheet(gameOverHTML()); }, 1200);
     var s = $('#btstrike'); if (s) { s.hidden = false; s.textContent = 'Try again'; s.dataset.act = 'retry'; }
     var tr = $('#bttrack'); if (tr) tr.removeAttribute('data-act');
@@ -4833,7 +4903,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   // returns true when this miss lost the battle
   function bMiss(b, msg) {
     b.hearts--; battleHearts(b); auAct('nope');
-    if (b.hearts > 0) { battleMsg(msg); return false; }
+    if (b.hearts <= 0 && S.friendly) { b.hearts = b.maxHearts; battleHearts(b); battleMsg('Nice try! Here are fresh hearts. Keep going, you can do it!'); gsay(b, 'oops'); return false; }
+    if (b.hearts > 0) { battleMsg(msg); gsay(b, 'oops'); return false; }
     bLose(b); return true;
   }
   function bLoop(b, fn) {
@@ -4978,6 +5049,69 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       bAfter(b, function () { b.cards.forEach(function (c, k) { if (!b.done[k]) els[k].classList.remove('up'); }); b.lock = false; battleMsg('Find the pairs!'); }, 1100 + b.pairs * 450);
     }
   };
+
+  /* Counting: how many stars? A little later, simple adding. Wrong answers cost a heart, no hurry in Friendly mode. */
+  BM.count = {
+    name: 'Counting battle', intro: 'Count the stars, then tap the right number!',
+    html: function () { return '<div class="qa" id="btarea"><div class="qprompt" id="qprompt"></div><div class="qitems" id="qitems"></div><div class="qbtns" id="qbtns"></div></div>'; },
+    start: function (b) { qaNext(b); }
+  };
+  function qaStars(n) { var h = '', cols = ['#ffd86b', '#ff7eb6', '#7fd8ff', '#9be37f', '#b388ff'], i; for (i = 0; i < n; i++) h += '<span class="qstar" style="color:' + cols[i % 5] + ';transform:rotate(' + (qrnd(50) - 25) + 'deg)">&#9733;</span>'; return h; }
+  function qaNext(b) {
+    if (battle !== b || b.over) return;
+    var t = bTier(b), max = S.friendly ? Math.min(8, 3 + t) : Math.min(20, 4 + t), add = t >= 3 && Math.random() < 0.5, a, c, ans, h, ch = [], k, n;
+    if (add) { a = 1 + qrnd(Math.max(1, Math.floor(max / 2))); c = 1 + qrnd(Math.max(1, Math.floor(max / 2))); ans = a + c; h = qaStars(a) + '<span class="qplus">+</span>' + qaStars(c); }
+    else { ans = 2 + qrnd(Math.max(1, max - 1)); h = qaStars(ans); }
+    b.qans = ans; b.lock = false;
+    ch = [ans]; n = S.friendly ? 3 : 4;
+    for (k = 1; ch.length < n && k < 40; k++) { var d = ans + (qrnd(2) ? 1 : -1) * (1 + qrnd(3)); if (d > 0 && ch.indexOf(d) < 0) ch.push(d); }
+    qshuffle(ch);
+    var pr = $('#qprompt'), it = $('#qitems'), bt = $('#qbtns');
+    if (!pr || !it || !bt) return;
+    pr.textContent = add ? 'How many stars in all?' : 'How many stars?';
+    it.innerHTML = h; it.classList.remove('hide');
+    bt.innerHTML = ch.map(function (v) { return '<button class="btn primary qbtn" data-act="qans" data-v="' + v + '">' + v + '</button>'; }).join('');
+    if (!S.friendly) bAfter(b, function () { var e = $('#qitems'); if (e) e.classList.add('hide'); var q = $('#qprompt'); if (q) q.textContent = 'How many were there?'; }, Math.max(1500, 4200 - t * 160));
+  }
+  function qaHit(b, msg) { var n = b.maxHp > FRIENDLY_HP ? 2 : 1, i; for (i = 0; i < n; i++) if (bHit(b, msg)) return true; return false; }
+  function qaTap(btn) {
+    var b = battle; if (!b || b.mode !== 'count' || b.over || b.lock) return;
+    if (+btn.dataset.v === b.qans) {
+      b.lock = true; var e = $('#qitems'); if (e) e.classList.remove('hide');
+      if (qaHit(b, 'Yes! That is ' + b.qans + '. ' + b.hp + ' more to go.')) return;
+      bAfter(b, function () { qaNext(b); }, 900);
+    } else { btn.disabled = true; btn.classList.add('wrong'); bMiss(b, 'Not quite! Count again.'); }
+  }
+
+  /* Friend finder: tap every pet of the guard's type */
+  BM.sort = {
+    name: 'Friend-finder battle', intro: 'The guard hides among other pets. Tap every pet of its type!',
+    html: function () { return '<div class="qa" id="btarea"><div class="qprompt" id="qprompt"></div><div class="sortgrid" id="sortgrid"></div></div>'; },
+    start: function (b) { sortNext(b); }
+  };
+  function sortNext(b) {
+    if (battle !== b || b.over) return;
+    var t = bTier(b), g = b.ge.guard, tt = TYPES[g.type] && g.type !== 'unicorn' ? g.type : pick(TYPE_IDS), total = S.friendly ? (t >= 4 ? 8 : 6) : Math.min(12, 6 + Math.floor(t / 2)), k = S.friendly ? 2 + qrnd(2) : 3 + qrnd(3), cells = [], others = TYPE_IDS.filter(function (x) { return x !== tt && BODY_OPTIONS[x]; }), i;
+    for (i = 0; i < k; i++) cells.push({ t: tt, b: pick(BODY_OPTIONS[tt]) });
+    for (i = k; i < total; i++) { var o = pick(others); cells.push({ t: o, b: pick(BODY_OPTIONS[o]) }); }
+    qshuffle(cells); b.cells = cells; b.tt = tt; b.left = k; b.lock = false;
+    var pr = $('#qprompt'), gr = $('#sortgrid'); if (!pr || !gr) return;
+    pr.innerHTML = 'Tap every <b>' + TYPES[tt].name + '</b> pet! <span class="qex">' + petSVG(tt, 2, '', pick(BODY_OPTIONS[tt])) + '</span>';
+    gr.className = 'sortgrid c' + total;
+    gr.innerHTML = cells.map(function (c, n) { return '<button class="sortcell" data-act="sortpick" data-i="' + n + '" aria-label="Pet ' + (n + 1) + '">' + petSVG(c.t, 2, '', c.b) + '</button>'; }).join('');
+  }
+  function sortTap(i) {
+    var b = battle; if (!b || b.mode !== 'sort' || b.over || b.lock) return;
+    var c = b.cells[i], el = document.querySelectorAll('.sortcell')[i]; if (!c || c.done || !el) return;
+    if (c.t === b.tt) {
+      c.done = true; el.classList.add('done'); b.left--; auAct('pad', i % 4);
+      if (b.left <= 0) { b.lock = true; if (qaHit(b, 'You found them all! ' + b.hp + ' more to go.')) return; bAfter(b, function () { sortNext(b); }, 900); }
+      else battleMsg('Yes! ' + b.left + ' more ' + TYPES[b.tt].name + ' to find.');
+    } else {
+      el.classList.add('wrong'); setTimeout(function () { el.classList.remove('wrong'); }, 600);
+      bMiss(b, 'That one is not ' + (/^[AEIOU]/.test(TYPES[b.tt].name) ? 'an ' : 'a ') + TYPES[b.tt].name + ' pet. Look for ' + TYPES[b.tt].name + '!');
+    }
+  }
   function matchTap(i) {
     var b = battle; if (!b || b.mode !== 'match' || b.over || b.lock || b.done[i] || i === b.first) return;
     var els = document.querySelectorAll('.mcard'); els[i].classList.add('up'); auAct('pad', i % 4);
@@ -5040,7 +5174,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return '<div class="sheet-card gameover"><h3>Game over</h3><p class="srow-note">You lost 3 guard battles. Past level 10, three lost battles end the game.</p>' +
       (S.coins >= c ? '<p class="srow-note">But you can pay <b>' + c + ' coins</b> to keep playing. (Each level costs more.)</p><button class="btn primary" data-act="revive">Pay ' + c + ' coins and continue</button>'
         : '<p class="srow-note">To keep playing you need <b>' + c + ' coins</b>, and you have ' + S.coins + '. Each level costs more.</p>') +
-      '<button class="btn ghost small" data-act="gostart">Start again (your Petdex is kept)</button></div>';
+      '<button class="btn small" data-act="setfriendly" data-v="1">Switch to Friendly mode</button> <button class="btn ghost small" data-act="gostart">Start again (your Petdex is kept)</button></div>';
   }
   function tollHTML(ge) {
     var g = ge.guard, tp = S.team.filter(function (p) { return p.type === g.toll && !S.away.some(function (a) { return a.pet === p; }); }), W2 = WORLDS[ge.spot.to];
@@ -5072,6 +5206,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var firstEver = !Object.keys(S.beaten).some(function (k) { return S.beaten[k]; });
     var twinTo = ge.spot.twinTo, twinNew = false;
     S.beaten[ge.key] = true; S.opened[to] = true;
+    if (!via && ge.guard) S.gf[ge.name + '|' + ge.guard.type] = ge.guard.type;
     if (twinTo) { S.beaten[S.cur + ':' + twinTo] = true; if (!S.opened[twinTo]) { S.opened[twinTo] = true; twinNew = true; } }
     syncFar();
     if (!firstEver && !via) S.prize = { tier: (ge.spot.guard || ge).tier || 1, name: ge.name };
@@ -5080,7 +5215,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (ge.dot && ge.dot.parentNode) ge.dot.parentNode.removeChild(ge.dot);
     var i = S.world.ents.indexOf(ge); if (i >= 0) S.world.ents.splice(i, 1);
     save(); updateHud(); nearId = null; updateCatchBar(); flash(); worldBurst(hero.x, hero.y - 60);
-    say((via || 'You beat Guard ' + ge.name + '! The ' + ge.spot.t + ' is open.') + (firstTime ? (twinNew ? ' TWO new worlds opened: ' + WORLDS[to].name + ' and ' + WORLDS[twinTo].name + '! You are now level ' + level() + '.' : ' New world opened! You are now level ' + level() + '.') + uniNewMsg(to) : ''), 7000);
+    say((via || 'Guard ' + ge.name + ' is your friend now! "' + guardVoice(ge.guard)[3] + '" The ' + ge.spot.t + ' is open.') + (firstTime ? (twinNew ? ' TWO new worlds opened: ' + WORLDS[to].name + ' and ' + WORLDS[twinTo].name + '! You are now level ' + level() + '.' : ' New world opened! You are now level ' + level() + '.') + uniNewMsg(to) : ''), 7000);
     if (S.prize) openSheet(prizeHTML());
   }
   /* ----- discovered tools (player level 5+): a few small helpers for strategy ----- */
@@ -6414,6 +6549,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     whackhole: function (btn) { whackTap(+btn.dataset.i); },
     dodgelane: function (btn) { dodgeGo(battle, +btn.dataset.i); },
     matchcard: function (btn) { matchTap(+btn.dataset.i); },
+    qans: function (btn) { qaTap(btn); },
+    sortpick: function (btn) { sortTap(+btn.dataset.i); },
+    setfriendly: function (btn) { setFriendly(btn.dataset.v === '1'); if ($('#sheet') && /Game over/.test($('#sheet').textContent)) { closeSheet(); say('Friendly mode is on. Take your time and have fun!', 4500); } else openSheet(shopHTML()); },
     none: function () {},
     uniopen: function () { var g = S.world && nearGuard(); if (g && unicorns().length && uniCan(g.guard)) openSheet(uniOpenHTML(g)); },
     uniunlock: function (btn) { uniUnlock(+btn.dataset.id); },
