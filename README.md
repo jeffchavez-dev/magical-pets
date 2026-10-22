@@ -89,7 +89,7 @@ When you reach level 20, 25 more worlds appear (they are not counted before that
 
 **Tolls:** in the far worlds, guards ask for one pet at the door the first time: exchange it for a new level 1 pet from the next world, or give it up for coins.
 
-**Game over (Normal mode only):** above level 10, losing 3 guard battles in a row ends the game, unless you pay coins to continue (30 at level 11, 5 more for each level after). A win resets the count. Starting again keeps the Petdex.
+**Game over (Normal mode only):** above level 10, losing 3 guard battles in a row ends the game. You can **rest for 3 minutes** (the guards rest too, so no new world can be opened, neither by battle nor by a unicorn, until the timer ends; worlds you have opened stay open), switch to Friendly mode, or pay coins to continue at once (30 at level 11, 5 more for each level after). A win resets the count. Starting again keeps the Petdex.
 
 **Berries and ponds** are plentiful in the first 10 worlds and rarer after that.
 
