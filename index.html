@@ -3741,7 +3741,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (e.kind === 'hero') return 92;
     if (e.kind === 'follower') return 52 + (e.stage || 1) * 12;
     if (e.kind === 'guard') return 108;
-    if (e.kind === 'find') return e.plot ? 150 : e.mat ? 46 : 58;
+    if (e.kind === 'find') return e.plot ? 360 : e.mat ? 46 : 58;   /* a house is about 4 characters wide */
     return e.guardian || e.spirit ? 92 : 68;
   }
   function reqLabel(g, t, words) {
@@ -5455,7 +5455,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function nearPlot() {
     var w = S.world; if (!w || !w.ents) return null;
     var hero = w.ents[0], r = null;
-    w.ents.forEach(function (e) { if (e.plot && dist(e, hero) < 150) r = e; });
+    w.ents.forEach(function (e) { if (e.plot && dist(e, hero) < 240) r = e; });
     return r;
   }
   function houseHTML() {
