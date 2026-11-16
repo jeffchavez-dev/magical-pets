@@ -3398,6 +3398,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var hh = houseOf(S.cur);
       if (!hh.x && !hh.y) { var pp = randomSpot(w); hh.x = Math.round(pp.x); hh.y = Math.round(pp.y); save(); }
       w.ents.push({ id: 'house', kind: 'find', plot: true, x: hh.x, y: hh.y, tx: hh.x, ty: hh.y, name: 'My house' });
+      if (S.houseArrive === S.cur) {
+        var hq = clampPt({ x: hh.x, y: hh.y + 70 }, WALK_R), hero0 = w.ents[0];
+        hero0.x = hero0.tx = hq.x; hero0.y = hero0.ty = hq.y;
+        w.ents.forEach(function (e, n) { if (e.kind === 'follower') { e.x = hq.x - 40 * n; e.y = hq.y + 24; e.tx = hq.x; e.ty = hq.y; } });
+      }
     }
     var uth = uniHere(S.cur);
     if (uth) { var up = randomSpot(w); w.ents.push({ id: 'w' + (w.nextId++), kind: 'wild', spirit: uth, type: 'unicorn', body: 'bear', rid: 'legend', stage: 1, x: up.x, y: up.y, tx: up.x, ty: up.y, wait: 1, name: 'Spirit' }); }
@@ -5690,6 +5695,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     hvPaint();
     setTimeout(function () { if (HV && view.clientHeight > 80) { HV.zoom = Math.max(0.4, Math.min(HV.zoom, view.clientHeight / 400)); hvCamera(); } }, 60);
   }
+  /* arriving by house teleport: the player stands inside the house */
+  function hvOpenInside() {
+    hvOpen(); if (!HV) return;
+    HV.inside = true; HV.t = null; HV.tab = 'look'; HV.ipos = null;
+    var b = $('#hvin'); if (b) b.textContent = 'Look outside';
+    hvPaint();
+  }
   function hvClose() {
     if (!HV) return;
     clearInterval(HV.timer); clearTimeout(HV.timer2); var h = $('#hv'); if (h) h.remove(); HV = null;
@@ -5946,6 +5958,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (!houseDone(S.cur) || !houseDone(id) || id === S.cur) return;
     closeSheet(); travel(id, true);
     S.travelMsg = 'Whoosh! The door of your house took you to ' + WORLDS[id].name + '.';
+    if (S.cur === id) S.houseArrive = id;
   }
   function collectMat(e) {
     var n = 1 + (Math.random() < 0.4 ? 1 : 0), m = e.mat;
@@ -6429,6 +6442,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     bindScene();
     updateHud(); nearId = null; updateCatchBar(); buildMini();
     if (S.travelMsg) { tipIdx = -1; say(S.travelMsg, 5200); S.travelMsg = ''; }
+    if (S.houseArrive) { var hid = S.houseArrive; S.houseArrive = null; setTimeout(function () { if (S.screen === 'world' && S.cur === hid && !HV) hvOpenInside(); }, 800); }
     else { tipIdx = S.tipsSeen ? -1 : 0; refreshPeek(); }
     S.team.forEach(function (p) { if (p.happy >= 100 && p.stage < 3) worldEvolve(p); });
     setTimeout(function () { if (S.screen === 'world' && S.world === w) flyTipCheck(); }, S.travelMsg ? 6500 : 2200);
