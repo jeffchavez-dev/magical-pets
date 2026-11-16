@@ -34,6 +34,25 @@ Each grim world has a danger rating: Low, Medium or Deadly. The rating shows und
 ## Pets found in each world
 Every world lists the kinds of pets that live there: tap a world on the universe map (open worlds show their types, unexplored ones show `?`), tap **Pets here** in the top bar while exploring, or look at the **Found in** line under each type in the Petdex.
 
+## Ponds, lakes and swimming
+Ponds are small. Lakes (Glow Lake, Sky Lake, Prism Lake and others) are much bigger. Walk into any pond or lake and you swim. You sink down to the waist with ripples around you. Underwater you swim flat out, head first in the direction you move and leave a trail of bubbles. When you come out, whether by walking out or by coming up from a dive, you bounce out with a splash and falling drops. Only pets that can swim (water type, or fish, frog and turtle bodies, grown to level 2 or more) go in the water with you; the rest wait on the shore.
+
+## Diving (lakes only)
+When you swim in a lake, a **Dive** button appears. Dive down to a see-through underwater world and swim around by tapping or dragging. Touch things to grab them:
+- **Sea friends** (rainbow fish, crab, jellyfish, octopus, seahorse, turtle, starfish). Bigger ones are worth more points: fish 3, starfish 4, crab 5, jellyfish 6, seahorse 7, turtle 8, octopus 10, and the first time you meet a kind it is worth 10 extra points and 10 coins (otherwise 2 coins). The octopus, fish, crab and starfish also give pet food (the bag limit applies).
+- **A pearl.** Sometimes a pearl clam sits on the lake floor. Grab it for 30 points and a brand new water-type pet joins your team!
+- **House materials** from that world (from level 3) and **star scrap** (from level 6).
+- **Breath bubbles** that add 5 seconds.
+- Pets that can swim dive with you. Coming up is a splash with a bounce.
+
+**Dive score.** Everything you grab is worth points (materials 5, star scrap 8). The score shows while you dive and your best dive is saved and shown in the dive sheet.
+
+**Sea Master.** Meet all 7 sea friends and you become a Sea Master for good: +5 seconds of breath on every dive and room for 7 air tanks instead of 5.
+
+**Aquariums.** Every sea friend you have met can be placed in your house as a little glass aquarium (Furniture tab, 3 of the third material).
+
+You can hold your breath for 20 seconds (4 more for each pet that can swim, up to 3), then you float back up with what you found. To stay longer, buy an **air tank** for 12 coins (up to 5 in your rack). One tank adds 15 seconds to a dive.
+
 ## Flying
 A fully grown (level 3) Fairy, or any fully grown bird, bat or owl, can fly when it is **first in your team line**. Press **Fly**, then tap anywhere (or on the bird's-eye map) to soar there fast. While flying, the whole team is safe from cursed rune ground. You cannot land on a glowing rune. If a flyer is in your team but not at the front, Professor Bolt offers to move it to the front, and the pet's page has a **Put in front to fly** button.
 
@@ -115,6 +134,18 @@ Tap Professor Bolt (the robot peeking in at the corner) in any world to open his
 
 ## Grown-up settings (play timer)
 Tap **Grown-up settings** on the title screen, or in Professor Bolt's shop (tap the robot in the world). A grown-up question (or the PIN) keeps children out. There you can choose a **play timer** (10, 15, 20, 30, 45 or 60 minutes, or Off). The timer starts when the game begins, and starts again when you come back to the game after a break of 5 minutes or more. It only counts while the game is on screen, and you get a warning with 5 minutes and 1 minute left. When it runs out the game shows **Time's up!** and a grown-up must unlock it (maths question, or an optional 4-digit **PIN**) and pick 5, 15 or 30 more minutes. The lock stays even if the game is closed and reopened. The PIN and timer are stored on this device only, so they are a good guide for young children rather than a strong lock.
+
+## Astronaut mode (level 6+)
+A **Space** button is always in the walk view. Before level 6 it shows "Space (level 6)" and is locked: tapping it tells you how many more worlds to open. From level 6 it opens the Rocket station. It opens the Rocket station, where you get ready to fly to any world you have already opened. Flying skips the caves and the guards, so it never opens a locked world.
+
+- **Star scrap.** Grey gear sparkles that appear in every world. Spend them to make the four suit parts: Helmet (4), Moon boots (5), Space suit (7) and Jetpack (10).
+- **Oxygen.** Blue O2 bubbles also appear in every world (+10 each). Your tank starts at 30 and can be upgraded with coins: Small (60), Big (100), Giant (160). You can also fill up for 1 coin per 3 oxygen. Finishing the suit gives a free first 20.
+- **Flying in space.** After liftoff you fly free on a map of space. You are shown as a person in a space suit and helmet, flying head first with the jetpack flame behind you, and your pets follow. Tap a world (or anywhere in space) and your ship flies there. Pick **Slow, Cruise, Fast or Turbo**: faster is quicker but burns more oxygen (Slow x0.7, Cruise x1, Fast x1.5, Turbo x2, about 1 oxygen per 70 distance). Pinch, scroll or use the + and - buttons to zoom, **All** shows every world you have opened, and **Me** follows your ship again. Drag to look around.
+- **Close-up flying.** The camera starts zoomed out so you can see the whole route, then zooms in smoothly as you get near a world until it fills the screen. Your ship also slows down as it approaches. You can zoom yourself at any time, and the arrow keys (or WASD) fly the ship by hand. You never land by accident: tap Land when you are ready.
+- **On the way.** Fly through floating O2 bubbles (+6 oxygen) and star scrap to collect them. The panel shows how much oxygen your route needs and warns you if you do not have enough.
+- **Who comes along.** Pets that can fly in space (fully grown fairy, wind, cosmic, dragon and light pets, and any bird, bat or owl) fly beside you and each saves 8% oxygen. The others ride in the rocket pet pod and join you when you land.
+- **Landing.** When you are close to a world, a Land button appears. You can land back where you started too. The world rises up to meet you and you touch down in a puff of dust. Flying only reaches worlds you have already opened.
+- **Never stuck.** If the oxygen runs out, Professor Bolt tows you to the nearest world and gives you a little oxygen to start again.
 
 ## Weather and meteors
 Every world has its own weather: snow, rain with lightning, falling leaves, floating embers, bubbles, fireflies, ash and more. Meteors fly across the universe map. Everything is turned off for players who ask their device to reduce motion.
