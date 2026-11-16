@@ -858,6 +858,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .par-err { color: #ffb3b3; min-height: 20px; }
 .par-input { width: 120px; font-size: 24px; text-align: center; border-radius: 12px; border: 2px solid rgba(255,255,255,.3); background: rgba(0,0,0,.25); color: #fff; padding: 6px; letter-spacing: .3em; }
 .par-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 9700; background: rgba(36,20,71,.95); color: #fff; padding: 10px 18px; border-radius: 16px; font-weight: 800; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+
+.hv-grp.pick .hf { pointer-events: auto; cursor: pointer; }
+.hv-grp.next .hf.ghost { border-color: #ffd86b; opacity: 1; animation: hvPulse .8s ease-in-out infinite alternate; }
+@keyframes hvPulse { from { box-shadow: 0 0 0 rgba(255,216,107,0); } to { box-shadow: 0 0 14px 3px rgba(255,216,107,.95); } }
+.hv-builder.walking .hv-hero { animation: hvBob .18s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .hv-grp.next .hf.ghost, .hv-builder.walking .hv-hero { animation: none; } }
 </style>
 </head>
 <body>
@@ -5485,11 +5491,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       hvFace(w, d, T(0, -h / 2, 0, ' rotateX(90deg)'), col, 's3 ' + cls);
   }
   function hvHouse(id) {
-    var m = worldMats(id).map(function (k) { return MAT_BY[k].col; }), A = m[0], B = m[1], C = m[2], h = houseOf(id), p = h.p, o = [], i;
+    var m = worldMats(id).map(function (k) { return MAT_BY[k].col; }), A = m[0], B = m[1], C = m[2], h = houseOf(id), p = h.p.map(function (v, n) { return HV && HV.pending === n ? 0 : v; }), o = [], i;
     var gh = function (n, extra) { return (p[n] ? '' : 'ghost ') + (extra || ''); }, cl = function (n, c) { return p[n] ? c : 'transparent'; };
     var wy = FLOOR_Y - HH / 2, ridge = FLOOR_Y - HH - HR, L = Math.hypot(HW / 2 + 14, HR), th = Math.atan2(HR, HW / 2 + 14) * 180 / Math.PI;
     o.push(hvFace(430, 400, 'translate3d(0,14px,0) rotateX(90deg)', '#7ccf6a', 'lawn'), hvFace(44, 130, 'translate3d(0,13px,165px) rotateX(90deg)', '#f0e2b6', 'lawn'));
-    var G = function (n, html) { return '<div class="hv-grp' + (HV && HV.anim && HV.anim.i === n ? ' drop' : '') + '">' + html + '</div>'; };
+    var nextP = p.indexOf(0), pick = HV && HV.tab === 'build' && !HV.busy && !HV.visit;
+    var G = function (n, html) { return '<div class="hv-grp' + (HV && HV.anim && HV.anim.i === n ? ' drop' : '') + (pick && !p[n] ? ' pick' : '') + (pick && n === nextP ? ' next' : '') + '" data-piece="' + n + '">' + html + '</div>'; };
     o.push(G(0, hvBox(0, 7, 0, HW + 16, 14, HD + 16, cl(0, A), gh(0))));
     o.push(G(1, hvBox(0, -3, 0, HW, 6, HD, cl(1, B), gh(1))));
     /* walls: back, left, right, and a front wall with a door gap */
@@ -5507,7 +5514,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     fl.forEach(function (q) { fh.push(hvBox(q[0], 10, q[1], 3, 12, 3, cl(7, '#3f9d4a'), gh(7)), hvBox(q[0], 2, q[1], 12, 8, 12, cl(7, q[2]), gh(7))); });
     o.push(G(7, fh.join('')));
     /* the builder (you) stands on the lawn and hammers while a piece goes up */
-    o.push('<div class="hv-pet hv-builder' + (HV && HV.busy ? ' building' : '') + '" style="transform:translate3d(-150px,14px,150px)"><div class="hv-bill"><div class="hv-hero">' + heroSVG(S.boots) + '</div><i class="hv-hammer"></i></div></div>');
+    o.push('<div class="hv-pet hv-builder' + (HV && HV.anim ? ' building' : '') + '" style="transform:' + hvBuilderAt(HV && HV.bpos && !HV.inside ? HV.bpos : BUILD_BASE) + '"><div class="hv-bill"><div class="hv-hero">' + heroSVG(S.boots) + '</div><i class="hv-hammer"></i></div></div>');
     /* floor squares and furniture */
     if (p[1]) {
       for (i = 0; i < COLS * ROWS; i++) { var ps = furnPos(i); o.push('<div class="hv-cell' + (HV && HV.tool ? ' tool' : '') + '" data-c="' + i + '" style="transform:translate3d(' + ps.x + 'px,' + (FLOOR_Y - 2) + 'px,' + ps.z + 'px) rotateX(90deg)"></div>'); }
@@ -5527,6 +5534,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var h = houseOf(id); if (!h.res.length || !h.gt) return 0;
     return Math.min(h.res.length * 3, Math.floor((Date.now() - h.gt) / GIFT_MS) * h.res.length);
   }
+  var BUILD_BASE = [-150, 14, 150];
+  var BUILD_POS = [[-110, 14, 140], [30, 14, 135], [-95, 14, 125], [0, 14, 138], [-150, 14, -30], [70, -150, 40], [55, -157, -10], [140, 14, 130]];
+  function hvBuilderAt(pos) { return 'translate3d(' + pos[0] + 'px,' + pos[1] + 'px,' + pos[2] + 'px)'; }
   function hvBuildTray(id) {
     var h = houseOf(id), miss = houseMissing(id), pct = housePct(id);
     var rows = HOUSE_PIECES.map(function (pc, i) {
@@ -5575,7 +5585,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function hvOpen() {
     if (HV || !S.world) return;
     var id = S.cur; houseOf(id);
-    HV = { id: id, a: 32, zoom: Math.min(1, (window.innerWidth - 20) / 420) , inside: false, tab: houseDone(id) ? 'look' : 'build', tool: null, pos: [], moved: 0, timer: 0, anim: null, busy: false };
+    HV = { id: id, a: 32, zoom: Math.min(1, (window.innerWidth - 20) / 420) , inside: false, tab: houseDone(id) ? 'look' : 'build', tool: null, pos: [], moved: 0, timer: 0, anim: null, busy: false, pending: null, bpos: BUILD_BASE };
     var host = document.createElement('div'); host.id = 'hv'; host.className = 'hv';
     host.innerHTML = '<div class="hv-top"><b>My house &middot; ' + esc(WORLDS[id].name) + '</b><button class="hv-x" data-hv="close" aria-label="Close the 3D view">&times;</button></div>' +
       '<div class="hv-view" id="hvview"><div class="hv-world" id="hvworld"></div></div>' +
@@ -5607,8 +5617,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function hvClick(ev) {
     if (!HV) return;
-    var t = ev.target.closest('[data-hv],[data-c]'); if (!t) return;
+    var t = ev.target.closest('[data-hv],[data-c],[data-piece]'); if (!t) return;
     var h = houseOf(HV.id), what = t.dataset.hv, v = t.dataset.v;
+    if (!what && t.dataset.piece !== undefined) { if (!HV.moved && HV.tab === 'build') hvPick(+t.dataset.piece); return; }
     if (!what) { if (HV.moved) return; hvCell(+t.dataset.c); return; }
     if (what === 'close') hvClose();
     else if (what === 'rot') { HV.a += 30 * +v; hvCamera(); }
@@ -5791,6 +5802,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     for (i = 0; i < 9; i++) { var c = document.createElement('i'); c.className = 'hv-chip'; c.style.background = cols[i % cols.length]; c.style.setProperty('--sx', Math.round(-30 + Math.random() * 60) + 'vw'); c.style.setProperty('--sy', Math.round(26 + Math.random() * 22) + 'vh'); c.style.animationDelay = (i * 0.045) + 's'; v.appendChild(c); setTimeout(function (el) { return function () { if (el.parentNode) el.parentNode.removeChild(el); }; }(c), 1600); }
     for (i = 0; i < 16; i++) { var d = document.createElement('i'); d.className = 'hv-dust'; d.style.setProperty('--dx', Math.round((Math.random() - 0.5) * 260) + 'px'); d.style.setProperty('--dy', Math.round(-20 - Math.random() * 100) + 'px'); d.style.animationDelay = (0.95 + Math.random() * 0.2).toFixed(2) + 's'; v.appendChild(d); setTimeout(function (el) { return function () { if (el.parentNode) el.parentNode.removeChild(el); }; }(d), 2600); }
   }
+  function hvPick(i) {
+    var h = houseOf(HV.id), nx = h.p.indexOf(0);
+    if (h.p[i]) return;
+    if (i !== nx) { say('Build the ' + HOUSE_PIECES[nx].name.toLowerCase() + ' first!', 3000); return; }
+    hvBuild(i);
+  }
   function hvBuild(i) {
     if (!HV || HV.busy) return;
     var id = HV.id, h = houseOf(id), c = houseCost(id, i);
@@ -5798,14 +5815,23 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (!canPay(c)) { say('You need more materials. Walk over the glowing orbs to collect them!', 4000); return; }
     Object.keys(c).forEach(function (m) { S.mats[m] -= c[m]; });
     h.p[i] = 1; save(); updateHud();
-    HV.anim = { i: i }; HV.busy = true; HV.inside = false; var bt = $('#hvin'); if (bt) bt.textContent = 'Look inside';
-    hvPaint(); hvFx(Object.keys(c).map(function (m) { return MAT_BY[m].col; })); auHouse('build');
+    HV.busy = true; HV.inside = false; HV.pending = i; var bt = $('#hvin'); if (bt) bt.textContent = 'Look inside';
+    hvPaint();
+    /* 1. the builder walks (or climbs) to the spot where this piece goes */
+    var el = $('.hv-builder'), pos = BUILD_POS[i];
+    if (el) { el.classList.add('walking'); setTimeout(function () { el.style.transition = 'transform .75s ease-in-out'; el.style.transform = hvBuilderAt(pos); }, 30); }
     HV.timer2 = setTimeout(function () {
       if (!HV) return;
-      HV.anim = null; HV.busy = false;
-      if (houseDone(id)) { HV.tab = 'look'; hvPaint(); flash(); houseCinematic(id, function () { say('Your house is finished! You can now furnish it, let pets move in, and teleport between your finished houses.', 6500); }); }
-      else { hvPaint(); say(HOUSE_PIECES[i].name + ' built! ' + housePct(id) + '% done.', 3000); }
-    }, 1900);
+      /* 2. he is there: materials fly in, the hammer swings, the piece drops into place */
+      HV.bpos = pos; HV.pending = null; HV.anim = { i: i };
+      hvPaint(); hvFx(Object.keys(c).map(function (m) { return MAT_BY[m].col; })); auHouse('build');
+      HV.timer2 = setTimeout(function () {
+        if (!HV) return;
+        HV.anim = null; HV.busy = false;
+        if (houseDone(id)) { HV.tab = 'look'; HV.bpos = BUILD_BASE; hvPaint(); flash(); houseCinematic(id, function () { say('Your house is finished! You can now furnish it, let pets move in, and teleport between your finished houses.', 6500); }); }
+        else { hvPaint(); say(HOUSE_PIECES[i].name + ' built! ' + housePct(id) + '% done.', 3000); }
+      }, 1800);
+    }, 850);
   }
   function housePort(id) {
     if (!houseDone(S.cur) || !houseDone(id) || id === S.cur) return;
