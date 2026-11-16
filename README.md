@@ -102,6 +102,9 @@ From level 15 Professor Bolt sells a Tool Cage in four sizes (Small Cage 2 pets 
 ## Professor Bolt's shop anywhere
 Tap Professor Bolt (the robot peeking in at the corner) in any world to open his shop and buy or sell. His free colorful balls are still handed out only at his lab on Home Island. The shop has a **Tips from the Professor** button for the old help tips.
 
+## My house (level 3+)
+Every island has a **house plot** (a dashed outline of a house) and glowing material orbs. Walk over the orbs to collect materials; each island gives three materials of its own (Home Island gives Wood, Stone and Straw), and winning a guard battle gives a few of the new world's materials. Walk up to the plot and tap **Build** to open the house sheet. It shows a picture of your house, a **percent built** bar, which materials you are still **missing**, and eight pieces to build in order: Foundation, Floor, Walls, Door, Windows, Roof, Chimney and Garden. Each piece costs materials and appears on your house as soon as it is built. When a house is **complete**, its sheet lets you **teleport** to any other finished house. Your materials are listed under the **Bag** button, and your houses with their percent under the **Level** button. In the walk view the house is a big building you can walk up to.
+
 ## Weather and meteors
 Every world has its own weather: snow, rain with lightning, falling leaves, floating embers, bubbles, fireflies, ash and more. Meteors fly across the universe map. Everything is turned off for players who ask their device to reduce motion.
 

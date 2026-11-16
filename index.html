@@ -761,6 +761,16 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .sortcell svg { width: 100%; height: 100%; display: block; }
 .sortcell.done { background: rgba(155,227,127,.35); box-shadow: 0 0 0 3px #9be37f inset; }
 .sortcell.wrong { animation: shake .25s linear 2; background: rgba(255,90,90,.3); }
+
+/* ---------- My house ---------- */
+.house-svg { display: block; width: 100%; height: 100%; }
+.house-svg.big { width: min(100%, 300px); height: auto; margin: 0 auto; }
+.hprog { height: 14px; border-radius: 8px; background: rgba(255,255,255,.15); overflow: hidden; margin: 6px 0; }
+.hprog i { display: block; height: 100%; background: linear-gradient(90deg, #ffd86b, #9be37f); transition: width .5s; }
+.hpct { margin: 0 0 4px; text-align: center; }
+.mchip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.14); font-size: 13px; margin: 2px 2px 0 0; white-space: nowrap; }
+.mchip i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.hpiece.built { opacity: .6; } .hdone { color: #9be37f; font-size: 22px; font-weight: 900; }
 </style>
 </head>
 <body>
@@ -1442,7 +1452,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function savePet(p) { return { id: p.id, type: p.type, body: p.body, rid: p.rid, stage: p.stage, happy: p.happy, fav: p.fav, name: p.name, prog: p.prog, hun: Math.round(hunOf(p)), uc: p.uc, ut: p.ut, px: p.px }; }
   function baseState() {
     return { screen: 'intro', stone: STONES[0], awake: false, awakening: false, chosen: null, merging: false, eggs: null, taps: 0, hatch: null, suggest: '',
-      look: defaultLook(), lookReturn: 'sun', uni: {}, friendly: friendlyPref(), gf: {}, lockUntil: 0, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
+      look: defaultLook(), lookReturn: 'sun', uni: {}, friendly: friendlyPref(), gf: {}, mats: {}, houses: {}, lockUntil: 0, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
       evolving: false, justEvolved: null, msg: '', world: null, birds: false, hasSave: !!(readSave() && readSave().team && readSave().team.length) };
   }
   function newGame() {
@@ -1457,7 +1467,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!S.team.length) return;
       dexSync();
       stashWorld();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: S.houses || {}, weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
         stones: S.stones.map(function (s) { return s.id; }), caught: S.caught, wilds: S.wilds, freed: S.freed, opened: S.opened, beaten: S.beaten, coins: S.coins, boots: S.boots, bag: S.bag, portals: S.portals, suns: S.suns, food: S.food,
         cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)), uc: q.uc, px: q.px } }; }) }));
     } catch (x) { /* storage can be unavailable; the game still works */ }
@@ -1474,6 +1484,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.homeStyle = d.homeStyle === undefined ? 'meadow' : (HOMES[d.homeStyle] ? d.homeStyle : null); applyHome();
     S.friendly = d.friendly === undefined ? friendlyPref() : !!d.friendly; S.gf = d.gf && typeof d.gf === 'object' ? d.gf : {};
     S.lockUntil = +d.lockUntil > Date.now() ? +d.lockUntil : 0;
+    S.mats = {}; Object.keys(d.mats || {}).forEach(function (k) { if (MAT_BY[k]) S.mats[k] = Math.max(0, Math.min(MAT_CAP, d.mats[k] | 0)); });
+    S.houses = {}; Object.keys(d.houses || {}).forEach(function (k) { var h = d.houses[k]; if (WORLDS[k] && h && Array.isArray(h.p)) S.houses[k] = { p: h.p.slice(0, HOUSE_PIECES.length).map(function (v) { return v ? 1 : 0; }), x: +h.x || 0, y: +h.y || 0 }; });
     S.losses = d.losses | 0; S.toll = d.toll || {}; S.weak = d.weak || {}; S.homeJ = Array.isArray(d.homeJ) ? d.homeJ.filter(function (n) { return typeof n === 'number'; }) : [];
     S.uni = d.uni || {}; S.jump = d.jump == null ? null : d.jump; S.away = Array.isArray(d.away) ? d.away.filter(function (a) { return a && a.pet && TYPES[a.pet.type] && TYPES[a.t]; }) : [];
     S.dex = {};
@@ -1486,7 +1498,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (worldLocked(S.cur)) S.cur = 'home'; S.nextPetId = d.nextPetId || (d.team.length + 1); S.tipsSeen = !!d.tipsSeen;
     ['chime', 'clover', 'focus', 'ward'].forEach(function (k) { S.tools[k] = Math.max(0, Math.min(3, (d.tools && +d.tools[k]) || 0)); });
     S.luck = !!d.luck; S.focus = !!d.focus; S.finds = {};
-    Object.keys(d.finds || {}).forEach(function (k) { if (WORLDS[k] && Array.isArray(d.finds[k])) S.finds[k] = d.finds[k].slice(0, 2).map(function (t) { return +t || 0; }); }); S.prize = d.prize && d.prize.tier ? { tier: d.prize.tier, name: String(d.prize.name || '') } : null;;
+    Object.keys(d.finds || {}).forEach(function (k) { if (WORLDS[k] && Array.isArray(d.finds[k])) S.finds[k] = d.finds[k].slice(0, 2 + MAT_SLOTS).map(function (t) { return +t || 0; }); }); S.prize = d.prize && d.prize.tier ? { tier: d.prize.tier, name: String(d.prize.name || '') } : null;;
     S.screen = 'play'; S.msg = 'Welcome back! ' + S.team[S.sel].name + ' missed you.';
     return true;
   }
@@ -2924,6 +2936,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (level() > 10) li.push('<li><b>Trips home</b> ' + homeLeftText() + ' Free trips work from any world.</li>');
     li.push('<li><b>World Jump</b> ' + (level() <= 10 ? 'Unlocks after level 10 when every pet is fully grown.' : !jumpUnlocked() ? 'Every pet must be fully grown first.' : jumpReady() ? 'Ready! Open Powers to jump.' : 'Recharging: ' + Math.floor(S.jump) + '%. Keep walking!') + '</li>');
     var uq = uniQuests(), roam = uq.filter(function (th) { return !S.uni[th]; }), nxt = UNI_LV.filter(function (th) { return level() < th; })[0], un = unicorns();
+    li.push('<li><b>Houses</b> ' + (Object.keys(S.houses).filter(function (k) { return houseBuilt(k) > 0 && WORLDS[k]; }).map(function (k) { return esc(WORLDS[k].name) + ' ' + housePct(k) + '%'; }).join(', ') || 'Find your house plot and start building!') + '</li>');
     li.push('<li><b>Guard friends</b> ' + gfriendsText() + '</li>');
     li.push('<li><b>Unicorn spirits</b> One roams every 3 levels from level 10. ' + (roam.length ? 'Roaming now: ' + roam.map(function (th) { return esc(UNI_NAME[th]) + ' in ' + esc(WORLDS[uniWorld(th)].name); }).join(', ') + '. ' : '') + (nxt ? 'Next at level ' + nxt + '. ' : '') +
       'A unicorn can open ' + UNI_CHARGES + ' guard caves with its rainbow power (its last power also needs a pet the guard asks for; older rescues open tougher guards; the Max Grown guards always need a battle), then it fades away. You can carry ' + UNI_MAX + ' unicorns' + (un.length ? ' (you have ' + un.length + ').' : '.') + '</li>');
@@ -2936,6 +2949,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       '<li><b>Colorful balls</b> ' + S.sleeping + '</li>',
       '<li><b>Happy Stones</b> ' + dots + '</li>',
       '<li><b>' + BAG_NAME[S.bag] + '</b> holds ' + carried() + ' of ' + carryCap() + ' balls and stones</li>'];
+    li.push('<li><b>Materials</b> ' + (MATS.filter(function (m) { return S.mats[m.id]; }).map(function (m) { return S.mats[m.id] + ' ' + m.name; }).join(' &middot; ') || 'none yet') + '</li>');
     if (level() >= 5) li.push('<li><b>Tools</b> Joy Chime ' + S.tools.chime + ' &middot; Lucky Clover ' + S.tools.clover + ' &middot; Focus Charm ' + S.tools.focus + ' &middot; Ward Charm ' + S.tools.ward + (S.luck ? ' &middot; Clover is on' : '') + (S.focus ? ' &middot; Focus is on' : '') + '</li>');
     return '<div class="sheet-card infosheet"><h3>Your bag</h3><ul class="infolist">' + li.join('') + '</ul><div class="row"><button class="btn small" data-act="feedbag">Feed pets</button>' + (level() >= 5 ? '<button class="btn ghost small" data-act="tools">Tools</button>' : '') + '<button class="btn ghost small" data-act="closesheet">Close</button></div></div>';
   }
@@ -3127,6 +3141,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         ? '<span>' + head + ' Carry them with you to take it on. You still need ' + miss.join(' and ') + '.</span>' + ub
         : '<span>' + head + ' You carry them all!' + (S.weak[ng.key] === undefined && preReady().length ? ' ' + preReady().map(function (r) { return r.p.name + ' will strike first (' + r.n + ' hits).'; }).join(' ') : '') + ' Ready to battle?</span><button class="btn primary small" data-act="challenge">Challenge!</button>' + ub;
     }
+    var npl = w && !near ? nearPlot() : null;
+    if (npl) return '<span>' + (houseDone(S.cur) ? 'Your house is finished! You can teleport to your other houses.' : 'This is your house plot! It is ' + housePct(S.cur) + '% built. Bring materials to build it.') + '</span><button class="btn primary small" data-act="house">' + (houseDone(S.cur) ? 'Open my house' : 'Build') + '</button>';
     if (!near && w && nearLab()) return '<span>Welcome to my lab! Sell me a pet for coins, and buy Speedster Boots, a bigger bag, a Home Portal, or a Portable Sun.</span><button class="btn primary small" data-act="shop">Open the shop</button>';
     if (near) {
       var nm = TYPES[near.type].name, rl = rarityById(near.rid).label;
@@ -3254,6 +3270,17 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         if (nowT - (fl[fi] || 0) < FIND_WAIT) continue;
         var fp = randomSpot(w); w.ents.push({ id: 'f' + fi, kind: 'find', slot: fi, x: fp.x, y: fp.y, tx: fp.x, ty: fp.y, name: 'Find' });
       }
+    }
+    if (level() >= HOUSE_LV) {
+      var ml = S.finds[S.cur] || (S.finds[S.cur] = [0, 0]), nowM = Date.now(), mi, tr = worldMats(S.cur);
+      for (mi = 0; mi < MAT_SLOTS; mi++) {
+        if (nowM - (ml[2 + mi] || 0) < MAT_WAIT) continue;
+        var mp = randomSpot(w), mk = Math.random() < 0.5 ? tr[0] : Math.random() < 0.6 ? tr[1] : tr[2];
+        w.ents.push({ id: 'm' + mi, kind: 'find', slot: 2 + mi, mat: mk, x: mp.x, y: mp.y, tx: mp.x, ty: mp.y, name: MAT_BY[mk].name });
+      }
+      var hh = houseOf(S.cur);
+      if (!hh.x && !hh.y) { var pp = randomSpot(w); hh.x = Math.round(pp.x); hh.y = Math.round(pp.y); save(); }
+      w.ents.push({ id: 'house', kind: 'find', plot: true, x: hh.x, y: hh.y, tx: hh.x, ty: hh.y, name: 'My house' });
     }
     var uth = uniHere(S.cur);
     if (uth) { var up = randomSpot(w); w.ents.push({ id: 'w' + (w.nextId++), kind: 'wild', spirit: uth, type: 'unicorn', body: 'bear', rid: 'legend', stage: 1, x: up.x, y: up.y, tx: up.x, ty: up.y, wait: 1, name: 'Spirit' }); }
@@ -3597,7 +3624,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (e.kind === 'hero') return 92;
     if (e.kind === 'follower') return 52 + (e.stage || 1) * 12;
     if (e.kind === 'guard') return 108;
-    if (e.kind === 'find') return 58;
+    if (e.kind === 'find') return e.plot ? 150 : e.mat ? 46 : 58;
     return e.guardian || e.spirit ? 92 : 68;
   }
   function reqLabel(g, t, words) {
@@ -3643,6 +3670,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function wantBtn(e) { return '<button class="want" data-act="want" data-id="' + e.id + '" aria-label="What does ' + esc(e.name) + ' want?"></button>'; }
   function spriteHTML(e) {
+    if (e.plot) return houseSVG(S.cur) + '<span class="tag">My house ' + housePct(S.cur) + '%</span>';
+    if (e.mat) return '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="26" fill="' + MAT_BY[e.mat].col + '" opacity=".3"/><rect x="15" y="15" width="30" height="30" rx="8" fill="' + MAT_BY[e.mat].col + '" stroke="#fff" stroke-width="3" transform="rotate(12 30 30)"/><circle cx="24" cy="23" r="4" fill="#fff" opacity=".7"/></svg><span class="tag">' + MAT_BY[e.mat].name + '</span>';
     if (e.kind === 'find') return '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="25" fill="#ffd86b" opacity=".28"/><path d="M30 5l6 16 17 1.5-13 11 4 17L30 41l-14 9.500 4-17-13-11 17-1.500z" fill="#ffe27a" stroke="#fff" stroke-width="2.500" stroke-linejoin="round"/><circle cx="30" cy="28" r="5" fill="#fff"/></svg><span class="tag">Discovery</span>';
     if (e.kind === 'hero') return heroSVG(S.boots) + '<span class="tag">You</span>';
     if (e.kind === 'guard') return petSVG(e.type, 3, e.name, e.body) + '<span class="tag guardtag">Guard ' + esc(e.name) + '</span><div class="reqs">' + reqChips(e.guard) + '</div>';
@@ -5220,6 +5249,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var firstEver = !Object.keys(S.beaten).some(function (k) { return S.beaten[k]; });
     var twinTo = ge.spot.twinTo, twinNew = false;
     S.beaten[ge.key] = true; S.opened[to] = true;
+    worldMats(to).forEach(function (m) { S.mats[m] = Math.min(MAT_CAP, (S.mats[m] || 0) + 2); });
     if (!via && ge.guard) S.gf[ge.name + '|' + ge.guard.type] = ge.guard.type;
     if (twinTo) { S.beaten[S.cur + ':' + twinTo] = true; if (!S.opened[twinTo]) { S.opened[twinTo] = true; twinNew = true; } }
     syncFar();
@@ -5241,7 +5271,114 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   };
   var TOOL_MAX = 3, FIND_SLOTS = 2, FIND_WAIT = 300000;
   function toolCount() { return S.tools.chime + S.tools.clover + S.tools.focus + S.tools.ward; }
+
+  /* ----- My house: collect materials in every world, then build a house piece by piece ----- */
+  var MATS = [
+    { id: 'wood', name: 'Wood', col: '#c98b4b' }, { id: 'stone', name: 'Stone', col: '#9aa3b5' }, { id: 'straw', name: 'Straw', col: '#f2d56b' },
+    { id: 'clay', name: 'Clay', col: '#d9694a' }, { id: 'sand', name: 'Sandstone', col: '#e8c88a' }, { id: 'shell', name: 'Shell', col: '#ff9ec4' },
+    { id: 'ice', name: 'Ice block', col: '#9fdcff' }, { id: 'leaf', name: 'Leaf thatch', col: '#6fcf6a' }, { id: 'crystal', name: 'Crystal', col: '#b388ff' },
+    { id: 'metal', name: 'Metal', col: '#c5ccd8' }, { id: 'candy', name: 'Candy', col: '#ff7eb6' }, { id: 'star', name: 'Stardust', col: '#ffd86b' }
+  ];
+  var MAT_BY = {}; MATS.forEach(function (m) { MAT_BY[m.id] = m; });
+  var MAT_SLOTS = 4, MAT_WAIT = 120000, MAT_CAP = 99, HOUSE_LV = 3;
+  function strHash(t) { var h = 7, i; for (i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) % 100003; return h; }
+  /* every world has three materials of its own (the first one is the most common): new worlds bring new materials */
+  function worldMats(id) {
+    if (id === 'home') return ['wood', 'stone', 'straw'];
+    var h = strHash(id);
+    return [MATS[h % 12].id, MATS[(h + 5) % 12].id, MATS[(h + 9) % 12].id];
+  }
+  /* A, B, C are the three materials of the world the house stands on */
+  var HOUSE_PIECES = [
+    { name: 'Foundation', cost: { A: 4 } }, { name: 'Floor', cost: { B: 3 } }, { name: 'Walls', cost: { A: 4, B: 2 } }, { name: 'Door', cost: { C: 2 } },
+    { name: 'Windows', cost: { C: 3 } }, { name: 'Roof', cost: { B: 4, C: 2 } }, { name: 'Chimney', cost: { A: 2 } }, { name: 'Garden', cost: { B: 2, C: 2 } }
+  ];
+  function houseOf(id) { return S.houses[id] || (S.houses[id] = { p: HOUSE_PIECES.map(function () { return 0; }), x: 0, y: 0 }); }
+  function houseCost(id, i) {
+    var m = worldMats(id), out = {}, c = HOUSE_PIECES[i].cost;
+    Object.keys(c).forEach(function (k) { out[m['ABC'.indexOf(k)]] = (out[m['ABC'.indexOf(k)]] || 0) + c[k]; });
+    return out;
+  }
+  function houseBuilt(id) { return houseOf(id).p.filter(Boolean).length; }
+  function housePct(id) { return Math.round(houseBuilt(id) / HOUSE_PIECES.length * 100); }
+  function houseDone(id) { return !!S.houses[id] && houseBuilt(id) >= HOUSE_PIECES.length; }
+  function houseMissing(id) {
+    var need = {}, miss = [];
+    HOUSE_PIECES.forEach(function (pc, i) { if (!houseOf(id).p[i]) { var c = houseCost(id, i); Object.keys(c).forEach(function (m) { need[m] = (need[m] || 0) + c[m]; }); } });
+    Object.keys(need).forEach(function (m) { var lack = need[m] - (S.mats[m] || 0); if (lack > 0) miss.push({ m: m, n: lack }); });
+    return miss;
+  }
+  function matChip(m, txt) { return '<span class="mchip"><i style="background:' + MAT_BY[m].col + '"></i>' + (txt === undefined ? MAT_BY[m].name : txt) + '</span>'; }
+  function houseSVG(id, big) {
+    var m = worldMats(id).map(function (k) { return MAT_BY[k].col; }), A = m[0], B = m[1], C = m[2], p = houseOf(id).p, h = [];
+    var parts = [
+      function (f, g) { return '<rect x="40" y="140" width="140" height="14" rx="3" ' + f(A) + '/>'; },
+      function (f) { return '<rect x="46" y="130" width="128" height="10" ' + f(B) + '/>'; },
+      function (f) { return '<rect x="50" y="80" width="120" height="50" ' + f(A) + '/>'; },
+      function (f) { return '<rect x="100" y="96" width="24" height="34" rx="4" ' + f(C) + '/><circle cx="118" cy="114" r="2.500" fill="#fff"/>'; },
+      function (f) { return '<rect x="62" y="94" width="24" height="20" rx="3" ' + f(C) + '/><rect x="136" y="94" width="24" height="20" rx="3" ' + f(C) + '/>'; },
+      function (f) { return '<polygon points="38,82 110,28 182,82" ' + f(B) + '/>'; },
+      function (f) { return '<rect x="144" y="34" width="14" height="32" ' + f(A) + '/>'; },
+      function (f) { return '<circle cx="30" cy="150" r="7" ' + f(C) + '/><circle cx="192" cy="150" r="7" ' + f(C) + '/><circle cx="18" cy="156" r="6" ' + f(B) + '/><circle cx="204" cy="156" r="6" ' + f(B) + '/>'; }
+    ];
+    var order = [0, 1, 2, 3, 4, 6, 5, 7];
+    h.push('<ellipse cx="110" cy="158" rx="100" ry="10" fill="#000" opacity=".18"/>');
+    order.forEach(function (i) {
+      h.push(p[i] ? parts[i](function (c) { return 'fill="' + c + '" stroke="rgba(0,0,0,.35)" stroke-width="2"'; })
+        : parts[i](function () { return 'fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="2" stroke-dasharray="5 5"'; }));
+    });
+    return '<svg viewBox="0 0 220 175" class="house-svg' + (big ? ' big' : '') + '" role="img" aria-label="House, ' + housePct(id) + ' percent built">' + h.join('') + '</svg>';
+  }
+  function nearPlot() {
+    var w = S.world; if (!w || !w.ents) return null;
+    var hero = w.ents[0], r = null;
+    w.ents.forEach(function (e) { if (e.plot && dist(e, hero) < 150) r = e; });
+    return r;
+  }
+  function houseHTML() {
+    var id = S.cur, W = WORLDS[id], bt = houseBuilt(id), pct = housePct(id), tr = worldMats(id), miss = houseMissing(id), done = houseDone(id);
+    var rows = HOUSE_PIECES.map(function (pc, i) {
+      var c = houseCost(id, i), built = houseOf(id).p[i], ok = Object.keys(c).every(function (m) { return (S.mats[m] || 0) >= c[m]; }), prev = i === 0 || houseOf(id).p[i - 1];
+      var chips = Object.keys(c).map(function (m) { return matChip(m, (S.mats[m] || 0) + '/' + c[m] + ' ' + MAT_BY[m].name); }).join(' ');
+      return '<div class="srow hpiece' + (built ? ' built' : '') + '"><div class="sinfo"><b>' + (i + 1) + '. ' + pc.name + '</b><span>' + (built ? 'Built!' : chips) + '</span></div>' +
+        (built ? '<span class="hdone">&#10003;</span>' : '<button class="btn small primary" data-act="housebuild" data-i="' + i + '"' + (ok && prev ? '' : ' disabled') + '>' + (!prev ? 'Soon' : 'Build') + '</button>') + '</div>';
+    }).join('');
+    var missHTML = done ? '' : (miss.length ? '<p class="srow-note"><b>Still missing:</b> ' + miss.map(function (x) { return matChip(x.m, x.n + ' ' + MAT_BY[x.m].name); }).join(' ') + '</p>' : '<p class="srow-note">You have every material you need! Build the next piece.</p>');
+    var others = Object.keys(S.houses).filter(function (k) { return k !== id && houseDone(k) && WORLDS[k]; });
+    var port = done ? '<h4>Teleport to another house</h4>' + (others.length ? others.map(function (k) { return '<div class="srow"><div class="sinfo"><b>' + esc(WORLDS[k].name) + '</b><span>Your finished house</span></div><button class="btn small primary" data-act="houseport" data-id="' + k + '">Go</button></div>'; }).join('') : '<p class="srow-note">Finish a house on another island and you can jump between them.</p>') : '';
+    var chest = MATS.filter(function (m) { return S.mats[m.id]; }).map(function (m) { return matChip(m.id, S.mats[m.id] + ' ' + m.name); }).join(' ') || 'nothing yet';
+    return '<div class="sheet-card housesheet"><h3>' + (id === 'home' ? 'Your house on Home Island' : 'Your house on ' + esc(W.name)) + '</h3>' + houseSVG(id, true) +
+      '<div class="hprog" aria-label="' + pct + ' percent built"><i style="width:' + pct + '%"></i></div><p class="hpct"><b>' + pct + '%</b> built &middot; ' + bt + ' of ' + HOUSE_PIECES.length + ' pieces' + (done ? ' &middot; <b>House complete!</b>' : '') + '</p>' +
+      '<p class="srow-note">This island gives ' + tr.map(function (k) { return MAT_BY[k].name; }).join(', ') + '. Walk over the glowing orbs to collect materials.</p>' + missHTML +
+      '<h4>Build</h4>' + rows + port + '<h4>Your materials</h4><p class="srow-note">' + chest + '</p>' +
+      '<button class="btn ghost small" data-act="closesheet">Close</button></div>';
+  }
+  function houseSpriteRefresh() { var e = nearPlot(); if (e && e.el) e.el.innerHTML = spriteHTML(e); }
+  function houseBuild(i) {
+    var id = S.cur, h = houseOf(id), c = houseCost(id, i);
+    if (h.p[i] || (i > 0 && !h.p[i - 1]) || !Object.keys(c).every(function (m) { return (S.mats[m] || 0) >= c[m]; })) return;
+    Object.keys(c).forEach(function (m) { S.mats[m] -= c[m]; });
+    h.p[i] = 1; save(); updateHud(); houseSpriteRefresh(); openSheet(houseHTML()); auAct('hit');
+    if (houseDone(id)) { flash(); say('Your house is finished! You can now teleport between your finished houses.', 6500); }
+    else say(HOUSE_PIECES[i].name + ' built! ' + housePct(id) + '% done.', 3500);
+  }
+  function housePort(id) {
+    if (!houseDone(S.cur) || !houseDone(id) || id === S.cur) return;
+    closeSheet(); travel(id, true);
+    S.travelMsg = 'Whoosh! The door of your house took you to ' + WORLDS[id].name + '.';
+  }
+  function collectMat(e) {
+    var n = 1 + (Math.random() < 0.4 ? 1 : 0), m = e.mat;
+    S.mats[m] = Math.min(MAT_CAP, (S.mats[m] || 0) + n);
+    (S.finds[S.cur] || (S.finds[S.cur] = [0, 0]))[e.slot] = Date.now();
+    var ix = S.world.ents.indexOf(e); if (ix > 0) S.world.ents.splice(ix, 1);
+    if (e.el && e.el.parentNode) e.el.parentNode.removeChild(e.el);
+    if (e.dot && e.dot.parentNode) e.dot.parentNode.removeChild(e.dot);
+    save(); updateHud(); worldBurst(e.x, e.y - 40, 'play'); auAct('pad', n);
+    wmsg('You found ' + n + ' ' + MAT_BY[m].name + '! Use it to build your house.');
+  }
   function collectFind(e) {
+    if (e.mat) { collectMat(e); return; }
     var open = Object.keys(TOOLS).filter(function (k) { return S.tools[k] < TOOL_MAX; }), now = performance.now();
     if (!open.length) { if (!e.warn || now > e.warn) { e.warn = now + 7000; wmsg('Your tool pouch is full (3 of each). Use a tool, then come back for this sparkle!'); } return; }
     var tot = open.reduce(function (a, k) { return a + TOOLS[k].w; }, 0), x = Math.random() * tot, k = open[0], i;
@@ -5584,7 +5721,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     hazardTick(w, ents, lead, performance.now());
     dexLook(ents, lead, performance.now());
-    for (var fq = ents.length - 1; fq > 0; fq--) { if (ents[fq].kind === 'find' && dist(ents[fq], lead) < 64) collectFind(ents[fq]); }
+    for (var fq = ents.length - 1; fq > 0; fq--) { if (ents[fq].kind === 'find' && !ents[fq].plot && dist(ents[fq], lead) < 64) collectFind(ents[fq]); }
     var spots = WD().spots;
     for (var si = 0; si < spots.length; si++) {
       if (S.screen !== 'world' || S.world !== w) return;
@@ -5593,7 +5730,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     if (S.screen !== 'world' || S.world !== w) return;
     var nw = nearWild(), ng = nearGuard(), cooling = !!(nw && nw.cool && performance.now() < nw.cool), nmood = nw ? nw.mood : '';
-    var key = ng ? 'g' + ng.id + ':' + missingFor(ng.guard, ng).length : nw ? 'w' + nw.id + ':' + cooling + ':' + nmood : nearLab() ? 'lab' : '';
+    var key = ng ? 'g' + ng.id + ':' + missingFor(ng.guard, ng).length : nw ? 'w' + nw.id + ':' + cooling + ':' + nmood : nearLab() ? 'lab' : nearPlot() ? 'plot' + houseBuilt(S.cur) : '';
     if (key !== nearId) { nearId = key; updateCatchBar(); }
     w.saveT += dt;
     if (w.saveT > 5) { w.saveT = 0; save(); }
@@ -6565,6 +6702,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     dodgelane: function (btn) { dodgeGo(battle, +btn.dataset.i); },
     matchcard: function (btn) { matchTap(+btn.dataset.i); },
     qans: function (btn) { qaTap(btn); },
+    house: function () { if (S.world && nearPlot()) openSheet(houseHTML()); },
+    housebuild: function (btn) { houseBuild(+btn.dataset.i); },
+    houseport: function (btn) { housePort(btn.dataset.id); },
     sortpick: function (btn) { sortTap(+btn.dataset.i); },
     setfriendly: function (btn) { setFriendly(btn.dataset.v === '1'); if ($('#sheet') && /Game over/.test($('#sheet').textContent)) { closeSheet(); say('Friendly mode is on. Take your time and have fun!', 4500); } else openSheet(shopHTML()); },
     none: function () {},
