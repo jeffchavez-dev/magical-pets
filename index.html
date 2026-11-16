@@ -1020,6 +1020,28 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .astro.ph-nav .as-read { display: block; }
 #asBack { background: #ff7e8f; color: #2a1a55; border-color: #fff; }
 @media (prefers-reduced-motion: reduce) { .astro.warp .as-vig { animation: none; } }
+.gh-svg { width: 100%; height: 100%; display: block; overflow: visible; pointer-events: none; filter: drop-shadow(0 0 7px rgba(255,216,107,.95)); }
+.sprite.gh-shake .gh-svg { animation: ghShake .36s ease-in-out; transform-origin: 50% 92%; }
+@keyframes ghShake { 0% { transform: none; filter: none; } 20% { transform: rotate(-13deg) scale(1.09, .93); filter: brightness(1.5); } 50% { transform: rotate(10deg) scale(.96, 1.05); } 75% { transform: rotate(-5deg); } 100% { transform: none; filter: none; } }
+.sprite.gh-fall .gh-svg { animation: ghFall .7s ease-in forwards; transform-origin: 50% 92%; }
+@keyframes ghFall { 30% { transform: rotate(-10deg) scale(1.05); } to { transform: translateY(22px) rotate(48deg) scale(.15); opacity: 0; } }
+.gh-bar { position: absolute; left: 10%; right: 10%; bottom: -10px; height: 11px; border: 2px solid #fff; box-sizing: border-box; border-radius: 99px; background: rgba(0,0,0,.45); overflow: hidden; pointer-events: none; }
+.gh-bar i { display: block; height: 100%; width: 0; background: #ffd86b; transition: width .2s; }
+.sprite.hero.swing .pet-svg { animation: heroSwing .4s ease-in-out; }
+@keyframes heroSwing { 25% { transform: rotate(-20deg) translateY(-10px) scale(1.07); } 55% { transform: rotate(16deg) translateY(5px) scale(.96); } }
+@media (prefers-reduced-motion: reduce) { .sprite.gh-shake .gh-svg, .sprite.hero.swing .pet-svg { animation: none; } }
+.gh-chip { position: absolute; left: 50%; top: 50%; border-radius: 28%; background: var(--c); border: 1.5px solid rgba(255,255,255,.7); pointer-events: none; z-index: 6; animation: ghChip .8s cubic-bezier(.2,.7,.4,1) forwards; }
+@keyframes ghChip { 0% { transform: translate(0, 0) rotate(0) scale(1); opacity: 1; } 55% { transform: translate(calc(var(--dx) * .7), var(--up)) rotate(var(--rot)); } 100% { transform: translate(var(--dx), 60px) rotate(calc(var(--rot) * 2)) scale(.5); opacity: 0; } }
+.gh-ring { position: absolute; left: 50%; bottom: 4%; width: 80%; height: 20%; margin-left: -40%; border: 4px solid rgba(255,255,255,.9); border-radius: 50%; pointer-events: none; z-index: 5; animation: ghRing .55s ease-out forwards; }
+@keyframes ghRing { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
+.gh-pop { position: absolute; left: 50%; top: -6px; white-space: nowrap; font-family: var(--font-display); font-weight: 700; font-size: 32px; color: #fff; -webkit-text-stroke: 1px rgba(0,0,0,.35); text-shadow: 0 3px 0 rgba(0,0,0,.55), 0 0 12px rgba(0,0,0,.6); pointer-events: none; z-index: 8; animation: ghPop .95s ease-out forwards; }
+.gh-pop.big { font-size: 42px; color: #ffd86b; animation-duration: 1.4s; }
+@keyframes ghPop { 0% { transform: translate(-50%, 14px) scale(.5); opacity: 0; } 20% { transform: translate(-50%, -4px) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -56px) scale(1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .gh-chip, .gh-ring { animation: none; opacity: 0; } }
+.w3tree svg *, .w3palm svg * { pointer-events: auto; cursor: pointer; }
+.w3item.gh-shake > svg { animation: ghShake .36s ease-in-out; transform-origin: 50% 88%; }
+.w3item.gh-fall > svg { animation: ghFall .7s ease-in forwards; transform-origin: 50% 88%; }
+.sprite.gh-temp { pointer-events: none; }
 </style>
 </head>
 <body>
@@ -3190,6 +3212,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     li.push('<li><b>Powers</b> ' + gp + ' of ' + tot + ' pet' + (tot === 1 ? '' : 's') + ' fully grown and ready to use.</li>');
     li.push('<li><b>Flying</b> ' + (fl.length ? esc(fl[0].name) + ' can fly' + (canFly(S.team[0]) ? ' and leads the team. Use the Fly button.' : ', but it is not at the front yet.') : 'Fully grown fairies, birds, bats and owls can fly.') + '</li>');
     if (level() > 10) li.push('<li><b>Trips home</b> ' + homeLeftText() + ' Free trips work from any world.</li>');
+    if (level() >= HOUSE_LV) li.push('<li><b>Gathering</b> Tap a tree, boulder, tall grass, mud, sand, shell, ice, bush, crystal, scrap, candy or fallen star on the ground to get house materials. 3 taps each (2 with the right pet).</li>');
     li.push('<li><b>Astronaut</b> ' + (level() < ASTRO_LV ? 'Unlocks at level ' + ASTRO_LV + '. Tap Space to learn more.' : suitDone() ? 'Suit ready. Oxygen ' + S.o2 + ' of ' + tankCap() + '. Tap Space to fly.' : 'Suit ' + suitCount() + ' of ' + SUIT.length + '. Collect star scrap and tap Space.') + '</li>');
     li.push('<li><b>World Jump</b> ' + (level() <= 10 ? 'Unlocks after level 10 when every pet is fully grown.' : !jumpUnlocked() ? 'Every pet must be fully grown first.' : jumpReady() ? 'Ready! Open Powers to jump.' : 'Recharging: ' + Math.floor(S.jump) + '%. Keep walking!') + '</li>');
     var uq = uniQuests(), roam = uq.filter(function (th) { return !S.uni[th]; }), nxt = UNI_LV.filter(function (th) { return level() < th; })[0], un = unicorns();
@@ -3367,6 +3390,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     'Every cave is a door to a different world! Crystal Cave has a pile of colorful balls, but a Fairy unicorn guards them.',
     'Only Home Island has sun! Take a colorful ball to the Sunny Hill there to wake it into a Happy Stone. Then try it on a wild pet when it smiles. Tap the little map to see the whole world.'
   ];
+  /* more tips unlock with your level, so the Professor can always explain the newer things */
+  var TIPS_MORE = [
+    { lv: 3, t: 'Time to build a house! Tap a tree to chop wood, a boulder to smash stone, and other things on the ground for more materials: grass, mud, sand, shells, ice, bushes, crystals, scrap, candy and fallen stars. It takes 3 taps. The right kind of pet helps, so it takes only 2!' },
+    { lv: 3, t: 'Your house goes on the dashed plot on your island. Walk up and tap it to build with the materials you gathered. The glowing orbs on the ground are materials too.' },
+    { lv: 2, t: 'Walk into a lake and tap Dive! Swim to grab sea friends, house materials and star scrap before your breath runs out. Buy air tanks to stay longer. Only pets that can swim come along.' },
+    { lv: 2, t: 'At level 6 you can tap Space to make a space suit from star scrap and fill your oxygen tank. Then fly to any world you have opened! Pets that can fly come along and save oxygen.' }
+  ];
+  function tipList() { return TIPS.concat(TIPS_MORE.filter(function (q) { return level() >= q.lv; }).map(function (q) { return q.t; })); }
   var peekMsg = '', peekUntil = 0, peekTimer = 0, tipIdx = -1, lastPeekHTML = null;
   var PEEK_SVG = [
     '<svg viewBox="0 0 110 112" aria-hidden="true" focusable="false">',
@@ -3395,7 +3426,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var now = performance.now();
     if (peekMsg && now < peekUntil) return '<span>' + esc(peekMsg) + '</span>';
     if (tipIdx >= 0) {
-      return '<span>' + esc(TIPS[tipIdx]) + '</span><button class="btn primary small" data-act="tipnext">' + (tipIdx === TIPS.length - 1 ? 'Got it' : 'Next') + '</button>';
+      var tl = tipList();
+      return '<span>' + esc(tl[tipIdx]) + '</span><button class="btn primary small" data-act="tipnext">' + (tipIdx === tl.length - 1 ? 'Got it' : 'Next') + '</button>';
     }
     var w = S.world, near = w ? nearWild() : null, ng = w ? nearGuard() : null;
     if (ng) {
@@ -3442,7 +3474,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function startTips() { tipIdx = 0; peekMsg = ''; peekUntil = 0; refreshPeek(); }
   function nextTip() {
     tipIdx++;
-    if (tipIdx >= TIPS.length) { tipIdx = -1; S.tipsSeen = true; save(); }
+    if (tipIdx >= tipList().length) { tipIdx = -1; S.tipsSeen = true; save(); }
     refreshPeek();
   }
   function wmsg(t) { say(t); }
@@ -3550,6 +3582,15 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         var hq = clampPt({ x: hh.x, y: hh.y + 70 }, WALK_R), hero0 = w.ents[0];
         hero0.x = hero0.tx = hq.x; hero0.y = hero0.ty = hq.y;
         w.ents.forEach(function (e, n) { if (e.kind === 'follower') { e.x = hq.x - 40 * n; e.y = hq.y + 24; e.tx = hq.x; e.ty = hq.y; } });
+      }
+    }
+    if (level() >= HOUSE_LV) {
+      var gl = S.finds[S.cur] || (S.finds[S.cur] = [0, 0]), nowG = Date.now(), gi, gt = worldMats(S.cur);
+      for (gi = 0; gi < GNODES; gi++) {
+        if (nowG - (gl[10 + gi] || 0) < GREGROW) continue;
+        var gm = Math.random() < 0.5 ? gt[0] : Math.random() < 0.6 ? gt[1] : gt[2], gp = clearSpot(w);
+        if (gm === treeMat()) gm = gt.filter(function (q) { return q !== gm; })[Math.floor(Math.random() * 2)];
+        w.ents.push({ id: 'n' + gi, kind: 'find', slot: 10 + gi, gather: gm, hits: 0, x: gp.x, y: gp.y, tx: gp.x, ty: gp.y, name: GATH[gm].name });
       }
     }
     if (level() >= ASTRO_LV) {
@@ -3902,7 +3943,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (e.kind === 'hero') return 92;
     if (e.kind === 'follower') return 52 + (e.stage || 1) * 12;
     if (e.kind === 'guard') return 108;
-    if (e.kind === 'find') return e.plot ? 360 : e.mat ? 46 : e.astro ? 50 : 58;   /* a house is about 4 characters wide */
+    if (e.kind === 'find') return e.plot ? 360 : e.gather ? 124 : e.mat ? 46 : e.astro ? 50 : 58;   /* a house is about 4 characters wide */
     return e.guardian || e.spirit ? 92 : 68;
   }
   function reqLabel(g, t, words) {
@@ -3949,6 +3990,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function wantBtn(e) { return '<button class="want" data-act="want" data-id="' + e.id + '" aria-label="What does ' + esc(e.name) + ' want?"></button>'; }
   function spriteHTML(e) {
     if (e.plot) return houseSVG(S.cur) + '<span class="tag">My house ' + housePct(S.cur) + '%</span>';
+    if (e.gather) return gatherSVG(e.gather) + '<span class="tag">' + GATH[e.gather].verb + ' ' + GATH[e.gather].name.toLowerCase() + '</span><span class="gh-bar"><i></i></span>';
     if (e.astro) return e.astro === 'scrap' ? scrapSVG() : bubbleSVG();
     if (e.mat) return '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="26" fill="' + MAT_BY[e.mat].col + '" opacity=".3"/><rect x="15" y="15" width="30" height="30" rx="8" fill="' + MAT_BY[e.mat].col + '" stroke="#fff" stroke-width="3" transform="rotate(12 30 30)"/><circle cx="24" cy="23" r="4" fill="#fff" opacity=".7"/></svg><span class="tag">' + MAT_BY[e.mat].name + '</span>';
     if (e.kind === 'find') return '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="25" fill="#ffd86b" opacity=".28"/><path d="M30 5l6 16 17 1.5-13 11 4 17L30 41l-14 9.500 4-17-13-11 17-1.500z" fill="#ffe27a" stroke="#fff" stroke-width="2.500" stroke-linejoin="round"/><circle cx="30" cy="28" r="5" fill="#fff"/></svg><span class="tag">Discovery</span>';
@@ -3983,6 +4025,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       e.el.style.transform = 'translate(' + (e.x - e.size / 2).toFixed(1) + 'px,' + (e.y - e.size * 0.9).toFixed(1) + 'px)';
       e.el.style.zIndex = (drag && drag.ent === e) ? 5000 : Math.round(e.y);
     }
+    if (e.gather) e.el.style.zIndex = (parseInt(e.el.style.zIndex, 10) || 0) + 8000;
     e.el.classList.toggle('walk', !!e.moving);
     e.el.classList.toggle('air', (e.kind === 'hero' || e.kind === 'follower') && flyOn());
     if (e.kind === 'hero' || e.kind === 'follower') {
@@ -4159,7 +4202,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       el.innerHTML = '<svg viewBox="' + [g.vx, g.vy, g.vw, g.vh].map(function (n) { return n.toFixed(0); }).join(' ') + '" width="' + g.vw.toFixed(0) + '" height="' + g.vh.toFixed(0) + '" aria-hidden="true" focusable="false">' + o.svg.replace(/@@/g, 'g') + '</svg>' + lbl;
       fr.appendChild(el);
       lbEl = el.querySelector('.w3lbl');
-      list.push({ el: el, lb: lbEl, near: false, ax: g.ax, ay: g.ay, vx: g.vx, vy: g.vy, vw: g.vw, vh: g.vh, vis: false });
+      var it0 = { el: el, lb: lbEl, near: false, ax: g.ax, ay: g.ay, vx: g.vx, vy: g.vy, vw: g.vw, vh: g.vh, vis: false, ob: o }; list.push(it0);
+      if ((o.k === 'tree' || o.k === 'palm') && !treeReady(o)) stumpOf(it0);
     });
     host.innerHTML = ''; host.appendChild(fr); V3.list = list;
     var hz = hazOf(S.cur), info = HZ[S.cur], hf = document.createDocumentFragment(); V3.hz = [];
@@ -5583,6 +5627,149 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var TOOL_MAX = 3, FIND_SLOTS = 2, FIND_WAIT = 300000;
   function toolCount() { return S.tools.chime + S.tools.clover + S.tools.focus + S.tools.ward; }
 
+  /* ----- Gathering: chop trees, smash rocks, dig clay... every house material has its own thing to work on ----- */
+  var GNODES = 5, GREGROW = 120000, GREACH = 130, gTip = false;
+  var GATH = {
+    wood: { name: 'Tree', verb: 'Chop', done: 'chopped the tree' }, stone: { name: 'Boulder', verb: 'Smash', done: 'smashed the boulder' }, straw: { name: 'Tall grass', verb: 'Cut', done: 'cut the tall grass' },
+    clay: { name: 'Mud patch', verb: 'Dig', done: 'dug up the mud' }, sand: { name: 'Sand pile', verb: 'Dig', done: 'dug up the sand' }, shell: { name: 'Big shell', verb: 'Pick up', done: 'picked up the shell' },
+    ice: { name: 'Ice chunk', verb: 'Chip', done: 'chipped the ice' }, leaf: { name: 'Leafy bush', verb: 'Shake', done: 'shook the bush' }, crystal: { name: 'Crystal', verb: 'Mine', done: 'mined the crystal' },
+    metal: { name: 'Scrap pile', verb: 'Search', done: 'searched the scrap pile' }, candy: { name: 'Candy tree', verb: 'Pick', done: 'picked the candy' }, star: { name: 'Fallen star', verb: 'Gather', done: 'gathered the star' }
+  };
+  /* the right kind of pet makes the job faster and can bring an extra piece */
+  var GHELP = { wood: ['grass', 'earth'], stone: ['earth', 'fire'], straw: ['grass', 'wind'], clay: ['earth', 'water'], sand: ['earth', 'wind'], shell: ['water'], ice: ['fire'], leaf: ['grass', 'fairy'], crystal: ['earth', 'psychic'], metal: ['electric', 'fire'], candy: ['fairy', 'light'], star: ['cosmic', 'light', 'psychic'] };
+  function gatherHelper(m) { return S.team.filter(function (p) { return p.stage >= 2 && (GHELP[m] || []).indexOf(p.type) >= 0; })[0] || null; }
+  function gatherSVG(m) {
+    var pl = (WORLDS[S.cur] && WORLDS[S.cur].pal) || {}, lf = pl.leaf || ['#2f9a55', '#35a85d'], sh = '<ellipse cx="50" cy="90" rx="30" ry="6" fill="#000" opacity=".2"/>', o = '<svg class="gh-svg" viewBox="0 0 100 100" aria-hidden="true">' + sh;
+    if (m === 'wood') o += '<rect x="43" y="52" width="14" height="40" rx="4" fill="#8b5a2b"/><circle cx="50" cy="36" r="26" fill="' + lf[0] + '"/><circle cx="33" cy="50" r="18" fill="' + lf[1] + '"/><circle cx="67" cy="50" r="18" fill="' + lf[1] + '"/><circle cx="42" cy="28" r="6" fill="#fff" opacity=".25"/>';
+    else if (m === 'stone') o += '<polygon points="14,82 20,48 46,28 74,36 90,64 82,86 30,88" fill="#9aa3b5" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><polygon points="46,28 74,36 62,58 34,52" fill="#c3c9d8"/>';
+    else if (m === 'straw') o += '<path d="M20 90 Q22 50 14 30 M34 90 Q36 40 30 18 M50 90 Q50 36 52 12 M66 90 Q64 44 72 22 M80 90 Q78 52 88 34" stroke="#e8c84a" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M50 90 Q50 50 56 30 M34 90 Q38 56 44 40" stroke="#f6e08a" stroke-width="4" fill="none" stroke-linecap="round"/>';
+    else if (m === 'clay') o += '<ellipse cx="50" cy="76" rx="40" ry="18" fill="#a9553a"/><ellipse cx="50" cy="68" rx="32" ry="13" fill="#d9694a"/><circle cx="38" cy="64" r="4" fill="#f0a089"/><circle cx="62" cy="70" r="3" fill="#f0a089"/>';
+    else if (m === 'sand') o += '<path d="M8 86 Q30 38 50 54 Q70 26 92 86Z" fill="#e8c88a" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M26 76 Q44 60 60 72" stroke="#fff" stroke-opacity=".55" fill="none" stroke-width="3"/>';
+    else if (m === 'shell') o += '<path d="M12 72 Q12 24 50 24 Q88 24 88 72 Q70 86 50 86 Q30 86 12 72Z" fill="#ff9ec4" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M50 26 L50 84 M32 30 L38 82 M68 30 L62 82 M20 46 L30 80 M80 46 L70 80" stroke="#fff" stroke-opacity=".6" stroke-width="3"/>';
+    else if (m === 'ice') o += '<polygon points="20,86 14,50 36,16 64,22 86,56 78,88" fill="#bfe8ff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><polygon points="36,16 64,22 52,50 30,46" fill="#e8f8ff"/><path d="M60 62 l10 -14" stroke="#fff" stroke-width="4" stroke-linecap="round"/>';
+    else if (m === 'leaf') o += '<circle cx="32" cy="66" r="24" fill="' + lf[0] + '"/><circle cx="64" cy="62" r="28" fill="' + lf[1] + '"/><circle cx="48" cy="44" r="22" fill="#7fe07a"/><path d="M40 40 q8 -10 16 0 q-8 10 -16 0Z" fill="#fff" opacity=".3"/>';
+    else if (m === 'crystal') o += '<polygon points="50,6 64,40 56,90 44,90 36,40" fill="#b388ff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><polygon points="22,42 34,62 28,90 14,90 12,60" fill="#8f6af0" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><polygon points="78,38 90,62 84,90 70,90 66,60" fill="#c9a8ff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>';
+    else if (m === 'metal') o += '<rect x="12" y="58" width="46" height="28" rx="4" fill="#9aa3b5" stroke="#fff" stroke-width="3"/><rect x="40" y="38" width="42" height="26" rx="4" fill="#c5ccd8" stroke="#fff" stroke-width="3"/><circle cx="70" cy="74" r="14" fill="#7d8498" stroke="#fff" stroke-width="3"/><circle cx="70" cy="74" r="5" fill="#c5ccd8"/>';
+    else if (m === 'candy') o += '<rect x="46" y="48" width="8" height="42" rx="3" fill="#fff"/><circle cx="50" cy="34" r="26" fill="#ff7eb6" stroke="#fff" stroke-width="3"/><path d="M50 34 m0 -17 a17 17 0 1 1 -17 17 a11 11 0 1 1 11 -11" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>';
+    else o += '<circle cx="50" cy="48" r="38" fill="#ffd86b" opacity=".25"/><path d="M50 8 L61 36 L92 38 L68 58 L76 88 L50 72 L24 88 L32 58 L8 38 L39 36Z" fill="#ffd86b" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><circle cx="50" cy="48" r="8" fill="#fff" opacity=".7"/>';
+    return o + '</svg>';
+  }
+  var GCHIP = { wood: ['#8b5a2b', '#a9703a', '#4fbf5a'], stone: ['#9aa3b5', '#c3c9d8', '#7d8498'], straw: ['#e8c84a', '#f6e08a'], clay: ['#a9553a', '#d9694a'], sand: ['#e8c88a', '#f6dfae'], shell: ['#ff9ec4', '#fff'],
+    ice: ['#bfe8ff', '#fff', '#8fd0ff'], leaf: ['#4fbf5a', '#7fe07a', '#2f9a55'], crystal: ['#b388ff', '#c9a8ff', '#fff'], metal: ['#c5ccd8', '#9aa3b5', '#ffd86b'], candy: ['#ff7eb6', '#fff', '#ffd86b'], star: ['#ffd86b', '#fff', '#ffe99a'] };
+  /* a clear burst on every hit: flying bits, a ring on the ground and a floating word */
+  function gatherFx(e, big, text) { gatherFxOn(e.el, e.gather, big, text); }
+  function gatherFxOn(el, mat, big, text) {
+    if (!el || REDUCE) return;
+    var cols = GCHIP[mat] || ['#fff'], n = big ? 16 : 7, i, c;
+    for (i = 0; i < n; i++) {
+      c = document.createElement('i'); c.className = 'gh-chip';
+      c.style.setProperty('--c', cols[i % cols.length]); c.style.setProperty('--dx', ((Math.random() - 0.5) * (big ? 190 : 130)).toFixed(0) + 'px'); c.style.setProperty('--up', (-(40 + Math.random() * (big ? 120 : 80))).toFixed(0) + 'px'); c.style.setProperty('--rot', ((Math.random() - 0.5) * 540).toFixed(0) + 'deg');
+      c.style.width = c.style.height = (11 + Math.random() * (big ? 14 : 9)).toFixed(0) + 'px';
+      el.appendChild(c); (function (q) { setTimeout(function () { if (q.parentNode) q.parentNode.removeChild(q); }, 900); })(c);
+    }
+    var rg = document.createElement('i'); rg.className = 'gh-ring'; el.appendChild(rg); setTimeout(function () { if (rg.parentNode) rg.parentNode.removeChild(rg); }, 600);
+    if (text) { var pp = document.createElement('b'); pp.className = 'gh-pop' + (big ? ' big' : ''); pp.textContent = text; el.appendChild(pp); setTimeout(function () { if (pp.parentNode) pp.parentNode.removeChild(pp); }, big ? 1400 : 950); }
+  }
+  /* the real trees on the islands can be chopped too: they give the island's tree material and grow back */
+  var CHOPPED = {}, treeWant = null;
+  function treeMat() { var m = worldMats(S.cur), pref = ['wood', 'leaf', 'crystal', 'candy', 'ice', 'straw', 'sand'], i; for (i = 0; i < pref.length; i++) if (m.indexOf(pref[i]) >= 0) return pref[i]; return m[0]; }
+  function treeKey(ob) { return S.cur + ':' + Math.round(ob.x) + ':' + Math.round(ob.y); }
+  function treeReady(ob) { var t = CHOPPED[treeKey(ob)]; return !t || Date.now() - t > GREGROW; }
+  function treeNear(p) {
+    var best = null, bd = 1e9;
+    splitFor(S.cur).objs.forEach(function (o) {
+      if (o.k !== 'tree' && o.k !== 'palm') return;
+      var t = o.s, d = Math.min(Math.hypot(p.x - o.x, p.y - (o.y - 45 * t)) / 58 / t, Math.hypot(p.x - o.x, p.y - (o.y + 14 * t)) / 30 / t);
+      if (d < 1 && d < bd) { bd = d; best = o; }
+    });
+    return best;
+  }
+  function stumpOf(it) {
+    var o = it.ob, t = o.s, el = it.el; if (!it.orig) it.orig = el.innerHTML;
+    el.innerHTML = '<svg viewBox="' + [it.vx, it.vy, it.vw, it.vh].map(function (n) { return n.toFixed(0); }).join(' ') + '" width="' + it.vw.toFixed(0) + '" height="' + it.vh.toFixed(0) + '" aria-hidden="true"><ellipse cx="' + o.x + '" cy="' + (o.y + 12 * t) + '" rx="' + (20 * t) + '" ry="' + (8 * t) + '" fill="#000" opacity=".2"/><rect x="' + (o.x - 13 * t) + '" y="' + (o.y - 2 * t) + '" width="' + (26 * t) + '" height="' + (16 * t) + '" rx="' + (3 * t) + '" fill="#8b5a2b"/><ellipse cx="' + o.x + '" cy="' + (o.y - 2 * t) + '" rx="' + (13 * t) + '" ry="' + (6 * t) + '" fill="#c98b4b"/><ellipse cx="' + o.x + '" cy="' + (o.y - 2 * t) + '" rx="' + (7 * t) + '" ry="' + (3 * t) + '" fill="#a9703a"/></svg>';
+  }
+  function treeTap(ob, it) {
+    if (level() < HOUSE_LV) { wmsg('Trees give materials for your house. Reach level ' + HOUSE_LV + ' first by opening more worlds!'); return; }
+    if (!treeReady(ob)) { wmsg('This tree is still growing back. Try another one!'); return; }
+    var hero = S.world.ents[0];
+    if (Math.hypot(hero.x - ob.x, hero.y - ob.y) > GREACH + 30) { treeWant = { ob: ob, it: it }; setLeadTarget({ x: ob.x, y: ob.y + 90 }); return; }
+    treeHit(ob, it);
+  }
+  function treeHit(ob, it) {
+    var now = performance.now(), m = treeMat(), w = S.world, hero = w.ents[0];
+    if (now < (ob._cd || 0) || !treeReady(ob)) return;
+    ob._cd = now + 260; ob._hits = (ob._hits || 0) + 1;
+    var help = gatherHelper(m), need = help ? 2 : 3, host = it && it.el, tmp = null;
+    if (!host && !REDUCE) { tmp = document.createElement('div'); tmp.className = 'sprite find gh-temp'; tmp.style.width = tmp.style.height = '104px'; tmp.style.transform = 'translate(' + (ob.x - 52) + 'px,' + (ob.y - 94) + 'px)'; tmp.style.zIndex = Math.round(ob.y) + 1; var hostEl = $('#ents'); if (hostEl) hostEl.appendChild(tmp); host = tmp; setTimeout(function () { if (tmp.parentNode) tmp.parentNode.removeChild(tmp); }, 1500); }
+    if (it && it.el) { it.el.classList.remove('gh-shake'); void it.el.offsetWidth; it.el.classList.add('gh-shake'); }
+    if (hero.el) { hero.el.classList.remove('swing'); void hero.el.offsetWidth; hero.el.classList.add('swing'); }
+    auAct('pad', 1 + ob._hits);
+    if (ob._hits < need) { gatherFxOn(host, m, false, GATH[m].verb + '! ' + ob._hits + '/' + need); return; }
+    var n = 1 + (help && Math.random() < 0.5 ? 1 : 0) + (Math.random() < 0.25 ? 1 : 0);
+    ob._hits = 0; CHOPPED[treeKey(ob)] = Date.now();
+    S.mats[m] = Math.min(MAT_CAP, (S.mats[m] || 0) + n);
+    gatherFxOn(host, m, true, '+' + n + ' ' + MAT_BY[m].name);
+    if (it && it.el) { it.el.classList.add('gh-fall'); setTimeout(function () { it.el.classList.remove('gh-fall'); it.el.classList.remove('gh-shake'); if (!treeReady(ob)) stumpOf(it); }, 650); }
+    setTimeout(function () { var it2 = V3.list.filter(function (q) { return q.ob === ob; })[0]; if (it2 && it2.orig && treeReady(ob)) { it2.el.innerHTML = it2.orig; it2.orig = null; } }, GREGROW + 200);
+    save(); updateHud();
+    wmsg('You chopped down the ' + (ob.k === 'palm' ? 'palm' : 'tree') + ' and got ' + n + ' ' + MAT_BY[m].name + '!' + (help ? ' ' + help.name + ' helped.' : '') + ' It grows back in a couple of minutes.');
+  }
+  /* gather things are easy to hit: a generous tap area that wins over trees, and a spot with few trees around it */
+  function nodeAtPoint(cx, cy) {
+    var best = null, bd = 1e9, w = S.world; if (!w) return null;
+    w.ents.forEach(function (e) {
+      if (!e.gather || e.gone || !e.el || e.el.style.display === 'none') return;
+      var r = e.el.getBoundingClientRect(), pad = 16;
+      if (cx < r.left - pad || cx > r.right + pad || cy < r.top - pad || cy > r.bottom + pad) return;
+      var d = Math.hypot(cx - (r.left + r.right) / 2, cy - (r.top + r.bottom) / 2); if (d < bd) { bd = d; best = e; }
+    });
+    return best;
+  }
+  function nearSolid(x, y, rad) {
+    var o = obsFor(S.cur), CELL = o.CELL, i, j, k, l, c;
+    for (i = Math.floor((x - rad - 40) / CELL); i <= Math.floor((x + rad + 40) / CELL); i++) for (j = Math.floor((y - rad - 40) / CELL); j <= Math.floor((y + rad + 40) / CELL); j++) {
+      l = o.grid[i + ',' + j]; if (!l) continue;
+      for (k = 0; k < l.length; k++) { c = l[k]; if (Math.hypot(c.x - x, c.y - y) < c.r + rad) return true; }
+    }
+    return false;
+  }
+  function clearSpot(w) {
+    var p, i, rad = [110, 80, 50];
+    for (var q = 0; q < rad.length; q++) for (i = 0; i < 30; i++) { p = randomSpot(w); if (!nearSolid(p.x, p.y, rad[q])) return p; }
+    return randomSpot(w);
+  }
+  function gatherNeed(e) { return gatherHelper(e.gather) ? 2 : 3; }
+  function nodeTap(e) {
+    var hero = S.world.ents[0];
+    if (dist(hero, e) > GREACH) { e.want = true; setLeadTarget({ x: e.x, y: e.y + 70 }); return; }
+    nodeHit(e);
+  }
+  function nodeHit(e) {
+    var now = performance.now(), m = e.gather, w = S.world;
+    if (!w || e.gone || now < (e.cd || 0)) return;
+    e.cd = now + 260; e.hits = (e.hits || 0) + 1;
+    var need = gatherNeed(e), hero = w.ents[0];
+    if (e.el) {
+      e.el.classList.remove('gh-shake'); void e.el.offsetWidth; e.el.classList.add('gh-shake');
+      var bar = e.el.querySelector('.gh-bar i'); if (bar) bar.style.width = Math.min(100, e.hits / need * 100) + '%';
+    }
+    if (hero.el) { hero.el.classList.remove('swing'); void hero.el.offsetWidth; hero.el.classList.add('swing'); }
+    auAct('pad', 1 + e.hits);
+    if (e.hits < need) { gatherFx(e, false, GATH[m].verb + '! ' + e.hits + '/' + need); return; }
+    var help = gatherHelper(m), n = 1 + (help && Math.random() < 0.5 ? 1 : 0) + (Math.random() < 0.25 ? 1 : 0);
+    e.gone = true; gatherFx(e, true, '+' + n + ' ' + MAT_BY[m].name);
+    S.mats[m] = Math.min(MAT_CAP, (S.mats[m] || 0) + n);
+    (S.finds[S.cur] || (S.finds[S.cur] = [0, 0]))[e.slot] = Date.now();
+    if (e.el) e.el.classList.add('gh-fall');
+    setTimeout(function () {
+      var ix = w.ents.indexOf(e); if (ix > 0) w.ents.splice(ix, 1);
+      if (e.el && e.el.parentNode) e.el.parentNode.removeChild(e.el);
+      if (e.dot && e.dot.parentNode) e.dot.parentNode.removeChild(e.dot);
+    }, 650);
+    save(); updateHud();
+    wmsg('You ' + GATH[m].done + ' and got ' + n + ' ' + MAT_BY[m].name + '!' + (help ? ' ' + help.name + ' helped.' : '') + ' It grows back soon.');
+  }
+
   /* ----- Diving: a lake is deep. Dive down for sea friends, house materials and star scrap, but hold your breath! ----- */
   var DIVE_BASE = 20, DIVE_MATE = 4, TANK_SEC = 15, DIVE_TANK_COST = 12;
   var SEA = [{ id: 'fish', name: 'Rainbow fish', col: '#ff9ec4', sz: 46, pts: 3, food: 1 }, { id: 'crab', name: 'Crab', col: '#ff7a5a', sz: 50, pts: 5, food: 1 }, { id: 'jelly', name: 'Jellyfish', col: '#c9a8ff', sz: 54, pts: 6, food: 0 }, { id: 'octo', name: 'Octopus', col: '#a77cff', sz: 66, pts: 10, food: 2 },
@@ -6134,7 +6321,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     { id: 'metal', name: 'Metal', col: '#c5ccd8' }, { id: 'candy', name: 'Candy', col: '#ff7eb6' }, { id: 'star', name: 'Stardust', col: '#ffd86b' }
   ];
   var MAT_BY = {}; MATS.forEach(function (m) { MAT_BY[m.id] = m; });
-  var MAT_SLOTS = 4, MAT_WAIT = 120000, MAT_CAP = 99, HOUSE_LV = 3;
+  var MAT_SLOTS = 2, MAT_WAIT = 120000, MAT_CAP = 99, HOUSE_LV = 3;
   function strHash(t) { var h = 7, i; for (i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) % 100003; return h; }
   /* every world has three materials of its own (the first one is the most common): new worlds bring new materials */
   function worldMats(id) {
@@ -7056,7 +7243,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     hazardTick(w, ents, lead, performance.now());
     dexLook(ents, lead, performance.now());
-    for (var fq = ents.length - 1; fq > 0; fq--) { if (ents[fq].kind === 'find' && !ents[fq].plot && dist(ents[fq], lead) < 64) collectFind(ents[fq]); }
+    for (var fq = ents.length - 1; fq > 0; fq--) { if (treeWant && dist(treeWant.ob, lead) < GREACH + 30) { var tw = treeWant; treeWant = null; treeHit(tw.ob, tw.it); } var fe = ents[fq]; if (fe.gather) { if (fe.want && dist(fe, lead) < GREACH) { fe.want = false; nodeHit(fe); } } else if (fe.kind === 'find' && !fe.plot && dist(fe, lead) < 64) collectFind(fe); }
     var spots = WD().spots;
     for (var si = 0; si < spots.length; si++) {
       if (S.screen !== 'world' || S.world !== w) return;
@@ -7120,6 +7307,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       try { sc.setPointerCapture(ev.pointerId); } catch (x) { /* optional */ }
       if (t) {
         var e = entById(t.dataset.id);
+        if (e && e.gather) { nodeTap(e); return; }
         if (e && !e.merging && e.kind !== 'guard') {
           drag = { ent: e, ox: e.x - p.x, oy: e.y - p.y, id: ev.pointerId, px: l.px, py: l.py, sx: l.px, sy: l.py, moved: false };
           t.classList.add('held');
@@ -7128,6 +7316,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
           return;
         }
       }
+      var gnode = nodeAtPoint(ev.clientX, ev.clientY); if (gnode) { treeWant = null; nodeTap(gnode); return; }
+      var trEl = V3.on && ev.target.closest ? ev.target.closest('.w3tree, .w3palm') : null, trIt = trEl ? V3.list.filter(function (q) { return q.el === trEl; })[0] : null, trOb = trIt ? trIt.ob : (!V3.on ? treeNear(p) : null);
+      if (trOb) { treeTap(trOb, trIt); return; }
+      treeWant = null;
       steer = { id: ev.pointerId, px: l.px, py: l.py };
       setLeadTarget(p);
     });
@@ -7184,6 +7376,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     bindScene();
     updateHud(); nearId = null; updateCatchBar(); buildMini();
     if (S.travelMsg) { tipIdx = -1; say(S.travelMsg, 5200); S.travelMsg = ''; }
+    if (!gTip && level() >= HOUSE_LV) { gTip = true; setTimeout(function () { if (S.screen === 'world' && !warping) wmsg('New! Tap a tree, a rock, a bush or other things on the ground to gather house materials.'); }, 9000); }
     if (S.houseArrive) { var hid = S.houseArrive; S.houseArrive = null; setTimeout(function () { if (S.screen === 'world' && S.cur === hid && !HV) hvOpenInside(); }, 800); }
     else { tipIdx = S.tipsSeen ? -1 : 0; refreshPeek(); }
     S.team.forEach(function (p) { if (p.happy >= 100 && p.stage < 3) worldEvolve(p); });
@@ -7943,7 +8136,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (k >= 0) tryMerge(k);
     },
     neweggs: function () { S.eggs = makeEggs(); render(); },
-    continue: function () { if (loadGame()) render(); },
+    continue: function () { if (!loadGame()) return; if (S.homeStyle) handlers.world(); else render(); },   /* continue the adventure in the world where you stopped, not on the pet care screen */
     eggtap: function (btn) {
       var i = +btn.dataset.i, e = S.eggs[i], lead = $('#lead');
       if (S.chosen !== i) { lead.textContent = e.tried ? 'That egg did not merge. Try another one!' : 'Touch your Happy Stone to the egg first.'; return; }

@@ -13,6 +13,9 @@ Open `index.html` in a browser.
 3. Under "Build and deployment", choose "Deploy from a branch", branch `main`, folder `/ (root)`.
 4. After a minute the game is live at `https://<your-username>.github.io/<repo-name>/`.
 
+## Continuing
+Tap **Continue your adventure** on the title screen and you go straight back into the world where you stopped, not to the pet care screen.
+
 ## Worlds and travel
 There are 25 worlds on a universe map at the start, and 25 more far worlds (50 in all) that stay hidden and uncounted until you reach level 20 (see Far worlds below). Tap "All worlds" to see them and pan or zoom around. When you go through a cave, a short animation shows you and your pets flying along the route on the universe map and through the portal.
 
@@ -121,8 +124,17 @@ From level 15 Professor Bolt sells a Tool Cage in four sizes (Small Cage 2 pets 
 ## Professor Bolt's shop anywhere
 Tap Professor Bolt (the robot peeking in at the corner) in any world to open his shop and buy or sell. His free colorful balls are still handed out only at his lab on Home Island. The shop has a **Tips from the Professor** button for the old help tips.
 
+
+The Professor also explains the newer things. **Tips from the Professor** (in his shop, and the first-time tour) grows as you level up: at level 2 it adds diving and space, and at level 3 it adds gathering materials and building a house. The Pets sheet also has a Gathering line from level 3.
 ## My house (level 3+)
 **How to start:** reach level 3 (open 2 worlds). Every island then has a **house plot**, a dashed house outline on the ground, and glowing **material orbs** scattered around. Collect materials by walking over the orbs. Each island gives three materials of its own (Home Island gives Wood, Stone and Straw), and winning a guard battle gives a few of the new world's materials. When you walk up to your house plot, a prompt appears with two buttons: **Build** (or **Open my house** once it is finished) and **Step inside (3D)**.
+
+**Gathering materials:** besides the glowing orbs (now fewer, 2 per island), every material has something on the ground you work on. Tap it and your character walks over and gets to work. It takes 3 taps and a bar fills over it:
+- **The real trees on the island can be chopped** (in the flat map view and the 3D walk view). Tap a tree and your character walks over and chops it. After 3 taps it falls and leaves a stump, and it grows back after about 2 minutes. Each tap shows flying bits, a ring on the ground and a floating "Chop! 1/3". Trees give the island's tree material (wood, leaf thatch, crystal, candy, ice and so on). Palm trees work too.
+- Wood: chop a **tree**. Stone: smash a **boulder**. Straw: cut **tall grass**. Clay: dig a **mud patch**. Sandstone: dig a **sand pile**. Shell: pick up a **big shell**. Ice: chip an **ice chunk**. Leaf thatch: shake a **leafy bush**. Crystal: mine a **crystal**. Metal: search a **scrap pile**. Candy: pick a **candy tree**. Stardust: gather a **fallen star**.
+- These things glow gold, are drawn in front of the trees, and have a generous tap area, so you can tap them even when trees are around. They also appear in open spots with few trees nearby.
+- Each island has 5 of these and they are made of that island's own three materials. A used one grows back after about 2 minutes.
+- **Pet helpers.** The right kind of pet on your team makes it faster (2 taps instead of 3) and can bring an extra piece: grass and earth pets for wood, earth and fire for stone, grass and wind for straw, earth and water for clay, earth and wind for sand, water for shells, fire for ice, grass and fairy for leaf thatch, earth and psychic for crystal, electric and fire for metal, fairy and light for candy, cosmic, light and psychic for stardust.
 
 **House forms:** the house takes a different form depending on the world. Cottage (pitched roof and chimney) in meadows, gardens, reefs and windy or rainbow worlds. Dome (a stepped round roof and smoke pipe) in snowy, cloudy and deep worlds. Adobe (a flat roof with battlements and a rooftop tower) in hot, dry and ruined worlds. Spire (a tall pointed roof with a flag pole) in crystal, moon, storm and other dark or magical worlds. Worlds not listed get one of the four. The roof and the last-but-one piece are named after the form (for example Dome roof and Smoke pipe), but the eight pieces and their costs are the same everywhere.
 
