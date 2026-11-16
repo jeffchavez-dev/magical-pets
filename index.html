@@ -1009,6 +1009,17 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .drips i { position: absolute; top: 15%; left: calc(50% + var(--dx)); width: 7px; height: 11px; border-radius: 50% 50% 55% 55%; background: #bfe9ff; opacity: 0; animation: dripFall .9s ease-in forwards; }
 @keyframes dripFall { 0% { transform: translateY(-20px); opacity: 1; } 100% { transform: translateY(70px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .sprite.popout .pet-svg { animation: none; } }
+.as-cv { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; opacity: 0; transition: opacity .6s; pointer-events: none; }
+.astro.ph-nav .as-cv { opacity: 1; }
+.as-vig { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .6s; background: radial-gradient(ellipse at 50% 50%, transparent 52%, rgba(4,2,24,.62) 100%); }
+.astro.ph-nav .as-vig { opacity: 1; }
+.astro.warp .as-vig { background: radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(30,70,200,.38) 78%, rgba(4,2,24,.7) 100%); animation: asWarp .35s ease-in-out infinite alternate; }
+@keyframes asWarp { to { opacity: .82; } }
+.as-read { position: absolute; left: 14px; top: 192px; z-index: 4; display: none; font-family: var(--font-display); font-size: 12px; letter-spacing: 1px; line-height: 1.5; color: #7fe8ff; text-shadow: 0 0 6px rgba(127,232,255,.6); pointer-events: none; }
+.as-read b { color: #fff; font-size: 14px; }
+.astro.ph-nav .as-read { display: block; }
+#asBack { background: #ff7e8f; color: #2a1a55; border-color: #fff; }
+@media (prefers-reduced-motion: reduce) { .astro.warp .as-vig { animation: none; } }
 </style>
 </head>
 <body>
@@ -5707,7 +5718,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 
   /* ----- Astronaut mode: build a space suit, fill an oxygen tank, then fly to any world you have opened ----- */
   var ASTRO_LV = 6, ASTRO_WAIT = 150000, BUBBLE_O2 = 10, O2_COIN = 3, O2_UNIT = 70;
-  var SPEEDS = [{ n: 'Slow', v: 100, m: 0.7 }, { n: 'Cruise', v: 200, m: 1 }, { n: 'Fast', v: 420, m: 1.5 }, { n: 'Turbo', v: 800, m: 2 }];
+  var SPACE_SCALE = 4;   /* how many times farther apart the worlds are when you fly (the map shows them close together) */
+  var SPEEDS = [{ n: 'Slow', v: 200, m: 0.7 }, { n: 'Cruise', v: 400, m: 1 }, { n: 'Fast', v: 840, m: 1.5 }, { n: 'Turbo', v: 1600, m: 2 }];
   var SUIT = [
     { id: 'helmet', name: 'Helmet', cost: 4, d: 'Round and clear, so you can breathe.' },
     { id: 'boots', name: 'Moon boots', cost: 5, d: 'Heavy boots that grip the rocket floor.' },
@@ -5808,12 +5820,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var root = document.createElement('div'); root.className = 'astro ph-up'; root.id = 'astro'; root.setAttribute('role', 'group'); root.setAttribute('aria-label', 'Flying through space');
     var pets = S.team.filter(canSpace).slice(0, 3);
     root.innerHTML = '<div class="as-space"><div class="as-stars"></div><div class="as-stars s2"></div></div>' + asScene(from) +
-      '<svg class="as-map" id="asMap" aria-label="Map of space. Tap a world to fly there."></svg>' +
+      '<canvas class="as-cv" id="asCv"></canvas><svg class="as-map" id="asMap" aria-label="Map of space. Tap a world to fly there."></svg><div class="as-vig"></div><div class="as-read" id="asRead"></div>' +
       '<div class="as-top"><div class="as-title"><span>Space</span><b id="asTitle">Tap a world to fly there</b></div>' +
       '<div class="as-o2"><span>Oxygen <em id="asO2n"></em></span><div class="as-bar"><i id="asO2"></i></div></div></div>' +
       '<div class="as-field" id="asField"></div><div class="as-count" id="asCount"></div>' +
       '<div class="as-ctl"><button class="zbtn" id="asZin" aria-label="Zoom in">+</button><button class="zbtn" id="asZout" aria-label="Zoom out">&minus;</button><button class="zbtn txt" id="asFit" aria-label="Show every world">All</button><button class="zbtn txt" id="asMe" aria-label="Follow my ship">Me</button></div>' +
-      '<div class="as-card"><div class="as-dest" id="asDest"></div><div class="as-speed" id="asSpeed">' + SPEEDS.map(function (q, i) { return '<button data-sp="' + i + '"' + (i === 1 ? ' class="on"' : '') + '>' + q.n + '</button>'; }).join('') + '</div><button class="btn primary" id="asLand" hidden></button></div>';
+      '<div class="as-card"><div class="as-dest" id="asDest"></div><div class="as-speed" id="asSpeed">' + SPEEDS.map(function (q, i) { return '<button data-sp="' + i + '"' + (i === 1 ? ' class="on"' : '') + '>' + q.n + '</button>'; }).join('') + '</div><button class="btn primary" id="asLand" hidden></button><button class="btn" id="asBack" hidden>Fly to the nearest world</button></div>';
     document.body.appendChild(root);
     var field = root.querySelector('#asField'), W = window.innerWidth, H = window.innerHeight, space = root.querySelector('.as-space'), sceneA = root.querySelector('.as-scene'), sceneB = null, cnt = root.querySelector('#asCount'), svg = root.querySelector('#asMap');
     var me = document.createElement('div'); me.className = 'as-me'; me.innerHTML = heroSVG(S.boots) + '<i class="helm"></i><i class="flame"></i>'; field.appendChild(me);
@@ -5837,45 +5849,90 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     /* ---- the space map: fly anywhere, choose a speed, zoom in and out ---- */
     function crewSave() { return 1 - 0.08 * pets.length; }
     var ids = Object.keys(WORLDS).filter(function (id) { return worldOpen(id) && UNI_POS[id]; });
-    var N = { x: 0, y: 0, k: 0.45, kmin: 0.03, kmax: 3 }, autoZ = true, held = {}, pp = pets.map(function () { return { x: 0, y: 0 }; }), ship = { x: 0, y: 0, ang: -Math.PI / 2 }, target = null, sp = 1, follow = true, moving = false, rescue = false, hudT = 0, built = false, pk = [];
-    var elShip, elRoute, elCam, planets = [], tHud = root.querySelector('#asDest'), btnLand = root.querySelector('#asLand');
+    /* space is much bigger than the map: worlds are SS times farther apart, and the flying speeds and oxygen costs are scaled to match */
+    var SS = SPACE_SCALE, UPOS = {}; ids.forEach(function (id) { UPOS[id] = [UNI_POS[id][0] * SS, UNI_POS[id][1] * SS]; });
+    var N = { x: 0, y: 0, k: 0.45, kmin: 0.004, kmax: 3 }, autoZ = true, held = {}, pp = pets.map(function () { return { x: 0, y: 0 }; }), ship = { x: 0, y: 0, ang: -Math.PI / 2 }, target = null, sp = 1, follow = true, moving = false, rescue = false, hudT = 0, built = false, pk = [];
+    var elShip, elRoute, elCam, elRet, planets = [], tHud = root.querySelector('#asDest'), btnLand = root.querySelector('#asLand'), btnBack = root.querySelector('#asBack'), rdEl = root.querySelector('#asRead');
+    var warn = '', warnT = 0, retRot = 0, lowSaid = false, vel = { x: 0, y: 0 }, prevS = null, parts = [], sweep = 0;
+    var cv = root.querySelector('#asCv'), cx = cv.getContext('2d'), dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var layers = [0.05, 0.12, 0.26].map(function (f, li) { var a = [], R2 = rng(31 + li), i; for (i = 0; i < (li === 0 ? 90 : li === 1 ? 60 : 34); i++) a.push({ x: R2(), y: R2(), r: 0.5 + R2() * (0.8 + li * 0.7), a: 0.25 + R2() * 0.65, c: R2() < 0.2 ? '#bfe9ff' : R2() < 0.3 ? '#ffe6a8' : '#fff' }); return { f: f, s: a }; });
+    function drawCv(dt, now) {
+      cx.clearRect(0, 0, W, H);
+      var spd = Math.hypot(vel.x, vel.y) * N.k, ang = Math.atan2(vel.y, vel.x), warp = moving && sp >= 2;
+      cx.lineCap = 'round';
+      layers.forEach(function (L) {
+        var ox = N.x * L.f * 0.5, oy = N.y * L.f * 0.5, sl = Math.min(warp ? 190 : 110, spd * 0.06 * (0.4 + L.f * 3));
+        L.s.forEach(function (q) {
+          var x = (((q.x * W - ox) % W) + W) % W, y = (((q.y * H - oy) % H) + H) % H;
+          cx.globalAlpha = q.a; cx.strokeStyle = cx.fillStyle = q.c;
+          if (sl > 2.5) { cx.lineWidth = q.r * 1.4; cx.beginPath(); cx.moveTo(x, y); cx.lineTo(x + Math.cos(ang) * sl, y + Math.sin(ang) * sl); cx.stroke(); }
+          else { cx.beginPath(); cx.arc(x, y, q.r, 0, 6.2832); cx.fill(); }
+        });
+      });
+      // engine trail
+      var sx = W / 2 + (ship.x - N.x) * N.k, sy = H / 2 + (ship.y - N.y) * N.k, ca = Math.cos(ship.ang), sa = Math.sin(ship.ang), i;
+      if (moving) for (i = 0; i < 3; i++) parts.push({ x: sx - ca * 26 + (Math.random() - 0.5) * 8, y: sy - sa * 26 + (Math.random() - 0.5) * 8, vx: -ca * (60 + Math.random() * 60) + (Math.random() - 0.5) * 30, vy: -sa * (60 + Math.random() * 60) + (Math.random() - 0.5) * 30, life: 0.7, r: 3 + Math.random() * 4 });
+      cx.globalCompositeOperation = 'lighter';
+      parts = parts.filter(function (q) {
+        q.life -= dt; if (q.life <= 0) return false; q.x += q.vx * dt; q.y += q.vy * dt;
+        var a = q.life / 0.7; cx.globalAlpha = a * 0.8; cx.fillStyle = a > 0.5 ? '#ffd9a0' : a > 0.25 ? '#ff9a6a' : '#ff5a8a'; cx.beginPath(); cx.arc(q.x, q.y, q.r * (0.4 + a), 0, 6.2832); cx.fill(); return true;
+      });
+      cx.globalCompositeOperation = 'source-over';
+      // radar
+      var rr = 50, rx0 = 14 + rr, ry0 = 84 + rr, RANGE = 2600 * SS * 0.5;
+      cx.globalAlpha = 1; cx.fillStyle = 'rgba(8,6,40,.62)'; cx.beginPath(); cx.arc(rx0, ry0, rr, 0, 6.2832); cx.fill();
+      cx.strokeStyle = 'rgba(127,232,255,.75)'; cx.lineWidth = 2; cx.stroke(); cx.lineWidth = 1; cx.strokeStyle = 'rgba(127,232,255,.28)';
+      cx.beginPath(); cx.arc(rx0, ry0, rr * 0.5, 0, 6.2832); cx.stroke(); cx.beginPath(); cx.moveTo(rx0 - rr, ry0); cx.lineTo(rx0 + rr, ry0); cx.moveTo(rx0, ry0 - rr); cx.lineTo(rx0, ry0 + rr); cx.stroke();
+      sweep += dt * 1.8; var g2 = cx.createLinearGradient(rx0, ry0, rx0 + Math.cos(sweep) * rr, ry0 + Math.sin(sweep) * rr);
+      g2.addColorStop(0, 'rgba(127,232,255,0)'); g2.addColorStop(1, 'rgba(127,232,255,.55)'); cx.strokeStyle = g2; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(rx0, ry0); cx.lineTo(rx0 + Math.cos(sweep) * rr, ry0 + Math.sin(sweep) * rr); cx.stroke();
+      ids.forEach(function (id) {
+        var p = UPOS[id], dx = (p[0] - ship.x) / RANGE * rr, dy = (p[1] - ship.y) / RANGE * rr, L = Math.hypot(dx, dy), out = L > rr - 4;
+        if (out) { dx = dx / L * (rr - 4); dy = dy / L * (rr - 4); }
+        var isT = target && target.id === id;
+        cx.globalAlpha = out ? 0.45 : 1; cx.fillStyle = isT ? (Math.sin(now / 160) > 0 ? '#ffd86b' : '#fff') : WORLDS[id].pal.sea[1];
+        cx.beginPath(); cx.arc(rx0 + dx, ry0 + dy, isT ? 4.5 : 3.2, 0, 6.2832); cx.fill();
+      });
+      cx.globalAlpha = 1; cx.save(); cx.translate(rx0, ry0); cx.rotate(ship.ang + Math.PI / 2); cx.fillStyle = '#fff'; cx.beginPath(); cx.moveTo(0, -6); cx.lineTo(4.5, 5); cx.lineTo(-4.5, 5); cx.closePath(); cx.fill(); cx.restore();
+    }
     function nearOf(id) { return uRadius(id) * 1.35 + 70; }
     function nearWorld() {
       var best = null, bd = 1e9;
-      ids.forEach(function (id) { var p = UNI_POS[id], d = Math.hypot(p[0] - ship.x, p[1] - ship.y); if (d <= nearOf(id) && d < bd) { bd = d; best = id; } });
+      ids.forEach(function (id) { var p = UPOS[id], d = Math.hypot(p[0] - ship.x, p[1] - ship.y); if (d <= nearOf(id) && d < bd) { bd = d; best = id; } });
       return best;
     }
     function buildMap() {
       built = true;
       var R = rng((Date.now() & 0xffff) + 11), i, h = [], x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-      ids.forEach(function (id) { var p = UNI_POS[id]; x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); });
-      var bw = x1 - x0 + 1400, bh = y1 - y0 + 1400, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-      N.kmin = Math.max(0.02, 0.85 * Math.min(W / bw, H / bh));
+      ids.forEach(function (id) { var p = UPOS[id]; x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); });
+      var bw = x1 - x0 + 1400 * SS, bh = y1 - y0 + 1400 * SS, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      N.kmin = Math.max(0.004, 0.85 * Math.min(W / bw, H / bh));
       h.push('<defs><radialGradient id="ushade" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient></defs><g id="asCam">');
       for (i = 0; i < 360; i++) h.push('<circle cx="' + Math.round(cx - bw * 0.9 + R() * bw * 1.8) + '" cy="' + Math.round(cy - bh * 0.9 + R() * bh * 1.8) + '" r="' + (2 + R() * 5).toFixed(1) + '" fill="#fff" opacity="' + (0.2 + R() * 0.55).toFixed(2) + '"/>');
       h.push('<line id="asRoute" stroke="#ffd86b" stroke-width="3" stroke-dasharray="10 8" vector-effect="non-scaling-stroke" opacity="0"/>');
       ids.forEach(function (id) {
-        var p = UNI_POS[id], r = uRadius(id), W2 = WORLDS[id];
-        h.push('<g class="as-pl" data-w="' + id + '" transform="translate(' + p[0] + ' ' + p[1] + ')"><circle r="' + (r * 1.3).toFixed(0) + '" fill="' + W2.pal.sea[1] + '" opacity=".22"/><circle class="as-hit" r="' + (r * 1.5).toFixed(0) + '" fill="transparent"/>' +
+        var p = UPOS[id], r = uRadius(id), W2 = WORLDS[id];
+        h.push('<g class="as-pl" data-w="' + id + '" transform="translate(' + p[0] + ' ' + p[1] + ')"><circle r="' + (r * 1.3).toFixed(0) + '" fill="' + W2.pal.sea[1] + '" opacity=".22"/><circle class="as-hit" data-r="' + (r * 1.5).toFixed(0) + '" r="' + (r * 1.5).toFixed(0) + '" fill="transparent"/>' +
           '<g transform="scale(' + (r / 50).toFixed(3) + ') translate(-50 -50)">' + planetInner(id, 'open') + '</g>' +
           '<g class="as-lab" data-dy="' + (r + 14).toFixed(0) + '"><text text-anchor="middle" class="uname">' + esc(W2.name) + '</text></g></g>');
       });
       // floating oxygen bubbles and star scrap to catch on the way
-      var tries = 0, want = Math.min(60, ids.length * 2 + 8);
+      var tries = 0, want = Math.min(90, ids.length * 3 + 10);
       while (pk.length < want && tries++ < 600) {
-        var a = ids[Math.floor(R() * ids.length)], ap = UNI_POS[a], an = R() * 6.2832, dd = 220 + R() * 800, px = ap[0] + Math.cos(an) * dd, py = ap[1] + Math.sin(an) * dd;
-        if (ids.some(function (id) { var q = UNI_POS[id]; return Math.hypot(q[0] - px, q[1] - py) < uRadius(id) + 90; })) continue;
+        var a = ids[Math.floor(R() * ids.length)], ap = UPOS[a], an = R() * 6.2832, dd = (220 + R() * 800) * SS * 0.6, px = ap[0] + Math.cos(an) * dd, py = ap[1] + Math.sin(an) * dd;
+        if (ids.some(function (id) { var q = UPOS[id]; return Math.hypot(q[0] - px, q[1] - py) < uRadius(id) + 90; })) continue;
         pk.push({ x: px, y: py, kind: R() < 0.8 ? 'o2' : 'scrap', on: true });
       }
       pk.forEach(function (q, j) {
         h.push('<g class="as-pk" id="pk' + j + '">' + (q.kind === 'o2' ? '<circle r="13" fill="#7fe8ff" fill-opacity=".35" stroke="#fff" stroke-width="2.5"/><text y="5" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="12" fill="#fff">O2</text>' : '<circle r="13" fill="#c5ccd8" stroke="#fff" stroke-width="2.5"/><circle r="5" fill="#5b6478"/>') + '</g>');
       });
       pets.forEach(function (p, j) { h.push('<g class="as-petg" id="asPet' + j + '">' + petSVG(p.type, p.stage, p.name, p.body).replace('<svg ', '<svg x="-18" y="-18" width="36" height="36" ') + '</g>'); });
+      h.push('<g id="asRet" opacity="0"><circle r="1" fill="none" stroke="#ffd86b" stroke-width="3" stroke-dasharray="0.28 0.2" vector-effect="non-scaling-stroke"/><path d="M0 -1.18 v.16 M0 1.18 v-.16 M-1.18 0 h.16 M1.18 0 h-.16" stroke="#fff" stroke-width="3" vector-effect="non-scaling-stroke"/></g>');
       h.push('<g id="asShip"><g id="asShipRot"><g class="as-flame"><path d="M-6 28 L0 54 L6 28Z" fill="#ffd86b"/><path d="M-3 28 L0 44 L3 28Z" fill="#ff7eb6"/></g>' +
         heroSVG(S.boots).replace('<svg ', '<svg x="-34" y="-34" width="68" height="68" ') + '<circle cx="0" cy="-18" r="15" fill="#fff" fill-opacity=".22" stroke="#fff" stroke-opacity=".85" stroke-width="2.4"/></g></g></g>');
       svg.innerHTML = h.join('');
-      elCam = svg.querySelector('#asCam'); elShip = svg.querySelector('#asShip'); elRoute = svg.querySelector('#asRoute');
-      var o = UNI_POS[from], r0 = uRadius(from); ship.x = o[0]; ship.y = o[1] - r0 * 1.35 - 24; pp.forEach(function (q, j) { q.x = ship.x - 30 * (j + 1); q.y = ship.y + 30; }); N.x = ship.x; N.y = ship.y; N.k = Math.max(N.kmin, Math.min(N.kmax, W / 1700));
+      elCam = svg.querySelector('#asCam'); elShip = svg.querySelector('#asShip'); elRoute = svg.querySelector('#asRoute'); elRet = svg.querySelector('#asRet');
+      var o = UPOS[from], r0 = uRadius(from); ship.x = o[0]; ship.y = o[1] - r0 * 1.35 - 24; pp.forEach(function (q, j) { q.x = ship.x - 30 * (j + 1); q.y = ship.y + 30; }); N.x = ship.x; N.y = ship.y; N.k = Math.max(N.kmin, Math.min(N.kmax, W / 1700));
       applyCam();
     }
     function applyCam() {
@@ -5885,6 +5942,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var inv = (1 / N.k).toFixed(4);
       [].forEach.call(svg.querySelectorAll('.as-lab'), function (g) { g.setAttribute('transform', 'translate(0 ' + (+g.dataset.dy + 6 / N.k).toFixed(1) + ') scale(' + inv + ')'); });
       pk.forEach(function (q, j) { var e = svg.querySelector('#pk' + j); if (e) e.setAttribute('transform', 'translate(' + q.x.toFixed(0) + ' ' + q.y.toFixed(0) + ') scale(' + ((N.k < 0.12 ? 0.45 : 0.8) / N.k).toFixed(4) + ')' + (q.on ? '' : ' scale(0)')); });
+      [].forEach.call(svg.querySelectorAll('.as-hit'), function (c) { c.setAttribute('r', Math.max(+c.dataset.r, 36 / N.k).toFixed(0)); });
+      if (target && target.id) { var tp = UPOS[target.id], rr2 = uRadius(target.id) * 1.55; elRet.setAttribute('opacity', '1'); elRet.setAttribute('transform', 'translate(' + tp[0] + ' ' + tp[1] + ') scale(' + rr2.toFixed(1) + ') rotate(' + retRot.toFixed(1) + ')'); } else elRet.setAttribute('opacity', '0');
       elShip.setAttribute('transform', 'translate(' + ship.x.toFixed(1) + ' ' + ship.y.toFixed(1) + ') scale(' + (1.2 / N.k).toFixed(4) + ')');
       pp.forEach(function (q, j) { var g = svg.querySelector('#asPet' + j); if (g) g.setAttribute('transform', 'translate(' + q.x.toFixed(1) + ' ' + q.y.toFixed(1) + ') scale(' + (1.0 / N.k).toFixed(4) + ')'); });
       svg.querySelector('#asShipRot').setAttribute('transform', 'rotate(' + (ship.ang * 180 / Math.PI + 90).toFixed(1) + ')');
@@ -5894,11 +5953,17 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       autoZ = false; k = Math.max(N.kmin, Math.min(N.kmax, k)); if (px === undefined) { px = W / 2; py = H / 2; }
       var wx = N.x + (px - W / 2) / N.k, wy = N.y + (py - H / 2) / N.k; N.k = k; N.x = wx - (px - W / 2) / k; N.y = wy - (py - H / 2) / k; applyCam();
     }
-    function fitAll() { autoZ = false; var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; ids.forEach(function (id) { var p = UNI_POS[id]; x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }); follow = false; N.k = N.kmin; N.x = (x0 + x1) / 2; N.y = (y0 + y1) / 2; applyCam(); }
+    function fitAll() { autoZ = false; var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; ids.forEach(function (id) { var p = UPOS[id]; x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }); follow = false; N.k = N.kmin; N.x = (x0 + x1) / 2; N.y = (y0 + y1) / 2; applyCam(); }
+    function needFor(x, y) { return Math.ceil(Math.hypot(x - ship.x, y - ship.y) * SPEEDS[0].m * crewSave() / (O2_UNIT * SS)); }
+    function nearestWorld() { var best = null, bd = 1e9; ids.forEach(function (id) { var p = UPOS[id], d = Math.hypot(p[0] - ship.x, p[1] - ship.y); if (d < bd) { bd = d; best = id; } }); return best; }
     function setTarget(id, px, py) {
       if (rescue || ph !== 'nav') return;
+      var tx = id ? UPOS[id][0] : px, ty = id ? UPOS[id][1] : py, nd = needFor(tx, ty);
+      if (nd > Math.floor(o2) && !(id && Math.hypot(tx - ship.x, ty - ship.y) <= uRadius(id) * 1.2 + 24)) {
+        warn = (id ? WORLDS[id].name + ' is too far for your oxygen' : 'That is too far for your oxygen') + ': even at Slow speed it needs about ' + nd + ' and you have ' + Math.floor(o2) + '. Catch O2 bubbles on the way, pick a closer world, or land and refill.'; warnT = 5; hud(true); return;
+      }
       if (id) {
-        var c = UNI_POS[id], dx = c[0] - ship.x, dy = c[1] - ship.y, d = Math.hypot(dx, dy) || 1, stop = uRadius(id) * 1.2 + 24;
+        var c = UPOS[id], dx = c[0] - ship.x, dy = c[1] - ship.y, d = Math.hypot(dx, dy) || 1, stop = uRadius(id) * 1.2 + 24;
         target = d <= stop ? null : { x: c[0] - dx / d * stop, y: c[1] - dy / d * stop, id: id };
         if (!target) target = { x: ship.x, y: ship.y, id: id };
       } else target = { x: px, y: py, id: null };
@@ -5912,13 +5977,18 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     function hud(force) {
       var nw = nearWorld(), sd = SPEEDS[sp], txt, bad = false;
-      if (rescue) txt = 'Out of oxygen! Professor Bolt is towing you to ' + WORLDS[to].name + '.';
+      if (warnT > 0 && !rescue) { txt = warn; bad = true; } else if (rescue) txt = 'Out of oxygen! Professor Bolt is towing you to ' + WORLDS[to].name + '.';
       else if (target) {
-        var d = Math.hypot(target.x - ship.x, target.y - ship.y), need = Math.ceil(d * sd.m * crewSave() / O2_UNIT);
+        var d = Math.hypot(target.x - ship.x, target.y - ship.y), need = Math.ceil(d * sd.m * crewSave() / (O2_UNIT * SS));
         bad = need > Math.floor(o2);
         txt = (target.id ? 'Flying to ' + WORLDS[target.id].name : 'Flying through space') + ' &middot; needs about ' + need + ' oxygen' + (bad ? ' (you have ' + Math.floor(o2) + ')' : '');
       } else txt = nw ? 'Near ' + WORLDS[nw].name + '. Tap another world to keep going.' : 'Tap a world, or anywhere in space, to fly there.';
-      tHud.innerHTML = txt + (!target && !rescue ? ' <span class="as-keys">Arrow keys steer by hand.</span>' : ''); tHud.classList.toggle('bad', bad);
+      tHud.innerHTML = txt + (!target && !rescue && !(warnT > 0) ? ' <span class="as-keys">Arrow keys steer by hand.</span>' : ''); tHud.classList.toggle('bad', bad);
+      var low = !rescue && !nw && o2 < cap * 0.3; btnBack.hidden = !low; if (low) { var nz = nearestWorld(); btnBack.dataset.w = nz; btnBack.textContent = 'Low oxygen! Fly to ' + WORLDS[nz].name; }
+      if (low && !lowSaid) { lowSaid = true; warn = 'Low oxygen! Fly to the nearest world or catch O2 bubbles.'; warnT = 4; }
+      if (!low && o2 > cap * 0.45) lowSaid = false;
+      var tg2 = target ? Math.round(Math.hypot(target.x - ship.x, target.y - ship.y)) : 0;
+      rdEl.innerHTML = 'SPEED <b>' + (moving ? Math.round((rescue ? SPEEDS[3].v : (target && target.id ? Math.max(70 * SS / 2, sd.v * Math.max(0.3, Math.min(1, tg2 / (600 * SS / 2)))) : sd.v)) / SS) : 0) + '</b><br>' + (target ? 'DIST <b>' + Math.round(tg2 / SS) + '</b><br>' : '') + 'O2 <b>' + Math.floor(o2) + '</b>';
       if (nw && !rescue) { btnLand.hidden = false; btnLand.textContent = (nw === from && !got.moved ? 'Land back on ' : 'Land on ') + WORLDS[nw].name; btnLand.dataset.w = nw; } else btnLand.hidden = true;
     }
     function startLanding(id, tow) {
@@ -5930,8 +6000,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       root.insertBefore(sceneB, svg); space.style.opacity = 1; setPh('down');
     }
     function startRescue() {
-      var best = null, bd = 1e9; ids.forEach(function (id) { var p = UNI_POS[id], d = Math.hypot(p[0] - ship.x, p[1] - ship.y); if (d < bd) { bd = d; best = id; } });
-      rescue = true; to = best; var c = UNI_POS[best], dx = c[0] - ship.x, dy = c[1] - ship.y, d2 = Math.hypot(dx, dy) || 1, stop = uRadius(best) * 1.2 + 24;
+      var best = null, bd = 1e9; ids.forEach(function (id) { var p = UPOS[id], d = Math.hypot(p[0] - ship.x, p[1] - ship.y); if (d < bd) { bd = d; best = id; } });
+      rescue = true; to = best; var c = UPOS[best], dx = c[0] - ship.x, dy = c[1] - ship.y, d2 = Math.hypot(dx, dy) || 1, stop = uRadius(best) * 1.2 + 24;
       target = { x: c[0] - dx / d2 * stop, y: c[1] - dy / d2 * stop, id: best }; o2 = 0; follow = true; hud(true);
     }
     var pts = {}, pinch = null, pan = null;
@@ -5964,6 +6034,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     root.querySelector('#asFit').addEventListener('click', fitAll);
     root.querySelector('#asMe').addEventListener('click', function () { follow = true; });
     root.querySelector('#asSpeed').addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (b) setSpeed(+b.dataset.sp); });
+    btnBack.addEventListener('click', function () { if (btnBack.dataset.w) { warnT = 0; setTarget(btnBack.dataset.w); } });
     btnLand.addEventListener('click', function () { if (btnLand.dataset.w) startLanding(btnLand.dataset.w, false); });
     function setSpeed(i) { sp = Math.max(0, Math.min(SPEEDS.length - 1, i)); [].forEach.call(root.querySelectorAll('#asSpeed button'), function (b, j) { b.classList.toggle('on', j === sp); }); hud(true); }
     function onKey(ev) {
@@ -6003,19 +6074,19 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         moving = false;
         var hx = (held.arrowright || held.d ? 1 : 0) - (held.arrowleft || held.a ? 1 : 0), hy = (held.arrowdown || held.s ? 1 : 0) - (held.arrowup || held.w ? 1 : 0);
         if ((hx || hy) && !rescue) {
-          target = null; follow = true; var hl = Math.hypot(hx, hy), hs = Math.min(sd.v, 260) * dt;
+          target = null; follow = true; var hl = Math.hypot(hx, hy), hs = Math.min(sd.v, 260 * SS / 2) * dt;
           ship.ang = Math.atan2(hy, hx); ship.x += hx / hl * hs; ship.y += hy / hl * hs; moving = true; got.moved = true;
-          o2 = Math.max(0, o2 - hs * sd.m * crewSave() / O2_UNIT); if (o2 <= 0) startRescue(); setO2();
+          o2 = Math.max(0, o2 - hs * sd.m * crewSave() / (O2_UNIT * SS)); if (o2 <= 0) startRescue(); setO2();
         }
         if (target) {
-          var dx = target.x - ship.x, dy = target.y - ship.y, d = Math.hypot(dx, dy), spd = rescue ? 800 : sd.v;
-          if (target.id) spd = Math.max(70, spd * Math.max(0.3, Math.min(1, d / 600)));
+          var dx = target.x - ship.x, dy = target.y - ship.y, d = Math.hypot(dx, dy), spd = rescue ? SPEEDS[3].v : sd.v;
+          if (target.id) spd = Math.max(70 * SS / 2, spd * Math.max(0.3, Math.min(1, d / (600 * SS / 2))));
           var step = spd * dt;
           if (d > 1) ship.ang = Math.atan2(dy, dx);
           if (step >= d) { ship.x = target.x; ship.y = target.y; var tid = target.id; target = null; if (rescue && tid) { startLanding(tid, true); raf = requestAnimationFrame(frame); return; } hud(true); }
           else {
             moving = true; got.moved = true; ship.x += dx / d * step; ship.y += dy / d * step;
-            if (!rescue) { o2 = Math.max(0, o2 - step * sd.m * crewSave() / O2_UNIT); if (o2 <= 0) startRescue(); }
+            if (!rescue) { o2 = Math.max(0, o2 - step * sd.m * crewSave() / (O2_UNIT * SS)); if (o2 <= 0) startRescue(); }
           }
           setO2();
         }
@@ -6028,6 +6099,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         if (autoZ) { var dk = desiredK(); if (dk) N.k = Math.exp(Math.log(N.k) + (Math.log(Math.max(N.kmin, Math.min(N.kmax, dk))) - Math.log(N.k)) * Math.min(1, dt * 2.2)); }
         if (follow) { N.x += (ship.x - N.x) * Math.min(1, dt * 4); N.y += (ship.y - N.y) * Math.min(1, dt * 4); }
         svg.querySelector('.as-flame').setAttribute('opacity', moving ? 1 : 0.25);
+        if (prevS) { vel.x += ((ship.x - prevS.x) / Math.max(dt, 0.001) - vel.x) * Math.min(1, dt * 8); vel.y += ((ship.y - prevS.y) / Math.max(dt, 0.001) - vel.y) * Math.min(1, dt * 8); } prevS = { x: ship.x, y: ship.y };
+        if (!moving) { vel.x *= 0.85; vel.y *= 0.85; }
+        retRot += dt * 40; if (warnT > 0) { warnT -= dt; if (warnT <= 0) hud(true); }
+        root.classList.toggle('warp', moving && sp >= 3);
+        drawCv(dt, now);
         var lead = ship, gap = 44 / N.k, hxu = Math.cos(ship.ang), hyu = Math.sin(ship.ang);
         pp.forEach(function (q, j) { var tx = lead.x - hxu * gap + Math.sin(ship.ang) * (j % 2 ? 12 : -12) / N.k, ty = lead.y - hyu * gap - Math.cos(ship.ang) * (j % 2 ? 12 : -12) / N.k, k2 = Math.min(1, dt * (4 - j * 0.6)); q.x += (tx - q.x) * k2; q.y += (ty - q.y) * k2; lead = q; });
         applyCam();
