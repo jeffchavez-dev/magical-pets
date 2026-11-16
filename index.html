@@ -5188,7 +5188,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       '<p class="srow-note">You can <b>rest for 3 minutes</b>: the guards rest too, so no new world can be opened until the timer ends. Or you can skip the rest.</p>' +
       (S.coins >= c ? '<p class="srow-note">Pay <b>' + c + ' coins</b> to keep playing right now. (Each level costs more.)</p><button class="btn primary" data-act="revive">Pay ' + c + ' coins and continue</button>'
         : '<p class="srow-note">To keep playing you need <b>' + c + ' coins</b>, and you have ' + S.coins + '. Each level costs more.</p>') +
-      '<button class="btn primary" data-act="rest">Rest for 3 minutes</button> <button class="btn small" data-act="setfriendly" data-v="1">Switch to Friendly mode</button> <button class="btn ghost small" data-act="gostart">Start again (your Petdex is kept)</button></div>';
+      '<button class="btn primary" data-act="gorest">Rest for 3 minutes</button> <button class="btn small" data-act="setfriendly" data-v="1">Switch to Friendly mode</button> <button class="btn ghost small" data-act="gostart">Start again (your Petdex is kept)</button></div>';
   }
   function tollHTML(ge) {
     var g = ge.guard, tp = S.team.filter(function (p) { return p.type === g.toll && !S.away.some(function (a) { return a.pet === p; }); }), W2 = WORLDS[ge.spot.to];
@@ -6541,7 +6541,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var c = reviveCost(); if (S.coins < c) return;
       S.coins -= c; S.losses = 0; S.lockUntil = 0; save(); updateHud(); closeSheet(); say('You paid ' + c + ' coins and got back in the game. Be careful!', 5000);
     },
-    rest: function () { S.losses = 0; S.lockUntil = Date.now() + REST_MS; save(); closeSheet(); say('The guards are resting for 3 minutes. Explore, feed your pets and earn coins. Then try again!', 6000); },
+    gorest: function () { S.losses = 0; S.lockUntil = Date.now() + REST_MS; save(); closeSheet(); say('The guards are resting for 3 minutes. Explore, feed your pets and earn coins. Then try again!', 6000); },
     gostart: function () {
       var dex = S.dex; stopBattle(); closeSheet(); unlockLandscape();
       try { localStorage.removeItem(SAVE_KEY); } catch (x) { /* optional */ }
