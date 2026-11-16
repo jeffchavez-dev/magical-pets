@@ -868,6 +868,23 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .hv-grp.dropf { animation: hvDropF .5s cubic-bezier(.3,1.6,.5,1) .05s both; }
 @keyframes hvDropF { 0% { transform: translateY(-150px); opacity: 0; } 15% { opacity: 1; } 100% { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .hv-grp.dropf { animation: none; } }
+
+.hv-sky { position: absolute; inset: 0; pointer-events: none; }
+.hv-sky .mfx-star { position: absolute; }
+.hv-wx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.hv-p { position: absolute; left: var(--x); top: 0; width: var(--s); height: var(--s); border-radius: 50%; background: var(--c); opacity: .85; will-change: transform; }
+.hv-rain { width: 2px; height: 16px; border-radius: 1px; opacity: .6; }
+.hv-leaves, .hv-petals { border-radius: 60% 0 60% 0; width: calc(var(--s) * 1.5); height: var(--s); }
+.hv-bubbles { background: transparent; border: 2px solid var(--c); opacity: .7; }
+.hv-wind { width: 70px; height: 2px; border-radius: 1px; opacity: .35; }
+.hv-clouds { width: 160px; height: 56px; filter: blur(8px); opacity: .22; }
+.hv-glints, .hv-fireflies, .hv-void { top: var(--y); box-shadow: 0 0 10px 3px var(--c); }
+.hv-embers, .hv-spores { box-shadow: 0 0 6px 2px var(--c); }
+@keyframes hvFall { from { transform: translate(0, -10vh) rotate(0); } to { transform: translate(var(--dx), 110vh) rotate(var(--rot)); } }
+@keyframes hvRise { from { transform: translate(0, 110vh); } to { transform: translate(var(--dx), -10vh); } }
+@keyframes hvTw { 0%, 100% { opacity: .1; transform: scale(.6); } 50% { opacity: 1; transform: scale(1.3); } }
+@keyframes hvSide { from { transform: translate(-20vw, 0); } to { transform: translate(120vw, 30px); } }
+.hv-dust, .hv-chip { z-index: 3; }
 </style>
 </head>
 <body>
@@ -5498,7 +5515,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var m = worldMats(id).map(function (k) { return MAT_BY[k].col; }), A = m[0], B = m[1], C = m[2], h = houseOf(id), p = h.p.map(function (v, n) { return HV && HV.pending === n ? 0 : v; }), o = [], i;
     var gh = function (n, extra) { return (p[n] ? '' : 'ghost ') + (extra || ''); }, cl = function (n, c) { return p[n] ? c : 'transparent'; };
     var wy = FLOOR_Y - HH / 2, ridge = FLOOR_Y - HH - HR, L = Math.hypot(HW / 2 + 14, HR), th = Math.atan2(HR, HW / 2 + 14) * 180 / Math.PI;
-    o.push(hvFace(430, 400, 'translate3d(0,14px,0) rotateX(90deg)', '#7ccf6a', 'lawn'), hvFace(44, 130, 'translate3d(0,13px,165px) rotateX(90deg)', '#f0e2b6', 'lawn'));
+    var PL = (WORLDS[id] && WORLDS[id].pal) || {}, SEA = PL.sea || ['#2c86d8', '#4fb3ec'], GR = (PL.grass || [])[1] || '#7ccf6a', LF = PL.leaf || ['#2f9a55', '#35a85d'];
+    o.push(hvFace(1600, 1600, 'translate3d(0,19px,0) rotateX(90deg)', SEA[1], 'lawn'), hvFace(500, 470, 'translate3d(0,16.5px,0) rotateX(90deg)', PL.beach || '#f2dfae', 'lawn'),
+      hvFace(430, 400, 'translate3d(0,14px,0) rotateX(90deg)', GR, 'lawn'), hvFace(44, 130, 'translate3d(0,13px,165px) rotateX(90deg)', PL.path || '#f0e2b6', 'lawn'));
+    [[-185, -150], [190, -160], [-100, -185], [70, -188], [-200, -10], [205, -20], [-190, 120], [200, 130]].forEach(function (q, n) {
+      var big = n % 2 ? 1 : 0.85;
+      o.push(hvBox(q[0], -4, q[1], 10, 36, 10, '#8a5a2b'), hvBox(q[0], -34 * big - 6, q[1], 44 * big, 40 * big, 44 * big, LF[n % 2]), hvBox(q[0], -62 * big - 6, q[1], 26 * big, 26 * big, 26 * big, LF[(n + 1) % 2]));
+    });
     var nextP = p.indexOf(0), pick = HV && HV.tab === 'build' && !HV.busy && !HV.visit;
     var G = function (n, html) { return '<div class="hv-grp' + (HV && HV.anim && HV.anim.i === n ? ' drop' : '') + (pick && !p[n] ? ' pick' : '') + (pick && n === nextP ? ' next' : '') + '" data-piece="' + n + '">' + html + '</div>'; };
     o.push(G(0, hvBox(0, 7, 0, HW + 16, 14, HD + 16, cl(0, A), gh(0))));
@@ -5587,6 +5610,31 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var w = $('#hvworld'); if (!w || !HV) return;
     w.style.setProperty('--a', HV.a + 'deg'); w.style.setProperty('--t', (HV.inside ? -58 : -22) + 'deg'); w.style.setProperty('--z', HV.zoom * (HV.inside ? 1.12 : 1));
   }
+
+  /* the 3D view takes the look of the world the house stands in: its sea and sky colours, how dark it is, and its weather */
+  var HV_FALL = { rain: 1, snow: 1, blizzard: 1, leaves: 1, petals: 1, ash: 1 }, HV_RISE = { embers: 1, bubbles: 1, spores: 1, ghosts: 1 }, HV_TWINKLE = { glints: 1, fireflies: 1, void: 1 }, HV_SIDE = { dust: 1, wind: 1, clouds: 1 };
+  function hvTheme(id) {
+    var view = $('#hvview'); if (!view) return;
+    var W = WORLDS[id] || {}, pl = W.pal || {}, sea = pl.sea || ['#2c86d8', '#4fb3ec'], gl = W.gloom || 0, i, h = [];
+    view.style.background = 'linear-gradient(' + sea[0] + ', ' + sea[1] + ' 64%)';
+    var sky = document.createElement('div'); sky.className = 'hv-sky';
+    if (gl > 0) sky.style.background = 'rgba(6,3,28,' + Math.min(0.55, gl * 0.8).toFixed(2) + ')';
+    if (gl >= 0.3) for (i = 0; i < 40; i++) h.push('<i class="mfx-star" style="left:' + (Math.random() * 100).toFixed(1) + '%;top:' + (Math.random() * 55).toFixed(1) + '%;animation-delay:-' + (Math.random() * 2).toFixed(2) + 's"></i>');
+    sky.innerHTML = h.join(''); view.insertBefore(sky, view.firstChild);
+    if (REDUCE) return;
+    var layer = document.createElement('div'); layer.className = 'hv-wx'; view.appendChild(layer);
+    (WXD[themeFor(id)] || []).filter(function (L) { return L[0] !== 'thunder' && L[0] !== 'meteors'; }).slice(0, 2).forEach(function (L) {
+      var k = L[0], cols = L[2] || ['#fff'], n = Math.min(26, Math.max(8, Math.round(L[1] * 0.4))), j, pEl, an, du, sz, dx;
+      for (j = 0; j < n; j++) {
+        pEl = document.createElement('i'); pEl.className = 'hv-p hv-' + k; sz = 3 + Math.random() * 5;
+        an = HV_FALL[k] ? 'hvFall' : HV_RISE[k] ? 'hvRise' : HV_SIDE[k] ? 'hvSide' : 'hvTw';
+        du = k === 'rain' ? 0.8 + Math.random() * 0.5 : k === 'blizzard' ? 2 + Math.random() * 1.5 : k === 'wind' ? 1.2 + Math.random() : k === 'clouds' ? 20 + Math.random() * 14 : HV_TWINKLE[k] ? 1.6 + Math.random() * 2.2 : 6 + Math.random() * 6;
+        dx = k === 'rain' ? -40 : k === 'blizzard' ? -260 : (Math.random() - 0.5) * 120;
+        pEl.style.cssText = '--x:' + (Math.random() * 100).toFixed(1) + '%;--y:' + (Math.random() * 90).toFixed(1) + '%;--c:' + cols[j % cols.length] + ';--s:' + sz.toFixed(1) + 'px;--dx:' + Math.round(dx) + 'px;--rot:' + Math.round(Math.random() * 540) + 'deg;animation:' + an + ' ' + du.toFixed(2) + 's linear -' + (Math.random() * du).toFixed(2) + 's infinite';
+        layer.appendChild(pEl);
+      }
+    });
+  }
   function hvOpen() {
     if (HV || !S.world) return;
     var id = S.cur; houseOf(id);
@@ -5597,14 +5645,15 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       '<div class="hv-ctl"><button data-hv="rot" data-v="-1" aria-label="Turn left">&#9664;</button><button data-hv="rot" data-v="1" aria-label="Turn right">&#9654;</button><button data-hv="zoom" data-v="-1" aria-label="Zoom out">&minus;</button><button data-hv="zoom" data-v="1" aria-label="Zoom in">+</button><button data-hv="inside" id="hvin">Look inside</button></div>' +
       '<div class="hv-tray" id="hvtray"></div>';
     document.body.appendChild(host);
+    hvTheme(id);
     var view = $('#hvview'), down = null;
-    HV.zoom = Math.max(0.4, Math.min(HV.zoom, view.clientHeight / 400));
     view.addEventListener('pointerdown', function (e) { down = { x: e.clientX, a: HV.a }; HV.moved = 0; });
     view.addEventListener('pointermove', function (e) { if (!down || !HV) return; var dx = e.clientX - down.x; if (Math.abs(dx) > 5 && !HV.moved) { HV.moved = 1; try { view.setPointerCapture(e.pointerId); } catch (x) { /* fine */ } } if (HV.moved) { HV.a = down.a + dx * 0.5; hvCamera(); } });
     view.addEventListener('pointerup', function () { down = null; });
     host.addEventListener('click', hvClick);
     HV.timer = setInterval(hvWander, 2600);
     hvPaint();
+    setTimeout(function () { if (HV && view.clientHeight > 80) { HV.zoom = Math.max(0.4, Math.min(HV.zoom, view.clientHeight / 400)); hvCamera(); } }, 60);
   }
   function hvClose() {
     if (!HV) return;
