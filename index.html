@@ -777,7 +777,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .hv-top { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(36,20,71,.88); font-size: 17px; }
 .hv-x { border: 0; background: rgba(255,255,255,.18); color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 26px; cursor: pointer; }
 .hv-view { flex: 1; min-height: 0; position: relative; perspective: 1300px; overflow: hidden; touch-action: none; cursor: grab; }
-.hv-world { position: absolute; left: 50%; top: 60%; width: 0; height: 0; transform-style: preserve-3d; transform: scale(var(--z, 1)) rotateX(var(--t, -22deg)) rotateY(var(--a, 32deg)); }
+.hv-world { position: absolute; left: 50%; top: 60%; width: 0; height: 0; transform-style: preserve-3d; transform: scale(var(--z, 1)) rotateX(var(--t, -22deg)) rotateY(var(--a, 32deg)) translate3d(calc(var(--fx, 0px) * -1), calc(var(--fy, 0px) * -1), calc(var(--fz, 0px) * -1)); }
+.hv-world.ease { transition: transform .55s ease; }
 .hf { position: absolute; left: 0; top: 0; box-sizing: border-box; outline: 1px solid rgba(0,0,0,.1); pointer-events: none; }
 .hv-furn .hf { pointer-events: auto; }
 .hf.s1 { background-image: linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.2)); }
@@ -824,6 +825,26 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .mfx.quick .mfx-tap { animation: mfxFade .6s ease-out 2.6s both; }
 
 /* ---------- building in the 3D scene ---------- */
+.hv.focused .hv-builder, .hv.focused .hv-pet { opacity: 0; transition: opacity .3s; }
+.hv-bp { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.hv-grp.ptap .hf { pointer-events: auto; cursor: pointer; }
+.hv-grp.psel .hf, .hv-bp.psel .hf { outline: 3px solid #ffd86b; animation: hvSel .6s ease-in-out infinite alternate; }
+@keyframes hvSel { from { filter: brightness(1); } to { filter: brightness(1.4); } }
+@media (prefers-reduced-motion: reduce) { .hv-grp.psel .hf, .hv-bp.psel .hf { animation: none; } }
+.hv-mode { display: flex; gap: 6px; margin-bottom: 6px; }
+.hv-mode button { flex: 1; border: 2px solid transparent; border-radius: 10px; padding: 6px; font-weight: 800; background: rgba(255,255,255,.12); color: #fff; cursor: pointer; }
+.hv-mode button.on { border-color: #ffd86b; background: rgba(255,216,107,.22); }
+.hv-sws { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; align-items: center; }
+.hv-sws > b { font-size: 12px; opacity: .85; margin-right: 2px; }
+.sw { width: 30px; height: 30px; border-radius: 50%; border: 3px solid rgba(255,255,255,.5); cursor: pointer; padding: 0; position: relative; box-sizing: border-box; overflow: hidden; }
+.sw.on { border-color: #ffd86b; transform: scale(1.15); }
+.sw.custom { background: conic-gradient(#f66, #fd4, #6d6, #4cf, #a6f, #f66); display: inline-block; }
+.sw.custom input { position: absolute; inset: -6px; width: 44px; height: 44px; opacity: 0; cursor: pointer; }
+.hv-card.sm { min-width: 74px; padding: 5px 6px; font-size: 12px; }
+.dprev { display: block; width: 46px; height: 32px; border-radius: 6px; border: 2px solid rgba(255,255,255,.7); }
+.pdot { display: block; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; }
+.hv-parts { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; }
+.hv-parts button { border: 0; border-radius: 10px; padding: 5px 12px; font-weight: 800; background: rgba(255,255,255,.2); color: #fff; cursor: pointer; }
 .hv-grp { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
 .hv-grp.drop { animation: hvDrop .75s cubic-bezier(.3,1.5,.5,1) .45s both; }
 @keyframes hvDrop { 0% { transform: translateY(-300px) rotateZ(-6deg); opacity: 0; } 12% { opacity: 1; } 100% { transform: none; opacity: 1; } }
@@ -1763,7 +1784,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.lockUntil = +d.lockUntil > Date.now() ? +d.lockUntil : 0;
     S.mats = {}; Object.keys(d.mats || {}).forEach(function (k) { if (MAT_BY[k]) S.mats[k] = Math.max(0, Math.min(MAT_CAP, d.mats[k] | 0)); });
     S.houses = {}; Object.keys(d.houses || {}).forEach(function (k) { var h = d.houses[k]; if (WORLDS[k] && h && Array.isArray(h.p)) S.houses[k] = { p: h.p.slice(0, HOUSE_PIECES.length).map(function (v) { return v ? 1 : 0; }), x: +h.x || 0, y: +h.y || 0,
-      f: (Array.isArray(h.f) ? h.f : []).filter(function (q) { return q && FURN[q.k] && q.c >= 0 && q.c < COLS * ROWS; }).map(function (q) { return { k: q.k, c: q.c | 0 }; }),
+      f: (Array.isArray(h.f) ? h.f : []).filter(function (q) { return q && FURN[q.k] && q.c >= 0 && q.c < COLS * ROWS; }).map(function (q) { return { k: q.k, c: q.c | 0, pt: sanPaintMap(q.pt, 12) }; }), pa: sanPaintMap(h.pa, HOUSE_PIECES.length),
       res: (Array.isArray(h.res) ? h.res : []).filter(function (q) { return q && TYPES[q.type]; }).slice(0, 6).map(function (q) { if (!q.body) q.body = bodyFor(q.type, q.id); if (!q.prog) migrateProg(q); return q; }), gt: +h.gt || 0 }; });
     S.losses = d.losses | 0; S.toll = d.toll || {}; S.weak = d.weak || {}; S.homeJ = Array.isArray(d.homeJ) ? d.homeJ.filter(function (n) { return typeof n === 'number'; }) : [];
     S.uni = d.uni || {}; S.jump = d.jump == null ? null : d.jump; S.away = Array.isArray(d.away) ? d.away.filter(function (a) { return a && a.pet && TYPES[a.pet.type] && TYPES[a.t]; }) : [];
@@ -6497,9 +6518,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var ROOF_POS = { cottage: [[70, -150, 40], [55, -157, -10]], dome: [[60, -130, 50], [30, -162, 20]], adobe: [[30, -128, 40], [20, -128, 10]], spire: [[70, -128, 40], [20, -174, 10]] };
   function houseForm(id) { return HSTYLE[themeFor(id)] || HSTYLE[id] || HFORMS[strHash(id) % 4]; }
   function pieceName(id, i) { return i === 5 || i === 6 ? HFORM_NAMES[houseForm(id)][i - 5] : HOUSE_PIECES[i].name; }
-  function houseOf(id) { var h = S.houses[id] || (S.houses[id] = { p: HOUSE_PIECES.map(function () { return 0; }), x: 0, y: 0 }); if (!h.f) h.f = []; if (!h.res) h.res = []; return h; }
+  function houseOf(id) { var h = S.houses[id] || (S.houses[id] = { p: HOUSE_PIECES.map(function () { return 0; }), x: 0, y: 0 }); if (!h.pa) h.pa = {}; if (!h.f) h.f = []; if (!h.res) h.res = []; return h; }
   function housesSave() {
-    var o = {}; Object.keys(S.houses || {}).forEach(function (k) { var h = S.houses[k]; o[k] = { p: h.p, x: h.x, y: h.y, f: h.f || [], res: (h.res || []).map(savePet), gt: h.gt || 0 }; });
+    var o = {}; Object.keys(S.houses || {}).forEach(function (k) { var h = S.houses[k]; o[k] = { p: h.p, x: h.x, y: h.y, pa: h.pa || {}, f: h.f || [], res: (h.res || []).map(savePet), gt: h.gt || 0 }; });
     return o;
   }
   function houseCost(id, i) {
@@ -6538,8 +6559,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var order = ST === 'cottage' ? [0, 1, 2, 3, 4, 6, 5, 7] : [0, 1, 2, 3, 4, 5, 6, 7];
     h.push('<ellipse cx="110" cy="158" rx="100" ry="10" fill="#000" opacity=".18"/>');
     if (houseBuilt(id) < HOUSE_PIECES.length) h.push('<ellipse cx="110" cy="152" rx="104" ry="17" fill="#c9a36b" opacity=".6" stroke="#6b4a1f" stroke-opacity=".5" stroke-width="2" stroke-dasharray="6 4"/>');
+    var paO = houseOf(id).pa || {};
     order.forEach(function (i) {
-      h.push(p[i] ? parts[i](function (c) { return 'fill="' + c + '" stroke="rgba(0,0,0,.35)" stroke-width="2"'; })
+      h.push(p[i] ? parts[i](function (c) { return 'fill="' + (paO[i] && paO[i].c ? paO[i].c : c) + '" stroke="rgba(0,0,0,.35)" stroke-width="2"'; })
         : parts[i](function () { return 'fill="none" stroke="#3b2a7a" stroke-opacity=".55" stroke-width="4"'; }) + parts[i](function () { return 'fill="none" stroke="#fff" stroke-opacity=".95" stroke-width="2" stroke-dasharray="6 5"'; }));
     });
     return '<svg viewBox="0 0 220 175" class="house-svg' + (big ? ' big' : '') + '" role="img" aria-label="House, ' + housePct(id) + ' percent built">' + h.join('') + '</svg>';
@@ -6603,8 +6625,36 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function canPay(c) { return Object.keys(c).every(function (m) { return (S.mats[m] || 0) >= c[m]; }); }
   function furnPos(c) { return { x: (c % COLS - (COLS - 1) / 2) * CELL, z: (Math.floor(c / COLS) - (ROWS - 1) / 2) * CELL }; }
+  /* ----- painting: a colour for any part of the house or of a piece of furniture, plus an optional design drawn over it ----- */
+  var DESIGNS = { stripes: 'Stripes', dots: 'Dots', checks: 'Checks', bricks: 'Bricks', diag: 'Slants', hearts: 'Hearts', stars: 'Stars', waves: 'Waves', flowers: 'Flowers' };
+  var PAINT_COLS = ['#ff5c7a', '#ff9b3d', '#ffd34e', '#9be37f', '#2fbf71', '#4fd1c5', '#4fb3ec', '#4a6cf0', '#9b6bf0', '#e879c9', '#ffffff', '#c9c9d6', '#7a5a3a', '#2a2447'];
+  function designBG(key, e, shade) {
+    var img, size = 'auto', svg = function (inner, n) { return "url('data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + n + '" height="' + n + '" viewBox="0 0 ' + n + ' ' + n + '">' + inner + '</svg>') + "')"; };
+    if (key === 'stripes') img = 'repeating-linear-gradient(90deg,' + e + ' 0 7px,transparent 7px 14px)';
+    else if (key === 'dots') { img = 'radial-gradient(' + e + ' 30%,transparent 33%)'; size = '14px 14px'; }
+    else if (key === 'checks') { img = 'conic-gradient(' + e + ' 25%,transparent 0 50%,' + e + ' 0 75%,transparent 0)'; size = '20px 20px'; }
+    else if (key === 'bricks') { img = 'linear-gradient(' + e + ' 2px,transparent 2px),linear-gradient(90deg,' + e + ' 2px,transparent 2px)'; size = '24px 12px'; }
+    else if (key === 'diag') img = 'repeating-linear-gradient(45deg,' + e + ' 0 5px,transparent 5px 12px)';
+    else if (key === 'hearts') { img = svg('<path d="M12 20 C2 12 3 5 8 5 C10 5 11.500 6.500 12 8 C12.500 6.500 14 5 16 5 C21 5 22 12 12 20Z" fill="' + e + '"/>', 24); size = '24px 24px'; }
+    else if (key === 'stars') { img = svg('<path d="M12 3 L14.500 9 L21 9.500 L16 13.800 L17.600 20.500 L12 17 L6.400 20.500 L8 13.800 L3 9.500 L9.500 9Z" fill="' + e + '"/>', 24); size = '24px 24px'; }
+    else if (key === 'waves') { img = svg('<path d="M0 8 Q6 0 12 8 T24 8 M0 20 Q6 12 12 20 T24 20" stroke="' + e + '" stroke-width="3" fill="none"/>', 24); size = '24px 24px'; }
+    else { img = svg('<circle cx="12" cy="12" r="3" fill="#ffd34e"/><circle cx="12" cy="5.500" r="3.500" fill="' + e + '"/><circle cx="12" cy="18.500" r="3.500" fill="' + e + '"/><circle cx="5.500" cy="12" r="3.500" fill="' + e + '"/><circle cx="18.500" cy="12" r="3.500" fill="' + e + '"/>', 24); size = '26px 26px'; }
+    return 'background-image:' + img + (shade ? ',' + shade : '') + ';background-size:' + size + (shade ? ',auto' : '');
+  }
+  function paintCol(o, def) { return o && (o.c || o.d) ? (o.c || def) + (o.d && DESIGNS[o.d] ? '|' + o.d + '|' + (o.e || '#ffffff') : '') : def; }
+  function sanPaint(o) {
+    var r = null;
+    if (o && typeof o === 'object') { var c = /^#[0-9a-f]{6}$/i.test(o.c || '') ? o.c : '', d = DESIGNS[o.d] ? o.d : '', e = /^#[0-9a-f]{6}$/i.test(o.e || '') ? o.e : '#ffffff'; if (c || d) r = { c: c, d: d, e: e }; }
+    return r;
+  }
+  function sanPaintMap(m, max) {
+    var r = {}; if (m && typeof m === 'object') Object.keys(m).forEach(function (k) { var i = +k, v; if (i >= 0 && i < max && i % 1 === 0 && (v = sanPaint(m[k]))) r[i] = v; });
+    return r;
+  }
   function hvFace(w, h, tf, col, cls, clip) {
-    return '<div class="hf ' + cls + '" style="width:' + w + 'px;height:' + h + 'px;margin:' + (-h / 2) + 'px 0 0 ' + (-w / 2) + 'px;transform:' + tf + ';background-color:' + col + (clip ? ';clip-path:' + clip : '') + '"></div>';
+    var pr = String(col).split('|'), st = 'background-color:' + pr[0];
+    if (pr[1] && DESIGNS[pr[1]]) { var sm = /\bs([123])\b/.exec(cls || ''), sh = sm ? ['', 'linear-gradient(rgba(0,0,0,.2),rgba(0,0,0,.2))', 'linear-gradient(rgba(0,0,0,.3),rgba(0,0,0,.3))', 'linear-gradient(rgba(255,255,255,.14),rgba(255,255,255,.14))'][+sm[1]] : ''; st += ';' + designBG(pr[1], pr[2] || '#ffffff', sh); }
+    return '<div class="hf ' + cls + '" style="width:' + w + 'px;height:' + h + 'px;margin:' + (-h / 2) + 'px 0 0 ' + (-w / 2) + 'px;transform:' + tf + ';' + st + (clip ? ';clip-path:' + clip : '') + '"></div>';
   }
   function hvBox(cx, cy, cz, w, h, d, col, cls) {
     cls = cls || '';
@@ -6615,7 +6665,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function hvHouse(id) {
     var m = worldMats(id).map(function (k) { return MAT_BY[k].col; }), A = m[0], B = m[1], C = m[2], h = houseOf(id), p = h.p.map(function (v, n) { return HV && HV.pending === n ? 0 : v; }), o = [], i;
-    var gh = function (n, extra) { return (p[n] ? '' : 'ghost ') + (extra || ''); }, cl = function (n, c) { return p[n] ? c : 'transparent'; };
+    var gh = function (n, extra) { return (p[n] ? '' : 'ghost ') + (extra || ''); }, pa = h.pa || {}, cl = function (n, c) { return p[n] ? paintCol(pa[n], c) : 'transparent'; };
     var ST = houseForm(id), wy = FLOOR_Y - HH / 2, ridge = FLOOR_Y - HH - HR, L = Math.hypot(HW / 2 + 14, HR), th = Math.atan2(HR, HW / 2 + 14) * 180 / Math.PI;
     var PL = (WORLDS[id] && WORLDS[id].pal) || {}, SEA = PL.sea || ['#2c86d8', '#4fb3ec'], GR = (PL.grass || [])[1] || '#7ccf6a', LF = PL.leaf || ['#2f9a55', '#35a85d'];
     o.push(hvFace(1600, 1600, 'translate3d(0,19px,0) rotateX(90deg)', SEA[1], 'lawn'), hvFace(500, 470, 'translate3d(0,16.5px,0) rotateX(90deg)', PL.beach || '#f2dfae', 'lawn'),
@@ -6624,8 +6674,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var big = n % 2 ? 1 : 0.85;
       o.push(hvBox(q[0], -4, q[1], 10, 36, 10, '#8a5a2b'), hvBox(q[0], -34 * big - 6, q[1], 44 * big, 40 * big, 44 * big, LF[n % 2]), hvBox(q[0], -62 * big - 6, q[1], 26 * big, 26 * big, 26 * big, LF[(n + 1) % 2]));
     });
-    var nextP = p.indexOf(0), pick = HV && HV.tab === 'build' && !HV.busy && !HV.visit;
-    var G = function (n, html) { return '<div class="hv-grp' + (HV && HV.anim && HV.anim.i === n ? ' drop' : '') + (pick && !p[n] ? ' pick' : '') + (pick && n === nextP ? ' next' : '') + '" data-piece="' + n + '">' + html + '</div>'; };
+    var nextP = p.indexOf(0), pick = HV && HV.tab === 'build' && !HV.busy && !HV.visit, pnt = !!(HV && HV.tab === 'paint' && HV.paint.mode === 'house');
+    var G = function (n, html) { return '<div class="hv-grp' + (HV && HV.anim && HV.anim.i === n ? ' drop' : '') + (pick && !p[n] ? ' pick' : '') + (pick && n === nextP ? ' next' : '') + (pnt && p[n] ? ' ptap' : '') + (pnt && HV.paint.pc === n ? ' psel' : '') + '" data-piece="' + n + '">' + html + '</div>'; };
     o.push(G(0, hvBox(0, 7, 0, HW + 16, 14, HD + 16, cl(0, A), gh(0))));
     o.push(G(1, hvBox(0, -3, 0, HW, 6, HD, cl(1, B), gh(1))));
     /* walls: back, left, right, and a front wall with a door gap */
@@ -6658,7 +6708,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     o.push(G(6, chimH), G(5, roofH));
     var fl = [[-150, 120, C], [-165, 60, B], [150, 110, B], [168, 50, C], [-130, 170, C], [130, 175, B], [-100, -150, C], [100, -150, B], [-170, -60, B], [170, -70, C]], fh = [];
-    fl.forEach(function (q) { fh.push(hvBox(q[0], 10, q[1], 3, 12, 3, cl(7, '#3f9d4a'), gh(7)), hvBox(q[0], 2, q[1], 12, 8, 12, cl(7, q[2]), gh(7))); });
+    fl.forEach(function (q) { fh.push(hvBox(q[0], 10, q[1], 3, 12, 3, p[7] ? '#3f9d4a' : 'transparent', gh(7)), hvBox(q[0], 2, q[1], 12, 8, 12, cl(7, q[2]), gh(7))); });
     o.push(G(7, fh.join('')));
     /* the builder (you) stands on the lawn and hammers while a piece goes up */
     o.push('<div class="hv-pet hv-builder' + (HV && HV.anim ? ' building' : '') + '" style="transform:' + hvBuilderAt(!HV ? BUILD_BASE : HV.inside ? (HV.ipos || INSIDE_BASE) : (HV.bpos || BUILD_BASE)) + '"><div class="hv-bill"><div class="hv-hero">' + heroSVG(S.boots) + '</div><i class="hv-hammer"></i></div></div>');
@@ -6668,7 +6718,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       h.f.concat(HV && HV.removing ? [HV.removing] : []).forEach(function (q) {
         if (HV && HV.pendF === q.c) return;
         var ps = furnPos(q.c), cols = { A: A, B: B, C: C }, bx = FURN[q.k].bx(cols);
-        o.push('<div class="hv-furn" data-c="' + q.c + '" style="transform:translate3d(' + ps.x + 'px,0,' + ps.z + 'px)"><div class="hv-grp' + (HV && HV.anim && HV.anim.f === q.c ? ' dropf' : '') + '">' + bx.map(function (b) { return hvBox(b[0], FLOOR_Y - b[1] - b[4] / 2, b[2], b[3], b[4], b[5], b[6]); }).join('') + '</div></div>');
+        var fsel = HV && HV.tab === 'paint' && HV.paint.mode === 'furn' && HV.paint.fc === q.c;
+        o.push('<div class="hv-furn" data-c="' + q.c + '" style="transform:translate3d(' + ps.x + 'px,0,' + ps.z + 'px)"><div class="hv-grp' + (HV && HV.anim && HV.anim.f === q.c ? ' dropf' : '') + '">' + bx.map(function (b, bi) { return '<div class="hv-bp' + (fsel && HV.paint.part === bi ? ' psel' : '') + '" data-part="' + bi + '">' + hvBox(b[0], FLOOR_Y - b[1] - b[4] / 2, b[2], b[3], b[4], b[5], paintCol(q.pt && q.pt[bi], b[6])) + '</div>'; }).join('') + '</div></div>');
       });
       h.res.forEach(function (pt, n) {
         var q = HV && HV.pos[n] ? HV.pos[n] : (HV.pos[n] = { x: (n - 1) * 50, z: 30 });
@@ -6696,11 +6747,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function hvTray() {
     var id = HV.id, h = houseOf(id), done = houseDone(id), t = HV.tab, o = [];
-    var tabs = '<div class="hv-tabs">' + (!done ? '<button data-hv="tab" data-v="build" class="' + (t === 'build' ? 'on' : '') + '">Build</button>' : '') + '<button data-hv="tab" data-v="look" class="' + (t === 'look' ? 'on' : '') + '">Look</button><button data-hv="tab" data-v="furn" class="' + (t === 'furn' ? 'on' : '') + '">Furniture</button><button data-hv="tab" data-v="pets" class="' + (t === 'pets' ? 'on' : '') + '">Pets</button></div>';
+    var tabs = '<div class="hv-tabs">' + (!done ? '<button data-hv="tab" data-v="build" class="' + (t === 'build' ? 'on' : '') + '">Build</button>' : '') + '<button data-hv="tab" data-v="look" class="' + (t === 'look' ? 'on' : '') + '">Look</button><button data-hv="tab" data-v="furn" class="' + (t === 'furn' ? 'on' : '') + '">Furniture</button><button data-hv="tab" data-v="paint" class="' + (t === 'paint' ? 'on' : '') + '">Paint</button><button data-hv="tab" data-v="pets" class="' + (t === 'pets' ? 'on' : '') + '">Pets</button></div>';
     if (t === 'build' && !done) {
       o.push(hvBuildTray(id));
     } else if (t === 'look') {
       o.push('<p class="hv-note">Drag to turn your house. Tap <b>Look inside</b> to see the rooms. House <b>' + housePct(id) + '%</b> built' + (done ? ' &ndash; finished!' : '. Finish it to add furniture and let pets move in.') + '</p>');
+    } else if (t === 'paint') {
+      o.push(hvPaintTray());
     } else if (!done) {
       o.push('<p class="hv-note">Build all 8 pieces of your house first. Then you can ' + (t === 'furn' ? 'furnish it.' : 'let pets move in.') + '</p>');
     } else if (t === 'furn') {
@@ -6719,17 +6772,84 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     return tabs + o.join('');
   }
-  function hvPaint() {
+  function hvPaintTray() {
+    var id = HV.id, h = houseOf(id), P = HV.paint, o = [], i, sw = function (cols, what, cur) {
+      return cols.map(function (c) { return '<button class="sw' + (cur === c ? ' on' : '') + '" style="background:' + c + '" data-hv="' + what + '" data-v="' + c + '" aria-label="Color ' + c + '"></button>'; }).join('') + '<label class="sw custom" aria-label="Pick any color"><input type="color" data-hv="pcustom" data-w="' + (what === 'pcol' ? 'col' : 'dcol') + '" value="' + (what === 'pcol' ? P.col : P.dcol) + '"></label>';
+    };
+    o.push('<div class="hv-mode"><button class="' + (P.mode === 'house' ? 'on' : '') + '" data-hv="pmode" data-v="house">House</button><button class="' + (P.mode === 'furn' ? 'on' : '') + '" data-hv="pmode" data-v="furn">Furniture</button></div>');
+    if (P.mode === 'house') {
+      o.push('<p class="hv-note">Tap a part of your house to paint it with your brush. Pick colors and designs below.</p><div class="hv-items">' + HOUSE_PIECES.map(function (pc, n) {
+        var pa = (h.pa || {})[n], built = h.p[n];
+        return '<button class="hv-card sm' + (P.pc === n ? ' on' : '') + (built ? '' : ' dim') + '" data-hv="ppiece" data-i="' + n + '"' + (built ? '' : ' disabled') + '><i class="pdot" style="background:' + (pa && pa.c ? pa.c : '#fff') + '"></i><b>' + pieceName(id, n) + '</b></button>';
+      }).join('') + '</div>');
+    } else if (!h.f.length) {
+      o.push('<p class="hv-note">Place some furniture first (Furniture tab). Then come back here to paint it.</p>');
+    } else {
+      o.push('<p class="hv-note">' + (P.fc == null ? 'Tap a piece of furniture to zoom in and design it.' : 'Zoomed in! Tap each part of it to paint it. Drag to turn it around.') + '</p><div class="hv-items">' + h.f.map(function (q) {
+        return '<button class="hv-card sm' + (P.fc === q.c ? ' on' : '') + '" data-hv="pfurn" data-c="' + q.c + '"><b>' + FURN[q.k].name + '</b></button>';
+      }).join('') + '</div>');
+      if (P.fc != null) {
+        var fq = h.f.filter(function (q) { return q.c === P.fc; })[0], np = fq ? FURN[fq.k].bx({ A: '#000', B: '#000', C: '#000' }).length : 1;
+        o.push('<div class="hv-parts"><span>Part <b>' + (P.part + 1) + ' of ' + np + '</b></span><button data-hv="ppart" data-v="-1" aria-label="Previous part">&#9664;</button><button data-hv="ppart" data-v="1" aria-label="Next part">&#9654;</button><button data-hv="pfill">Paint all parts</button><button data-hv="preset">Reset all</button><button data-hv="pback">Back to room</button></div>');
+      }
+    }
+    o.push('<div class="hv-sws"><b>Color</b>' + sw(PAINT_COLS, 'pcol', P.col) + '</div>');
+    o.push('<div class="hv-items"><button class="hv-card sm' + (P.dsn === '' ? ' on' : '') + '" data-hv="pdsn" data-v="none"><i class="dprev" style="background:' + P.col + '"></i><b>Plain</b></button>' + Object.keys(DESIGNS).map(function (k) {
+      return '<button class="hv-card sm' + (P.dsn === k ? ' on' : '') + '" data-hv="pdsn" data-v="' + k + '"><i class="dprev" style="background-color:' + P.col + ';' + designBG(k, P.dcol, '') + '"></i><b>' + DESIGNS[k] + '</b></button>';
+    }).join('') + '</div>');
+    if (P.dsn) o.push('<div class="hv-sws"><b>Design color</b>' + sw(PAINT_COLS, 'pdcol', P.dcol) + '</div>');
+    if (P.mode === 'house' && P.pc != null) o.push('<div class="hv-parts"><span>Painting: <b>' + pieceName(id, P.pc) + '</b></span><button data-hv="preset">Reset this part</button></div>');
+    return o.join('');
+  }
+  /* the brush is the chosen color and design; tapping a part (or choosing a swatch while a part is picked) paints it */
+  function hvBrush(o) { var P = HV.paint; o.c = P.col; if (P.dsn) { o.d = P.dsn; o.e = P.dcol; } else { delete o.d; delete o.e; } }
+  function hvTarget() {
+    var P = HV.paint, h = houseOf(HV.id);
+    if (P.mode === 'house') { if (P.pc == null || !h.p[P.pc]) return null; return [h.pa, P.pc]; }
+    var q = P.fc == null ? null : h.f.filter(function (x) { return x.c === P.fc; })[0]; if (!q) return null;
+    if (!q.pt) q.pt = {}; return [q.pt, P.part];
+  }
+  function hvApplySel(all) {
+    var t = hvTarget(), P = HV.paint; if (!t) return;
+    if (all && P.mode === 'furn') { var q = houseOf(HV.id).f.filter(function (x) { return x.c === P.fc; })[0], n = FURN[q.k].bx({ A: '#000', B: '#000', C: '#000' }).length, i; for (i = 0; i < n; i++) hvBrush(t[0][i] || (t[0][i] = {})); }
+    else hvBrush(t[0][t[1]] || (t[0][t[1]] = {}));
+    save();
+  }
+  function hvFocus(c) {
+    var ps = furnPos(c), w = $('#hvworld'), fq = houseOf(HV.id).f.filter(function (x) { return x.c === c; })[0], bxs = fq ? FURN[fq.k].bx({ A: '#000', B: '#000', C: '#000' }) : [], top = 20, ext = 30;
+    bxs.forEach(function (b) { top = Math.max(top, b[1] + b[4]); ext = Math.max(ext, Math.abs(b[0]) * 2 + b[3], Math.abs(b[2]) * 2 + b[5], b[1] + b[4]); });
+    if (HV.zoomPrev == null) { HV.zoomPrev = HV.zoom; HV.tPrev = HV.t; HV.aPrev = HV.a; }
+    HV.a = ps.x < -20 ? 18 : ps.x > 20 ? -18 : 0; HV.focus = { x: ps.x, y: FLOOR_Y - top / 2, z: ps.z }; HV.zoom = Math.max(2.2, Math.min(5, 150 / ext)); HV.t = -34;
+    if (w) { w.classList.add('ease'); setTimeout(function () { var w2 = $('#hvworld'); if (w2) w2.classList.remove('ease'); }, 650); }
+  }
+  function hvUnfocus() {
+    if (!HV) return; var w = $('#hvworld');
+    if (HV.zoomPrev != null) { HV.zoom = HV.zoomPrev; HV.t = HV.tPrev; if (HV.aPrev != null) HV.a = HV.aPrev; HV.zoomPrev = null; }
+    HV.focus = null; if (HV.paint) HV.paint.fc = null;
+    if (w) { w.classList.add('ease'); setTimeout(function () { var w2 = $('#hvworld'); if (w2) w2.classList.remove('ease'); }, 650); }
+  }
+  function hvPaintTap(el) {
+    var P = HV.paint, h = houseOf(HV.id), o;
+    if (el.dataset.piece !== undefined) {
+      if (P.mode !== 'house') return; var n = +el.dataset.piece; if (!h.p[n]) return;
+      o = h.pa[n] || (h.pa[n] = {}); hvBrush(o); P.pc = n; save(); auHouse('place'); hvPaint(); hvFx([P.col], true); return;
+    }
+    if (P.mode !== 'furn') return;
+    var fe = el.closest('.hv-furn'), c = fe ? +fe.dataset.c : -1, q = h.f.filter(function (x) { return x.c === c; })[0]; if (!q) return;
+    if (P.fc !== c) { P.fc = c; P.part = +el.dataset.part; hvFocus(c); hvPaint(); return; }
+    P.part = +el.dataset.part; if (!q.pt) q.pt = {}; hvBrush(q.pt[P.part] || (q.pt[P.part] = {})); save(); auHouse('place'); hvPaint(); hvFx([P.col], true);
+  }
+  function hvPaint(skipTray) {
     var w = $('#hvworld'); if (!w || !HV) return;
     w.innerHTML = hvHouse(HV.id);
-    var tr = $('#hvtray'); if (tr) tr.innerHTML = hvTray();
+    var tr = $('#hvtray'); if (tr && !skipTray) tr.innerHTML = hvTray();
     var host = $('#hv'); if (host) host.classList.toggle('inside', HV.inside);
     hvCamera();
   }
   function hvTilt() { return HV.t != null ? HV.t : (HV.inside ? -58 : -22); }
   function hvCamera() {
     var w = $('#hvworld'); if (!w || !HV) return;
-    w.style.setProperty('--a', HV.a + 'deg'); w.style.setProperty('--t', hvTilt() + 'deg'); w.style.setProperty('--z', HV.zoom * (HV.inside ? 1.12 : 1));
+    w.style.setProperty('--a', HV.a + 'deg'); w.style.setProperty('--t', hvTilt() + 'deg'); w.style.setProperty('--fx', (HV.focus ? HV.focus.x : 0) + 'px'); w.style.setProperty('--fy', (HV.focus ? HV.focus.y : 0) + 'px'); w.style.setProperty('--fz', (HV.focus ? HV.focus.z : 0) + 'px'); var hostF = $('#hv'); if (hostF) hostF.classList.toggle('focused', !!HV.focus); w.style.setProperty('--z', HV.zoom * (HV.inside ? 1.12 : 1));
   }
 
   /* the 3D view takes the look of the world the house stands in: its sea and sky colours, how dark it is, and its weather */
@@ -6759,7 +6879,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function hvOpen() {
     if (HV || !S.world) return;
     var id = S.cur; houseOf(id);
-    HV = { id: id, a: 32, zoom: Math.min(1, (window.innerWidth - 20) / 420) , inside: false, tab: houseDone(id) ? 'look' : 'build', tool: null, pos: [], moved: 0, t: null, timer: 0, anim: null, busy: false, pending: null, bpos: BUILD_BASE, ipos: null, pendF: null, removing: null };
+    HV = { id: id, a: 32, zoom: Math.min(1, (window.innerWidth - 20) / 420) , inside: false, tab: houseDone(id) ? 'look' : 'build', tool: null, pos: [], moved: 0, t: null, timer: 0, anim: null, busy: false, pending: null, bpos: BUILD_BASE, ipos: null, pendF: null, removing: null, focus: null, zoomPrev: null, paint: { mode: 'house', pc: null, fc: null, part: 0, col: '#ff7eb6', dsn: '', dcol: '#ffffff' } };
     var host = document.createElement('div'); host.id = 'hv'; host.className = 'hv';
     host.innerHTML = '<div class="hv-top"><b>My house &middot; ' + esc(WORLDS[id].name) + '</b><button class="hv-x" data-hv="close" aria-label="Close the 3D view">&times;</button></div>' +
       '<div class="hv-view" id="hvview"><div class="hv-world" id="hvworld"></div></div>' +
@@ -6772,6 +6892,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     view.addEventListener('pointermove', function (e) { if (!down || !HV) return; var dx = e.clientX - down.x, dy = e.clientY - down.y; if ((Math.abs(dx) > 5 || Math.abs(dy) > 5) && !HV.moved) { HV.moved = 1; try { view.setPointerCapture(e.pointerId); } catch (x) { /* fine */ } } if (HV.moved) { HV.a = down.a + dx * 0.5; HV.t = Math.max(-85, Math.min(-4, down.t - dy * 0.35)); hvCamera(); } });
     view.addEventListener('pointerup', function () { down = null; });
     host.addEventListener('click', hvClick);
+    host.addEventListener('input', function (ev) { var t = ev.target; if (!HV || !t.dataset || t.dataset.hv !== 'pcustom') return; if (t.dataset.w === 'col') HV.paint.col = t.value; else HV.paint.dcol = t.value; hvApplySel(); hvPaint(true); });
+    host.addEventListener('change', function (ev) { var t = ev.target; if (HV && t.dataset && t.dataset.hv === 'pcustom') hvPaint(); });
     HV.timer = setInterval(hvWander, 2600);
     hvPaint();
     setTimeout(function () { if (HV && view.clientHeight > 80) { HV.zoom = Math.max(0.4, Math.min(HV.zoom, view.clientHeight / 400)); hvCamera(); } }, 60);
@@ -6799,17 +6921,30 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function hvClick(ev) {
     if (!HV) return;
+    if (HV.tab === 'paint' && !HV.moved) { var ptt = ev.target.closest('[data-part],[data-piece]'); if (ptt && !ev.target.closest('[data-hv]')) { hvPaintTap(ptt); return; } }
     var t = ev.target.closest('[data-hv],[data-c],[data-piece]'); if (!t) return;
+    if (t.dataset.hv === 'pcustom') return;
+    if (HV.tab === 'paint' && !t.dataset.hv) return;
     var h = houseOf(HV.id), what = t.dataset.hv, v = t.dataset.v;
     if (!what && t.dataset.piece !== undefined) { if (!HV.moved && HV.tab === 'build') hvPick(+t.dataset.piece); return; }
     if (!what) { if (HV.moved) return; hvCell(+t.dataset.c); return; }
     if (what === 'close') hvClose();
     else if (what === 'rot') { HV.a += 30 * +v; hvCamera(); }
     else if (what === 'tilt') { HV.t = Math.max(-85, Math.min(-4, hvTilt() - 12 * +v)); hvCamera(); }
-    else if (what === 'zoom') { HV.zoom = Math.max(0.5, Math.min(1.8, HV.zoom * (+v > 0 ? 1.15 : 0.87))); hvCamera(); }
+    else if (what === 'zoom') { HV.zoom = Math.max(0.5, Math.min(5.5, HV.zoom * (+v > 0 ? 1.15 : 0.87))); hvCamera(); }
     else if (what === 'inside') { HV.inside = !HV.inside; HV.t = null; var b = $('#hvin'); if (b) b.textContent = HV.inside ? 'Look outside' : 'Look inside'; if (HV.inside && HV.tab === 'look' && houseDone(HV.id)) HV.tab = 'furn'; hvPaint(); }
-    else if (what === 'tab') { HV.tab = v; HV.tool = null; if (v !== 'look' && houseDone(HV.id)) HV.inside = true; var b2 = $('#hvin'); if (b2) b2.textContent = HV.inside ? 'Look outside' : 'Look inside'; hvPaint(); }
+    else if (what === 'tab') { if (HV.tab === 'paint' && v !== 'paint') hvUnfocus(); HV.tab = v; HV.tool = null; if (v === 'paint') { HV.paint.pc = null; HV.paint.fc = null; HV.inside = HV.paint.mode === 'furn'; } else if (v !== 'look' && houseDone(HV.id)) HV.inside = true; var b2 = $('#hvin'); if (b2) b2.textContent = HV.inside ? 'Look outside' : 'Look inside'; hvPaint(); }
     else if (what === 'item') { HV.tool = HV.tool === t.dataset.k ? null : t.dataset.k; hvPaint(); }
+    else if (what === 'pmode') { hvUnfocus(); HV.paint.mode = v; HV.paint.pc = null; HV.paint.fc = null; HV.inside = v === 'furn'; HV.t = null; var b3 = $('#hvin'); if (b3) b3.textContent = HV.inside ? 'Look outside' : 'Look inside'; hvPaint(); }
+    else if (what === 'ppiece') { HV.paint.pc = +t.dataset.i; hvPaint(); }
+    else if (what === 'pfurn') { HV.paint.fc = +t.dataset.c; HV.paint.part = 0; hvFocus(HV.paint.fc); hvPaint(); }
+    else if (what === 'pcol') { HV.paint.col = v; hvApplySel(); hvPaint(); }
+    else if (what === 'pdsn') { HV.paint.dsn = v === 'none' ? '' : v; hvApplySel(); hvPaint(); }
+    else if (what === 'pdcol') { HV.paint.dcol = v; hvApplySel(); hvPaint(); }
+    else if (what === 'ppart') { var pq = houseOf(HV.id).f.filter(function (x) { return x.c === HV.paint.fc; })[0]; if (pq) { var pn = FURN[pq.k].bx({ A: '#000', B: '#000', C: '#000' }).length; HV.paint.part = (HV.paint.part + +v + pn) % pn; hvPaint(); } }
+    else if (what === 'pfill') { hvApplySel(true); hvPaint(); hvFx([HV.paint.col], true); auHouse('place'); }
+    else if (what === 'preset') { var tg = hvTarget(); if (tg) { if (HV.paint.mode === 'furn' && ev.target.textContent.indexOf('Reset') === 0) { var fq2 = houseOf(HV.id).f.filter(function (x) { return x.c === HV.paint.fc; })[0]; if (fq2) fq2.pt = {}; } else delete tg[0][tg[1]]; save(); hvPaint(); } }
+    else if (what === 'pback') { hvUnfocus(); hvPaint(); }
     else if (what === 'build') hvBuild(+t.dataset.i);
     else if (what === 'in') hvMoveIn(+t.dataset.id);
     else if (what === 'out') hvMoveOut(+t.dataset.id);
