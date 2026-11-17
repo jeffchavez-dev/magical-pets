@@ -5959,7 +5959,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var d = spaceDests();
       var sl = mateLine(S.team, canSpace);
       h.push('<p class="srow-note">' + (sl.a.length ? '<b>Flying pets come along and save oxygen (8% each):</b> ' + sl.a.slice(0, 3).map(function (p) { return esc(p.name); }).join(', ') + '. ' : 'None of your pets can fly in space yet. Fully grown fairies, wind, cosmic, dragon and light pets, and birds, bats and owls can. ') + (sl.b.length ? 'The others ride safely in the rocket pet pod and join you when you land.' : '') + '</p>');
-      h.push('<p class="srow-note">Blast off, then fly anywhere you like. Tap a world to go there, choose your speed, and zoom out to see them all. Faster flying uses more oxygen.</p>');
+      h.push('<p class="srow-note">Blast off, then fly anywhere you like. Tap a world to go there, choose your speed, and zoom out to see them all. Faster flying uses more oxygen. Watch out for comets! A red warning shows which way one is coming. Steer away, or it knocks some oxygen out of your tank.</p>');
       if (d.length) h.push('<p class="srow-note">Oxygen to reach each world at cruise speed: ' + d.slice(0, 6).map(function (x) { return esc(WORLDS[x.id].name) + ' ' + x.cost; }).join(', ') + (d.length > 6 ? ' and more' : '') + '.</p>');
       h.push(d.length ? '<button class="btn primary" data-act="launch"' + (S.o2 >= 5 ? '' : ' disabled') + '>' + (S.o2 >= 5 ? 'Blast off!' : 'Fill your tank first') + '</button>' : '<p class="srow-note">Open another world first, then you can fly between them.</p>');
     }
@@ -6040,7 +6040,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var SS = SPACE_SCALE, UPOS = {}; ids.forEach(function (id) { UPOS[id] = [UNI_POS[id][0] * SS, UNI_POS[id][1] * SS]; });
     var N = { x: 0, y: 0, k: 0.45, kmin: 0.004, kmax: 3 }, autoZ = true, held = {}, pp = pets.map(function () { return { x: 0, y: 0 }; }), ship = { x: 0, y: 0, ang: -Math.PI / 2 }, target = null, sp = 1, follow = true, moving = false, rescue = false, hudT = 0, built = false, pk = [];
     var elShip, elRoute, elCam, elRet, planets = [], tHud = root.querySelector('#asDest'), btnLand = root.querySelector('#asLand'), btnBack = root.querySelector('#asBack'), rdEl = root.querySelector('#asRead');
-    var warn = '', warnT = 0, retRot = 0, lowSaid = false, vel = { x: 0, y: 0 }, prevS = null, parts = [], sweep = 0;
+    var comets = [], cometT = 7, shk = 0, shakeOn = false, flash = 0, hitIn = 0, warn = '', warnT = 0, retRot = 0, lowSaid = false, vel = { x: 0, y: 0 }, prevS = null, parts = [], sweep = 0;
     var cv = root.querySelector('#asCv'), cx = cv.getContext('2d'), dpr = Math.min(2, window.devicePixelRatio || 1);
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cx.setTransform(dpr, 0, 0, dpr, 0, 0);
     var layers = [0.05, 0.12, 0.26].map(function (f, li) { var a = [], R2 = rng(31 + li), i; for (i = 0; i < (li === 0 ? 90 : li === 1 ? 60 : 34); i++) a.push({ x: R2(), y: R2(), r: 0.5 + R2() * (0.8 + li * 0.7), a: 0.25 + R2() * 0.65, c: R2() < 0.2 ? '#bfe9ff' : R2() < 0.3 ? '#ffe6a8' : '#fff' }); return { f: f, s: a }; });
@@ -6066,6 +6066,30 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         var a = q.life / 0.7; cx.globalAlpha = a * 0.8; cx.fillStyle = a > 0.5 ? '#ffd9a0' : a > 0.25 ? '#ff9a6a' : '#ff5a8a'; cx.beginPath(); cx.arc(q.x, q.y, q.r * (0.4 + a), 0, 6.2832); cx.fill(); return true;
       });
       cx.globalCompositeOperation = 'source-over';
+      // comets: a flashing red marker and path line warn you before one arrives
+      comets.forEach(function (c) {
+        var X = W / 2 + (c.x - N.x) * N.k, Y = H / 2 + (c.y - N.y) * N.k, an = Math.atan2(c.vy, c.vx), off = X < -24 || X > W + 24 || Y < -24 || Y > H + 24, pul = 0.5 + 0.5 * Math.sin(now / 80);
+        cx.globalAlpha = 1;
+        if (!c.hit && c.age < 6) {
+          cx.save(); cx.setLineDash([12, 10]); cx.lineWidth = 3; cx.strokeStyle = 'rgba(255,90,90,' + (0.25 + 0.4 * pul).toFixed(2) + ')';
+          cx.beginPath(); cx.moveTo(X, Y); cx.lineTo(X + Math.cos(an) * 1600, Y + Math.sin(an) * 1600); cx.stroke(); cx.restore();
+        }
+        if (off) {
+          var ex = X - W / 2, ey = Y - H / 2, sc = Math.min((W / 2 - 36) / Math.max(1e-6, Math.abs(ex)), (H / 2 - 36) / Math.max(1e-6, Math.abs(ey))), mx = W / 2 + ex * sc, my = H / 2 + ey * sc, ma = Math.atan2(ey, ex);
+          cx.save(); cx.translate(mx, my); cx.fillStyle = 'rgba(255,60,60,' + (0.55 + 0.45 * pul).toFixed(2) + ')'; cx.strokeStyle = '#fff'; cx.lineWidth = 3;
+          cx.beginPath(); cx.arc(0, 0, 20 + pul * 4, 0, 6.2832); cx.fill(); cx.stroke();
+          cx.rotate(ma); cx.beginPath(); cx.moveTo(34, 0); cx.lineTo(22, -10); cx.lineTo(22, 10); cx.closePath(); cx.fillStyle = '#fff'; cx.fill(); cx.rotate(-ma);
+          cx.fillStyle = '#fff'; cx.font = '700 22px Fredoka, sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('!', 0, 1); cx.restore();
+        } else {
+          cx.save(); cx.translate(X, Y); cx.rotate(an);
+          var tg = cx.createLinearGradient(0, 0, -150, 0); tg.addColorStop(0, 'rgba(255,200,130,.85)'); tg.addColorStop(0.5, 'rgba(255,120,80,.35)'); tg.addColorStop(1, 'rgba(255,120,80,0)');
+          cx.fillStyle = tg; cx.beginPath(); cx.moveTo(0, -13); cx.lineTo(-150, -4); cx.lineTo(-150, 4); cx.lineTo(0, 13); cx.closePath(); cx.fill();
+          var tb = cx.createLinearGradient(0, 0, -100, 0); tb.addColorStop(0, 'rgba(160,230,255,.7)'); tb.addColorStop(1, 'rgba(160,230,255,0)'); cx.fillStyle = tb; cx.beginPath(); cx.moveTo(0, -6); cx.lineTo(-100, 0); cx.lineTo(0, 6); cx.closePath(); cx.fill();
+          var hg = cx.createRadialGradient(-3, -3, 1, 0, 0, 14); hg.addColorStop(0, '#fff6dc'); hg.addColorStop(0.55, '#f4a85e'); hg.addColorStop(1, '#a8452a');
+          cx.fillStyle = hg; cx.beginPath(); cx.arc(0, 0, 13, 0, 6.2832); cx.fill(); cx.fillStyle = 'rgba(90,30,20,.45)'; cx.beginPath(); cx.arc(4, -4, 3, 0, 6.2832); cx.arc(-4, 5, 2.4, 0, 6.2832); cx.fill(); cx.restore();
+        }
+      });
+      cx.globalAlpha = 1;
       // radar
       var rr = 50, rx0 = 14 + rr, ry0 = 84 + rr, RANGE = 2600 * SS * 0.5;
       cx.globalAlpha = 1; cx.fillStyle = 'rgba(8,6,40,.62)'; cx.beginPath(); cx.arc(rx0, ry0, rr, 0, 6.2832); cx.fill();
@@ -6081,6 +6105,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         cx.beginPath(); cx.arc(rx0 + dx, ry0 + dy, isT ? 4.5 : 3.2, 0, 6.2832); cx.fill();
       });
       cx.globalAlpha = 1; cx.save(); cx.translate(rx0, ry0); cx.rotate(ship.ang + Math.PI / 2); cx.fillStyle = '#fff'; cx.beginPath(); cx.moveTo(0, -6); cx.lineTo(4.5, 5); cx.lineTo(-4.5, 5); cx.closePath(); cx.fill(); cx.restore();
+      if (flash > 0) { cx.globalAlpha = Math.min(0.5, flash * 0.7); cx.fillStyle = '#ff3c32'; cx.fillRect(0, 0, W, H); cx.globalAlpha = 1; }
     }
     function nearOf(id) { return uRadius(id) * 1.35 + 70; }
     function nearWorld() {
@@ -6177,6 +6202,34 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var tg2 = target ? Math.round(Math.hypot(target.x - ship.x, target.y - ship.y)) : 0;
       rdEl.innerHTML = 'SPEED <b>' + (moving ? Math.round((rescue ? SPEEDS[3].v : (target && target.id ? Math.max(70 * SS / 2, sd.v * Math.max(0.3, Math.min(1, tg2 / (600 * SS / 2)))) : sd.v)) / SS) : 0) + '</b><br>' + (target ? 'DIST <b>' + Math.round(tg2 / SS) + '</b><br>' : '') + 'O2 <b>' + Math.floor(o2) + '</b>';
       if (nw && !rescue) { btnLand.hidden = false; btnLand.textContent = (nw === from && !got.moved ? 'Land back on ' : 'Land on ') + WORLDS[nw].name; btnLand.dataset.w = nw; } else btnLand.hidden = true;
+    }
+    /* ---- comets: they streak across open space; a warning shows which way one comes from, and steering away keeps your oxygen safe ---- */
+    var DIRS = ['the right', 'the bottom right', 'the bottom', 'the bottom left', 'the left', 'the top left', 'the top', 'the top right'];
+    function spawnComet() {
+      var a = Math.random() * 6.2832, D = 0.8 * Math.hypot(W, H), Tm = 3.4 + Math.random() * 0.8, Dw = D / N.k, px = ship.x + Math.cos(a) * Dw, py = ship.y + Math.sin(a) * Dw;
+      var lead = Math.random() < 0.6 ? Tm : 0, tx = ship.x + vel.x * lead, ty = ship.y + vel.y * lead, ox = (Math.random() - 0.5) * 60 / N.k, oy = (Math.random() - 0.5) * 60 / N.k;
+      comets.push({ x: px, y: py, vx: (tx + ox - px) / Tm, vy: (ty + oy - py) / Tm, age: 0, min: 1e9, hit: false });
+      warn = 'Comet coming from ' + DIRS[Math.round(((a / 6.2832 * 8) % 8 + 8) % 8) % 8] + '! Steer away!'; warnT = 3.2; hud(true); auAct('nope', 1);
+    }
+    function cometsStep(dt, now) {
+      if (shk > 0) { shk -= dt; shakeOn = true; root.style.transform = 'translate(' + ((Math.random() - 0.5) * 12).toFixed(1) + 'px,' + ((Math.random() - 0.5) * 12).toFixed(1) + 'px)'; } else if (shakeOn) { shakeOn = false; root.style.transform = ''; }
+      if (flash > 0) flash -= dt; if (hitIn > 0) hitIn -= dt;
+      elShip.setAttribute('opacity', hitIn > 0 && Math.sin(now / 55) > 0 ? '0.35' : '1');
+      if (rescue || nearWorld()) cometT = Math.max(cometT, 5); else cometT -= dt;
+      if (cometT <= 0 && comets.length < 2) { spawnComet(); cometT = 9 + Math.random() * 8; }
+      comets = comets.filter(function (c) {
+        c.age += dt; c.x += c.vx * dt; c.y += c.vy * dt;
+        var d = Math.hypot((c.x - ship.x) * N.k, (c.y - ship.y) * N.k);
+        if (!c.hit && hitIn <= 0 && d < 28) {
+          c.hit = true; hitIn = 1.8; shk = 0.45; flash = 0.6;
+          var loss = Math.min(Math.max(3, Math.round(cap * 0.1)), Math.max(0, Math.floor(o2) - 1)); o2 -= loss; setO2();
+          warn = 'Ouch! A comet knocked ' + loss + ' oxygen out of your tank!'; warnT = 3.5; hud(true); auAct('nope', 1);
+        } else if (!c.hit) {
+          c.min = Math.min(c.min, d);
+          if (!c.near && c.min < 95 && d > c.min + 12) { c.near = true; warn = 'Whoosh! Close one!' + (S.scrap < 99 ? ' You grabbed 1 star scrap in the confusion.' : ''); if (S.scrap < 99) { S.scrap++; got.scrap++; } warnT = 2.6; hud(true); auAct('pad', 3); }
+        }
+        return c.age < 14 && d < Math.hypot(W, H) * 1.5;
+      });
     }
     function startLanding(id, tow) {
       if (ph !== 'nav') return;
@@ -6290,6 +6343,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         if (!moving) { vel.x *= 0.85; vel.y *= 0.85; }
         retRot += dt * 40; if (warnT > 0) { warnT -= dt; if (warnT <= 0) hud(true); }
         root.classList.toggle('warp', moving && sp >= 3);
+        cometsStep(dt, now);
         drawCv(dt, now);
         var lead = ship, gap = 44 / N.k, hxu = Math.cos(ship.ang), hyu = Math.sin(ship.ang);
         pp.forEach(function (q, j) { var tx = lead.x - hxu * gap + Math.sin(ship.ang) * (j % 2 ? 12 : -12) / N.k, ty = lead.y - hyu * gap - Math.cos(ship.ang) * (j % 2 ? 12 : -12) / N.k, k2 = Math.min(1, dt * (4 - j * 0.6)); q.x += (tx - q.x) * k2; q.y += (ty - q.y) * k2; lead = q; });
