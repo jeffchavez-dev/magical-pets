@@ -978,6 +978,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 @keyframes dvSway { 50% { transform: rotate(8deg); } 0% { transform: rotate(-8deg); } 100% { transform: rotate(-8deg); } }
 .dv-me { position: absolute; left: 0; top: 0; width: 72px; height: 88px; pointer-events: none; will-change: transform; }
 .dv-me .pet-svg { width: 100%; height: 100%; }
+.dv-ob { position: absolute; left: 0; top: 0; pointer-events: none; }
+.dv-ob svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.dv-me.bonk .pet-svg { animation: dvBonk .4s ease-out; }
+@keyframes dvBonk { 0%, 100% { transform: none; } 20% { transform: translateX(-7px) rotate(-8deg); } 50% { transform: translateX(6px) rotate(7deg); } 80% { transform: translateX(-3px); } }
 .dv-it { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform; }
 .dv-it svg { width: 100%; height: 100%; display: block; }
 .dv-bub { position: absolute; bottom: -20px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); pointer-events: none; z-index: 1; animation: dvBub 6s linear infinite; }
@@ -994,7 +998,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .dv-kb { position: absolute; width: 9px; height: 9px; border-radius: 50%; border: 2px solid rgba(255,255,255,.7); pointer-events: none; animation: dvKb .9s ease-out forwards; }
 @keyframes dvKb { to { transform: translateY(-40px); opacity: 0; } }
 .as-petg { pointer-events: none; }
-@media (prefers-reduced-motion: reduce) { .dv-me.kick .pet-svg { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .dv-me.kick .pet-svg, .dv-me.bonk .pet-svg { animation: none; } }
 .dv-pet { position: absolute; left: 0; top: 0; width: 44px; height: 44px; pointer-events: none; will-change: transform; }
 .dv-pet .pet-svg { width: 100%; height: 100%; }
 .dv-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 6; animation: dvFlash .7s ease-out; }
@@ -5791,6 +5795,33 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     else o += '<path d="M30 4 L37 22 L56 23 L41 35 L46 54 L30 43 L14 54 L19 35 L4 23 L23 22Z" fill="' + c + '"' + st + '/><circle cx="30" cy="30" r="3" fill="#fff" opacity=".7"/>';
     return o + '</svg>';
   }
+  /* reef formations rooted on the lake bed: each has a picture and a stack of solid circles the swimmer cannot pass through */
+  var REEF_COL = ['#ff7a8a', '#ff9b5e', '#c58bff', '#ffd05e', '#4fd1b5'];
+  function reefMake(type, w, h, col) {
+    var cx = w / 2, c = [], g = '', i, t, r, y, sd = 'rgba(20,40,100,.5)';
+    if (type === 'rock') {
+      var L = [], R = [];
+      for (i = 0; i <= 8; i++) { t = i / 8; r = w * (0.42 - 0.28 * t) * (0.94 + ((i * 37) % 7) / 60); y = h - t * h * 0.94; L.push((cx - r).toFixed(0) + ',' + y.toFixed(0)); R.unshift((cx + r).toFixed(0) + ',' + y.toFixed(0)); if (i % 2 === 0) c.push([cx, y, r * 0.92]); }
+      g = '<polygon points="' + L.concat(R).join(' ') + '" fill="#7d7fb0" stroke="' + sd + '" stroke-width="4" stroke-linejoin="round"/><polygon points="' + L.slice(0, 5).join(' ') + ' ' + cx + ',' + h * 0.3 + '" fill="#a3a5d6" opacity=".55"/><path d="M' + cx * 0.9 + ' ' + h * 0.85 + ' l12 -40 M' + cx * 1.1 + ' ' + h * 0.6 + ' l-10 -34" stroke="#575a8c" stroke-width="4" stroke-linecap="round"/>';
+    } else if (type === 'tree') {
+      var tw = w * 0.17, st = 'stroke="' + col + '" stroke-linecap="round" fill="none"';
+      g = '<path d="M' + (cx - tw) + ' ' + h + ' Q' + cx + ' ' + h * 0.6 + ' ' + (cx - tw * 0.55) + ' ' + h * 0.12 + ' L' + (cx + tw * 0.55) + ' ' + h * 0.12 + ' Q' + cx + ' ' + h * 0.6 + ' ' + (cx + tw) + ' ' + h + 'Z" fill="' + col + '" stroke="' + sd + '" stroke-width="4"/>';
+      for (y = h - tw; y > h * 0.1; y -= 38) c.push([cx, y, tw * 1.05]);
+      [0.25, 0.45, 0.65].forEach(function (f, j) { var ay = h * f, ax = w * (0.34 - j * 0.04); [-1, 1].forEach(function (sg) { g += '<path d="M' + cx + ' ' + (ay + 30) + ' Q' + (cx + sg * ax * 0.5) + ' ' + (ay + 24) + ' ' + (cx + sg * ax) + ' ' + ay + '" ' + st + ' stroke-width="' + (tw * 0.9).toFixed(0) + '"/><circle cx="' + (cx + sg * ax) + '" cy="' + ay + '" r="' + (tw * 0.7).toFixed(0) + '" fill="' + col + '" stroke="' + sd + '" stroke-width="3"/>'; c.push([cx + sg * ax, ay, tw * 0.8]); c.push([cx + sg * ax * 0.5, ay + 24, tw * 0.6]); }); });
+      g += '<circle cx="' + cx + '" cy="' + h * 0.1 + '" r="' + tw * 0.9 + '" fill="' + col + '" stroke="' + sd + '" stroke-width="3"/>'; c.push([cx, h * 0.1, tw * 0.9]);
+    } else if (type === 'fan') {
+      var fr = w * 0.46, fy = fr + 6;
+      g = '<rect x="' + (cx - 7) + '" y="' + fy + '" width="14" height="' + (h - fy) + '" rx="6" fill="#9a4f7f"/><path d="M' + cx + ' ' + fy + ' m' + (-fr) + ' 0 a' + fr + ' ' + fr + ' 0 0 1 ' + (2 * fr) + ' 0 a' + fr + ' ' + fr + ' 0 0 1 ' + (-2 * fr) + ' 0Z" fill="' + col + '" stroke="' + sd + '" stroke-width="4" opacity=".95"/>';
+      for (i = 0; i < 7; i++) { var a2 = Math.PI * (i / 6); g += '<path d="M' + cx + ' ' + (fy + fr * 0.9) + ' L' + (cx + Math.cos(a2 + Math.PI) * fr * 0.9) + ' ' + (fy + Math.sin(a2 + Math.PI) * fr * 0.9 + fr * 0.0) + '" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linecap="round"/>'; }
+      c.push([cx, fy, fr * 0.85]); for (y = fy + fr; y < h - 10; y += 30) c.push([cx, y, 12]);
+    } else {
+      var dr = h * 0.95;
+      g = '<path d="M0 ' + h + ' Q0 ' + (h * 0.05) + ' ' + cx + ' ' + (h * 0.05) + ' Q' + w + ' ' + (h * 0.05) + ' ' + w + ' ' + h + 'Z" fill="' + col + '" stroke="' + sd + '" stroke-width="4"/>' +
+        '<path d="M' + w * 0.2 + ' ' + h * 0.7 + ' q' + w * 0.1 + ' -' + h * 0.4 + ' ' + w * 0.2 + ' -' + h * 0.1 + ' t' + w * 0.2 + ' -' + h * 0.1 + ' M' + w * 0.3 + ' ' + h * 0.9 + ' q' + w * 0.1 + ' -' + h * 0.3 + ' ' + w * 0.25 + ' -' + h * 0.05 + ' t' + w * 0.2 + ' -' + h * 0.1 + '" stroke="rgba(255,255,255,.55)" stroke-width="4" fill="none" stroke-linecap="round"/>';
+      for (i = 0; i < 4; i++) c.push([w * (0.18 + i * 0.21), h - dr * 0.25 - (i === 1 || i === 2 ? h * 0.2 : 0), h * (i === 1 || i === 2 ? 0.42 : 0.34)]);
+    }
+    return { svg: '<svg viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">' + g + '</svg>', c: c };
+  }
   function diveHTML(lake) {
     var ml = mateLine(S.team, canSwim), base = diveBase() + DIVE_MATE * Math.min(3, ml.a.length);
     var h = ['<div class="sheet-card divesheet"><h3>Dive into ' + esc(lake.t) + '</h3><p class="srow-note">This lake is deep! Swim down to find sea friends, house materials and star scrap. You can hold your breath for ' + base + ' seconds. An air tank adds ' + TANK_SEC + ' more.</p>'];
@@ -5814,14 +5845,25 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     root.style.background = 'linear-gradient(' + pal[0] + ', ' + pal[1] + ' 55%, #0c2a52)';
     root.innerHTML = '<div class="dv-world" id="dvWorld" style="width:' + WW + 'px;height:' + HH + 'px"><div class="dv-surface"></div><div class="dv-bed"></div></div><i class="dv-bub b1"></i><i class="dv-bub b2"></i><i class="dv-bub b3"></i>' +
       '<div class="as-top"><div class="as-title"><span>Diving &middot; <em id="dvPts">0 points</em></span><b>' + esc(lake.t) + '</b></div><div class="as-o2"><span>Breath <em id="dvT"></em></span><div class="as-bar"><i id="dvBar"></i></div></div><button class="btn ghost small" id="dvUp">Come up</button></div>' +
-      '<p class="as-hint">Tap or drag to swim. Touch things to grab them. Catch bubbles for more breath!</p>';
+      '<p class="as-hint">Tap or drag to swim. Steer around the corals and rocks! Touch things to grab them. Catch bubbles for more breath!</p>';
     document.body.appendChild(root);
     var wd = root.querySelector('#dvWorld'), bed = root.querySelector('.dv-bed');
     for (var pi = 0; pi < 22; pi++) { var pl = document.createElement('i'); pl.className = 'dv-weed'; pl.style.left = (Math.random() * 100) + '%'; pl.style.height = (30 + Math.random() * 60) + 'px'; pl.style.animationDelay = '-' + (Math.random() * 3).toFixed(1) + 's'; bed.appendChild(pl); }
+    var obs = [], TYPES_R = ['rock', 'tree', 'fan', 'mound', 'tree', 'rock', 'mound', 'fan'], nR = Math.max(6, Math.min(12, Math.round(WW / 230))), fx = [], ri, tryN;
+    for (ri = 0; ri < nR; ri++) {
+      var fxx = 0; for (tryN = 0; tryN < 40; tryN++) { fxx = 120 + Math.random() * (WW - 240); if (fx.every(function (q) { return Math.abs(q - fxx) > 230; })) break; }
+      fx.push(fxx);
+      var ty = TYPES_R[ri % TYPES_R.length], fw = ty === 'mound' ? 160 + Math.random() * 60 : ty === 'fan' ? 130 + Math.random() * 50 : 120 + Math.random() * 60, fh = ty === 'mound' ? 110 + Math.random() * 50 : ty === 'fan' ? 230 + Math.random() * 100 : 260 + Math.random() * 200;
+      var rf = reefMake(ty, Math.round(fw), Math.round(fh), REEF_COL[Math.floor(Math.random() * REEF_COL.length)]), ox2 = fxx - fw / 2, oy2 = HH - 74 - fh;
+      var od = document.createElement('div'); od.className = 'dv-ob'; od.style.width = fw + 'px'; od.style.height = fh + 'px'; od.style.transform = 'translate(' + ox2.toFixed(0) + 'px,' + oy2.toFixed(0) + 'px)'; od.innerHTML = rf.svg; wd.appendChild(od);
+      rf.c.forEach(function (q) { obs.push({ x: ox2 + q[0], y: oy2 + q[1], r: q[2] * 0.92 }); });
+    }
+    function blocked(x, y, m) { return obs.some(function (o) { return Math.hypot(x - o.x, y - o.y) < o.r + m; }); }
     var me = document.createElement('div'); me.className = 'dv-me'; me.innerHTML = heroSVG(S.boots); wd.appendChild(me);
     var dm = mates.map(function (p) { var el = document.createElement('div'); el.className = 'dv-pet'; el.innerHTML = petSVG(p.type, p.stage, p.name, p.body); wd.appendChild(el); return { el: el, x: WW / 2 - 40, y: 100 }; });
-    var ending = false, P = { x: WW / 2, y: 70 }, tg = { x: WW / 2, y: 220 }, cam = { x: 0, y: 0 }, ang = 180, kbT = 0;
+    var bonkT = 0, touching = false, ending = false, P = { x: WW / 2, y: 70 }, tg = { x: WW / 2, y: 220 }, cam = { x: 0, y: 0 }, ang = 180, kbT = 0;
     function add(kind, sub, x, y, size, html) {
+      for (var bt = 0; bt < 60 && blocked(x, y, size / 2 + 26); bt++) { x = rx(); if (bt > 30) y = ry(); }
       var el = document.createElement('div'); el.className = 'dv-it k-' + kind; el.style.width = el.style.height = size + 'px'; el.innerHTML = html; wd.appendChild(el);
       items.push({ el: el, kind: kind, sub: sub, x: x, y: y, sz: size, vx: kind === 'sea' ? (Math.random() < 0.5 ? -1 : 1) * (25 + Math.random() * 40) : 0, ph: Math.random() * 6 });
     }
@@ -5874,6 +5916,19 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var kx = (keys.arrowright || keys.d ? 1 : 0) - (keys.arrowleft || keys.a ? 1 : 0), ky = (keys.arrowdown || keys.s ? 1 : 0) - (keys.arrowup || keys.w ? 1 : 0);
       if (kx || ky) { tg.x = Math.max(30, Math.min(WW - 30, tg.x + kx * 380 * dt)); tg.y = Math.max(50, Math.min(HH - 120, tg.y + ky * 380 * dt)); }
       var ox = P.x, oy = P.y, k = Math.min(1, dt * (ending ? 6 : 3.2)); P.x += (tg.x - P.x) * k; P.y += (tg.y - P.y) * k;
+      bonkT -= dt;
+      if (!ending) {
+        var hit = false;
+        obs.forEach(function (o) {
+          var m = o.r + 24, dx = P.x - o.x, dy = P.y - o.y, d = Math.hypot(dx, dy);
+          if (d < m) { hit = true; if (d < 0.01) { dx = 0; dy = -1; d = 1; } P.x = o.x + dx / d * m; P.y = o.y + dy / d * m; }
+          var tx = tg.x - o.x, ty2 = tg.y - o.y, td = Math.hypot(tx, ty2);
+          if (td < m) { if (td < 0.01) { tx = 0; ty2 = -1; td = 1; } tg.x = o.x + tx / td * m; tg.y = o.y + ty2 / td * m; }
+        });
+        P.x = Math.max(30, Math.min(WW - 30, P.x)); P.y = Math.max(40, Math.min(HH - 110, P.y));
+        if (hit && !touching && bonkT <= 0) { bonkT = 0.9; left -= 1; pop(P.x, P.y - 50, 'Bonk! -1 sec'); me.classList.add('bonk'); setTimeout(function () { me.classList.remove('bonk'); }, 420); }
+        touching = hit;
+      }
       var vx = P.x - ox, vy = P.y - oy, mv = Math.hypot(vx, vy) > 0.8 * Math.max(dt * 60, 0.2);
       if (mv) { var want = Math.atan2(vy, vx) * 180 / Math.PI + 90, df = ((want - ang + 540) % 360) - 180; ang += df * Math.min(1, dt * 6); }
       me.classList.toggle('kick', mv); kbT -= dt; if (mv && kbT <= 0) { kbT = 0.12; var kb = document.createElement('i'); kb.className = 'dv-kb'; kb.style.left = (P.x + (Math.random() - 0.5) * 16 - vx * 3) + 'px'; kb.style.top = (P.y + 8 - vy * 3) + 'px'; wd.appendChild(kb); setTimeout(function () { if (kb.parentNode) kb.parentNode.removeChild(kb); }, 900); }
@@ -5883,7 +5938,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var lx = P.x, ly = P.y;
       dm.forEach(function (c, i) { c.x += (lx - Math.sign(vx || 1) * 46 - c.x) * Math.min(1, dt * (3.5 - i * 0.6)); c.y += (ly + 22 + i * 4 - c.y) * Math.min(1, dt * (3.5 - i * 0.6)); c.el.style.transform = 'translate(' + (c.x - 22).toFixed(1) + 'px,' + (c.y - 22 + Math.sin(now / 320 + i) * 4).toFixed(1) + 'px)'; lx = c.x; ly = c.y; });
       items = items.filter(function (it) {
-        if (it.kind === 'sea') { it.x += it.vx * dt; if (it.x < 40 || it.x > WW - 40) it.vx = -it.vx; it.el.style.transform = 'translate(' + (it.x - it.sz / 2).toFixed(1) + 'px,' + (it.y - it.sz / 2 + Math.sin(now / 500 + it.ph) * 6).toFixed(1) + 'px) scaleX(' + (it.vx < 0 ? -1 : 1) + ')'; }
+        if (it.kind === 'sea') { it.x += it.vx * dt; if (it.x < 40 || it.x > WW - 40 || blocked(it.x + Math.sign(it.vx) * it.sz * 0.4, it.y, it.sz * 0.3)) { it.vx = -it.vx; it.x += it.vx * dt * 2; } it.el.style.transform = 'translate(' + (it.x - it.sz / 2).toFixed(1) + 'px,' + (it.y - it.sz / 2 + Math.sin(now / 500 + it.ph) * 6).toFixed(1) + 'px) scaleX(' + (it.vx < 0 ? -1 : 1) + ')'; }
         else it.el.style.transform = 'translate(' + (it.x - it.sz / 2).toFixed(1) + 'px,' + (it.y - it.sz / 2 + Math.sin(now / 600 + it.ph) * 5).toFixed(1) + 'px)';
         if (ending || Math.hypot(it.x - P.x, it.y - P.y) > it.sz * 0.5 + 34) return true;
         if (it.kind === 'mat') { loot.mats[it.sub] = (loot.mats[it.sub] || 0) + 1; addPts(5); pop(it.x, it.y, MAT_BY[it.sub].name + ' +5'); }

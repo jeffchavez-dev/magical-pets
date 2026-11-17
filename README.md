@@ -55,6 +55,7 @@ When you swim in a lake, a **Dive** button appears. Dive down to a see-through u
 **Aquariums.** Every sea friend you have met can be placed in your house as a little glass aquarium (Furniture tab, 3 of the third material).
 
 You can hold your breath for 20 seconds (4 more for each pet that can swim, up to 3), then you float back up with what you found. To stay longer, buy an **air tank** for 12 coins (up to 5 in your rack). One tank adds 15 seconds to a dive.
+- **Reefs.** The lake bed has coral trees, fan corals, brain-coral mounds and tall rock spires that you cannot swim through. Steer around them. Bumping one costs 1 second of breath (once per bump), and treasure and sea friends are never hidden inside them. Sea friends swim around the reefs too.
 
 ## Flying
 A fully grown (level 3) Fairy, or any fully grown bird, bat or owl, can fly when it is **first in your team line**. Press **Fly**, then tap anywhere (or on the bird's-eye map) to soar there fast. While flying, the whole team is safe from cursed rune ground. You cannot land on a glowing rune. If a flyer is in your team but not at the front, Professor Bolt offers to move it to the front, and the pet's page has a **Put in front to fly** button.
