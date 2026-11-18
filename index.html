@@ -763,6 +763,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .sortcell.wrong { animation: shake .25s linear 2; background: rgba(255,90,90,.3); }
 
 /* ---------- My house ---------- */
+.hm { position: relative; margin: 0 auto; pointer-events: none; }
+.hm-c { position: absolute; left: 50%; top: 80%; width: 0; height: 0; transform-style: preserve-3d; transform: scale(var(--hs, 1)) rotateX(-22deg) rotateY(32deg); }
+.hm .hf { pointer-events: none; }
+.sprite.find .hm { animation: findglow 1.7s ease-in-out infinite; }
 .house-svg { display: block; width: 100%; height: 100%; }
 .house-svg.big { width: min(100%, 300px); height: auto; margin: 0 auto; }
 .hprog { height: 14px; border-radius: 8px; background: rgba(255,255,255,.15); overflow: hidden; margin: 6px 0; }
@@ -4050,7 +4054,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function wantBtn(e) { return '<button class="want" data-act="want" data-id="' + e.id + '" aria-label="What does ' + esc(e.name) + ' want?"></button>'; }
   function spriteHTML(e) {
-    if (e.plot) return houseSVG(S.cur) + '<span class="tag">My house ' + housePct(S.cur) + '%</span>';
+    if (e.plot) return houseMini(S.cur, 0.9) + '<span class="tag">My house ' + housePct(S.cur) + '%</span>';
     if (e.gather) return gatherSVG(e.gather) + '<span class="tag">' + GATH[e.gather].verb + ' ' + GATH[e.gather].name.toLowerCase() + '</span><span class="gh-bar"><i></i></span>';
     if (e.astro) return e.astro === 'scrap' ? scrapSVG() : bubbleSVG();
     if (e.mat) return '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="26" fill="' + MAT_BY[e.mat].col + '" opacity=".3"/><rect x="15" y="15" width="30" height="30" rx="8" fill="' + MAT_BY[e.mat].col + '" stroke="#fff" stroke-width="3" transform="rotate(12 30 30)"/><circle cx="24" cy="23" r="4" fill="#fff" opacity=".7"/></svg><span class="tag">' + MAT_BY[e.mat].name + '</span>';
@@ -6617,7 +6621,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var others = Object.keys(S.houses).filter(function (k) { return k !== id && houseDone(k) && WORLDS[k]; });
     var port = done ? '<h4>Teleport to another house</h4>' + (others.length ? others.map(function (k) { return '<div class="srow"><div class="sinfo"><b>' + esc(WORLDS[k].name) + '</b><span>Your finished house</span></div><button class="btn small primary" data-act="houseport" data-id="' + k + '">Go</button></div>'; }).join('') : '<p class="srow-note">Finish a house on another island and you can jump between them.</p>') : '';
     var chest = MATS.filter(function (m) { return S.mats[m.id]; }).map(function (m) { return matChip(m.id, S.mats[m.id] + ' ' + m.name); }).join(' ') || 'nothing yet';
-    return '<div class="sheet-card housesheet"><h3>' + (id === 'home' ? 'Your house on Home Island' : 'Your house on ' + esc(W.name)) + '</h3>' + houseSVG(id, true) +
+    return '<div class="sheet-card housesheet"><h3>' + (id === 'home' ? 'Your house on Home Island' : 'Your house on ' + esc(W.name)) + '</h3>' + houseMini(id, 0.72, true) +
       '<div class="row"><button class="btn primary small" data-act="hv3d">View in 3D' + (done ? ', furnish &amp; pets' : '') + '</button></div><div class="hprog" aria-label="' + pct + ' percent built"><i style="width:' + pct + '%"></i></div><p class="hpct"><b>' + pct + '%</b> built &middot; ' + bt + ' of ' + HOUSE_PIECES.length + ' pieces' + (done ? ' &middot; <b>House complete!</b>' : '') + '</p>' +
       '<p class="srow-note">This island gives ' + tr.map(function (k) { return MAT_BY[k].name; }).join(', ') + '. Walk over the glowing orbs to collect materials.</p>' + missHTML +
       '<h4>Build</h4>' + rows + port + '<h4>Your materials</h4><p class="srow-note">' + chest + '</p>' +
@@ -6703,14 +6707,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       hvFace(d, h, T(w / 2, 0, 0, ' rotateY(90deg)'), col, 's1 ' + cls, null, art.s1) + hvFace(d, h, T(-w / 2, 0, 0, ' rotateY(-90deg)'), col, 's1 ' + cls, null, art.s1) +
       hvFace(w, d, T(0, -h / 2, 0, ' rotateX(90deg)'), col, 's3 ' + cls, null, art.s3);
   }
-  function hvHouse(id) {
+  function hvHouse(id, mini) {
     var m = worldMats(id).map(function (k) { return MAT_BY[k].col; }), A = m[0], B = m[1], C = m[2], h = houseOf(id), p = h.p.map(function (v, n) { return HV && HV.pending === n ? 0 : v; }), o = [], i;
     var gh = function (n, extra) { return (p[n] ? '' : 'ghost ') + (extra || ''); }, pa = h.pa || {}, cl = function (n, c) { return p[n] ? paintCol(pa[n], c) : 'transparent'; };
     var ST = houseForm(id), wy = FLOOR_Y - HH / 2, ridge = FLOOR_Y - HH - HR, L = Math.hypot(HW / 2 + 14, HR), th = Math.atan2(HR, HW / 2 + 14) * 180 / Math.PI;
     var PL = (WORLDS[id] && WORLDS[id].pal) || {}, SEA = PL.sea || ['#2c86d8', '#4fb3ec'], GR = (PL.grass || [])[1] || '#7ccf6a', LF = PL.leaf || ['#2f9a55', '#35a85d'];
-    o.push(hvFace(1600, 1600, 'translate3d(0,19px,0) rotateX(90deg)', SEA[1], 'lawn'), hvFace(500, 470, 'translate3d(0,16.5px,0) rotateX(90deg)', PL.beach || '#f2dfae', 'lawn'),
+    if (!mini) o.push(hvFace(1600, 1600, 'translate3d(0,19px,0) rotateX(90deg)', SEA[1], 'lawn'), hvFace(500, 470, 'translate3d(0,16.5px,0) rotateX(90deg)', PL.beach || '#f2dfae', 'lawn'),
       hvFace(430, 400, 'translate3d(0,14px,0) rotateX(90deg)', GR, 'lawn'), hvFace(44, 130, 'translate3d(0,13px,165px) rotateX(90deg)', PL.path || '#f0e2b6', 'lawn'));
-    [[-185, -150], [190, -160], [-100, -185], [70, -188], [-200, -10], [205, -20], [-190, 120], [200, 130]].forEach(function (q, n) {
+    if (!mini) [[-185, -150], [190, -160], [-100, -185], [70, -188], [-200, -10], [205, -20], [-190, 120], [200, 130]].forEach(function (q, n) {
       var big = n % 2 ? 1 : 0.85;
       o.push(hvBox(q[0], -4, q[1], 10, 36, 10, '#8a5a2b'), hvBox(q[0], -34 * big - 6, q[1], 44 * big, 40 * big, 44 * big, LF[n % 2]), hvBox(q[0], -62 * big - 6, q[1], 26 * big, 26 * big, 26 * big, LF[(n + 1) % 2]));
     });
@@ -6751,9 +6755,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     fl.forEach(function (q) { fh.push(hvBox(q[0], 10, q[1], 3, 12, 3, p[7] ? '#3f9d4a' : 'transparent', gh(7)), hvBox(q[0], 2, q[1], 12, 8, 12, cl(7, q[2]), gh(7))); });
     o.push(G(7, fh.join('')));
     /* the builder (you) stands on the lawn and hammers while a piece goes up */
-    o.push('<div class="hv-pet hv-builder' + (HV && HV.anim ? ' building' : '') + '" style="transform:' + hvBuilderAt(!HV ? BUILD_BASE : HV.inside ? (HV.ipos || INSIDE_BASE) : (HV.bpos || BUILD_BASE)) + '"><div class="hv-bill"><div class="hv-hero">' + heroSVG(S.boots) + '</div><i class="hv-hammer"></i></div></div>');
+    if (!mini) o.push('<div class="hv-pet hv-builder' + (HV && HV.anim ? ' building' : '') + '" style="transform:' + hvBuilderAt(!HV ? BUILD_BASE : HV.inside ? (HV.ipos || INSIDE_BASE) : (HV.bpos || BUILD_BASE)) + '"><div class="hv-bill"><div class="hv-hero">' + heroSVG(S.boots) + '</div><i class="hv-hammer"></i></div></div>');
     /* floor squares and furniture */
-    if (p[1]) {
+    if (p[1] && !mini) {
       for (i = 0; i < COLS * ROWS; i++) { var ps = furnPos(i); o.push('<div class="hv-cell' + (HV && HV.tool ? ' tool' : '') + '" data-c="' + i + '" style="transform:translate3d(' + ps.x + 'px,' + (FLOOR_Y - 2) + 'px,' + ps.z + 'px) rotateX(90deg)"></div>'); }
       h.f.concat(HV && HV.removing ? [HV.removing] : []).forEach(function (q) {
         if (HV && HV.pendF === q.c) return;
@@ -6767,6 +6771,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       });
     }
     return o.join('');
+  }
+  /* the same 3D house as in the My house view, as a small still picture for the world, the walk view and the house sheets */
+  function houseMini(id, hs, fixed) {
+    var saved = HV, html;
+    HV = null;
+    try { html = hvHouse(id, true); } finally { HV = saved; }
+    var sz = fixed ? 'width:' + Math.round(400 * hs) + 'px;height:' + Math.round(340 * hs) + 'px;margin-bottom:22px' : 'width:100%;height:100%';
+    return '<div class="hm' + (houseBuilt(id) < HOUSE_PIECES.length ? ' wip' : '') + '" style="' + sz + ';--hs:' + hs + '" role="img" aria-label="House, ' + housePct(id) + ' percent built"><div class="hm-c">' + html + '</div></div>';
   }
   function hvCap(id) { return Math.min(6, 2 + houseOf(id).f.filter(function (q) { return q.k === 'bed'; }).length); }
   function hvGifts(id) {
@@ -7316,7 +7328,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       h.push('<div class="mfx-ring" style="animation-delay:.15s"></div><div class="mfx-ring" style="animation-delay:.4s;border-color:#ffd86b"></div><div class="mfx-rays"></div>');
       for (i = 0; i < 16; i++) { var ang = (i / 16) * 6.283, r = 140 + Math.random() * 160; h.push('<i class="mfx-spark" style="--dx:' + Math.round(Math.cos(ang) * r) + 'px;--dy:' + Math.round(Math.sin(ang) * r) + 'px;animation-delay:' + (0.15 + Math.random() * 0.3).toFixed(2) + 's"></i>'); }
     }
-    h.push('<div class="mfx-res hres">' + houseSVG(id, true) + '</div></div>');
+    h.push('<div class="mfx-res hres">' + houseMini(id, 0.85, true) + '</div></div>');
     if (!REDUCE) for (i = 0; i < 60; i++) h.push('<i class="mfx-conf" style="left:' + (Math.random() * 100).toFixed(1) + '%;background:' + cols[i % cols.length] + ';--dx:' + Math.round((Math.random() - 0.5) * 160) + 'px;--rot:' + Math.round(360 + Math.random() * 720) + 'deg;animation-delay:' + (0.3 + Math.random() * 2).toFixed(2) + 's;animation-duration:' + (2.6 + Math.random() * 1.8).toFixed(2) + 's"></i>');
     h.push('<div class="mfx-title">HOUSE COMPLETE!</div><div class="mfx-sub">Your house on ' + esc(WORLDS[id].name) + ' is finished. Now you can furnish it, let pets move in, and teleport between your houses!</div><div class="mfx-tap">Tap to continue</div>');
     host.innerHTML = h.join('');
