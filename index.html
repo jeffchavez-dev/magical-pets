@@ -5963,10 +5963,31 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var DIVE_BASE = 20, DIVE_MATE = 4, TANK_SEC = 15, DIVE_TANK_COST = 12;
   var SEA = [{ id: 'fish', name: 'Rainbow fish', col: '#ff9ec4', sz: 46, pts: 3, food: 1 }, { id: 'crab', name: 'Crab', col: '#ff7a5a', sz: 50, pts: 5, food: 1 }, { id: 'jelly', name: 'Jellyfish', col: '#c9a8ff', sz: 54, pts: 6, food: 0 }, { id: 'octo', name: 'Octopus', col: '#a77cff', sz: 66, pts: 10, food: 2 },
     { id: 'horse', name: 'Seahorse', col: '#ffd86b', sz: 54, pts: 7, food: 0 }, { id: 'turtle', name: 'Sea turtle', col: '#6ee7b7', sz: 64, pts: 8, food: 0 }, { id: 'star', name: 'Starfish', col: '#ffb35c', sz: 46, pts: 4, food: 1 }];
+  SEA.forEach(function (q) { q.home = 'lake'; });
+  /* ponds are home to their own, different creatures; every lake and every pond has its own few of them */
+  [{ id: 'koi', name: 'Koi', col: '#ff9a4d', sz: 50, pts: 4, food: 1 }, { id: 'frog', name: 'Pond frog', col: '#7fe38a', sz: 48, pts: 5, food: 1 }, { id: 'tadpole', name: 'Tadpole', col: '#4fb3a8', sz: 40, pts: 3, food: 0 }, { id: 'duck', name: 'Duckling', col: '#ffe066', sz: 50, pts: 6, food: 1 },
+    { id: 'snail', name: 'Water snail', col: '#e8a0d8', sz: 44, pts: 4, food: 0 }, { id: 'newt', name: 'Newt', col: '#ff7a5a', sz: 52, pts: 7, food: 0 }, { id: 'dragonfly', name: 'Dragonfly', col: '#5fd8ff', sz: 54, pts: 8, food: 2 }].forEach(function (q) { q.home = 'pond'; SEA.push(q); });
   var SEA_BY = {}; SEA.forEach(function (q) { SEA_BY[q.id] = q; });
+  var WPOOL = null;
+  function subsetsOf(k, seed) {
+    var out = [], R = rng(seed), i, j, m, t;
+    for (m = 0; m < 128; m++) { var c = []; for (i = 0; i < 7; i++) if (m >> i & 1) c.push(i); if (c.length === k) out.push(c); }
+    for (i = out.length - 1; i > 0; i--) { j = Math.floor(R() * (i + 1)); t = out[i]; out[i] = out[j]; out[j] = t; }
+    return out;
+  }
+  /* every lake and every pond in the whole game gets its own different set of creatures (lakes: 4 sea friends, ponds: 3 pond friends) */
+  function waterPool(spot) {
+    if (!WPOOL) {
+      WPOOL = {}; var cnt = { lake: 0, pond: 0 }, subs = { lake: subsetsOf(4, 4242), pond: subsetsOf(3, 3131) };
+      Object.keys(WORLDS).forEach(function (id) { WORLDS[id].spots.forEach(function (sp) { if (sp.k !== 'pond') return; var hk = sp.lake ? 'lake' : 'pond'; WPOOL[id + '|' + sp.t + '|' + sp.x] = subs[hk][cnt[hk]++ % subs[hk].length]; }); });
+    }
+    var home = spot && spot.lake ? 'lake' : 'pond', list = SEA.filter(function (q) { return q.home === home; }), idx = WPOOL[S.cur + '|' + (spot ? spot.t + '|' + spot.x : '')] || (home === 'lake' ? [0, 1, 2, 3] : [0, 1, 2]);
+    return idx.map(function (i) { return list[i]; });
+  }
+  function pondDone() { return SEA.filter(function (q) { return q.home === 'pond'; }).every(function (q) { return S.sea && S.sea[q.id]; }); }
   /* meeting all 7 sea friends: Sea Master gives +5 seconds of breath and room for 7 air tanks */
-  function seaDone() { return SEA.every(function (q) { return S.sea && S.sea[q.id]; }); }
-  function diveBase() { return DIVE_BASE + (seaDone() ? 5 : 0); }
+  function seaDone() { return SEA.filter(function (q) { return q.home === 'lake'; }).every(function (q) { return S.sea && S.sea[q.id]; }); }
+  function diveBase() { return DIVE_BASE + (seaDone() ? 5 : 0) + (pondDone() ? 3 : 0); }
   function tankMax() { return seaDone() ? 7 : 5; }
   function tunnelSVG() {
     return '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#7fe8ff" opacity=".25"/><circle cx="50" cy="50" r="38" fill="none" stroke="#b9f3ff" stroke-width="6"/><circle cx="50" cy="50" r="30" fill="#2a1a7a"/><g fill="none" stroke-linecap="round"><path d="M50 50 m0 -6 a6 6 0 1 1 -6 6 a14 14 0 1 1 14 -14 a22 22 0 1 1 -22 22" stroke="#ffe27a" stroke-width="4"/><path d="M50 50 m6 0 a6 6 0 1 0 6 6" stroke="#fff" stroke-width="3"/></g><circle cx="26" cy="22" r="3" fill="#fff"/><circle cx="78" cy="28" r="2.5" fill="#fff"/><circle cx="76" cy="78" r="3" fill="#fff"/></svg>';
@@ -5980,6 +6001,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     else if (id === 'octo') o += '<path d="M10 38 q-6 12 2 16 M22 42 q-3 12 2 14 M38 42 q3 12 -2 14 M50 38 q6 12 -2 16" stroke="' + c + '" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="30" cy="26" r="19" fill="' + c + '"' + st + '/><circle cx="23" cy="25" r="4" fill="#fff"/><circle cx="37" cy="25" r="4" fill="#fff"/><circle cx="24" cy="26" r="1.8" fill="#2a1a55"/><circle cx="38" cy="26" r="1.8" fill="#2a1a55"/>';
     else if (id === 'horse') o += '<path d="M34 8 q12 0 12 11 q0 6 -7 8 q6 8 -2 16 q-4 8 -14 10 q8 -8 3 -16 q-6 -4 -2 -12 q-5 -2 -4 -9 q2 -8 14 -8Z" fill="' + c + '"' + st + '/><circle cx="38" cy="17" r="2.4" fill="#2a1a55"/><path d="M46 21 l9 2" stroke="' + c + '" stroke-width="4" stroke-linecap="round"/>';
     else if (id === 'turtle') o += '<ellipse cx="30" cy="34" rx="22" ry="16" fill="' + c + '"' + st + '/><path d="M18 30 l6 -6 h12 l6 6 -6 8 h-12z" fill="#fff" opacity=".35"/><circle cx="54" cy="30" r="6" fill="' + c + '"' + st + '/><circle cx="56" cy="28" r="1.5" fill="#2a1a55"/><ellipse cx="14" cy="48" rx="7" ry="4" fill="' + c + '"' + st + '/><ellipse cx="44" cy="49" rx="7" ry="4" fill="' + c + '"' + st + '/>';
+    else if (id === 'koi') o += '<path d="M10 30 L1 19 L1 41Z" fill="' + c + '"' + st + '/><ellipse cx="32" cy="30" rx="22" ry="13" fill="' + c + '"' + st + '/><circle cx="26" cy="28" r="6.500" fill="#fff" opacity=".9"/><circle cx="38" cy="33" r="4.500" fill="#ff4d3d"/><circle cx="46" cy="26" r="3.200" fill="#fff"/><circle cx="47" cy="26" r="1.600" fill="#2a1a55"/>';
+    else if (id === 'frog') o += '<ellipse cx="30" cy="38" rx="21" ry="15" fill="' + c + '"' + st + '/><circle cx="19" cy="22" r="9" fill="' + c + '"' + st + '/><circle cx="41" cy="22" r="9" fill="' + c + '"' + st + '/><circle cx="19" cy="22" r="5" fill="#fff"/><circle cx="41" cy="22" r="5" fill="#fff"/><circle cx="20" cy="23" r="2.600" fill="#2a1a55"/><circle cx="42" cy="23" r="2.600" fill="#2a1a55"/><path d="M20 40 q10 8 20 0" stroke="#2a1a55" stroke-width="2.800" fill="none" stroke-linecap="round"/><ellipse cx="10" cy="52" rx="7" ry="4" fill="' + c + '"' + st + '/><ellipse cx="50" cy="52" rx="7" ry="4" fill="' + c + '"' + st + '/>';
+    else if (id === 'tadpole') o += '<path d="M34 30 q9 -11 15 0 q5 9 10 -3" stroke="' + c + '" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="22" cy="30" r="16" fill="' + c + '"' + st + '/><circle cx="17" cy="26" r="4.500" fill="#fff"/><circle cx="28" cy="26" r="4.500" fill="#fff"/><circle cx="18" cy="27" r="2.200" fill="#2a1a55"/><circle cx="29" cy="27" r="2.200" fill="#2a1a55"/><path d="M16 37 q6 5 12 0" stroke="#2a1a55" stroke-width="2.500" fill="none" stroke-linecap="round"/>';
+    else if (id === 'duck') o += '<ellipse cx="28" cy="38" rx="20" ry="14" fill="' + c + '"' + st + '/><circle cx="40" cy="20" r="11" fill="' + c + '"' + st + '/><path d="M49 21 l9 3 -9 4Z" fill="#ff9b3d"' + st + '/><circle cx="43" cy="17" r="2.800" fill="#2a1a55"/><path d="M16 38 q8 -6 16 2 q-8 6 -16 -2Z" fill="#fff" opacity=".5"/><path d="M38 6 q4 -4 6 1" stroke="' + c + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    else if (id === 'snail') o += '<ellipse cx="32" cy="47" rx="24" ry="7" fill="#c9b8a8"' + st + '/><path d="M50 44 q4 -12 8 -14 M56 44 q4 -8 4 -12" stroke="#c9b8a8" stroke-width="3.500" fill="none" stroke-linecap="round"/><circle cx="26" cy="28" r="18" fill="' + c + '"' + st + '/><path d="M26 28 m0 -3 a3 3 0 1 1 -3 3 a8 8 0 1 1 8 -8 a13 13 0 1 1 -13 13" stroke="#fff" stroke-width="2.800" fill="none" stroke-linecap="round" opacity=".8"/>';
+    else if (id === 'newt') o += '<path d="M8 40 q12 -16 24 -4 q12 10 20 -8" stroke="' + c + '" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="53" cy="26" r="8" fill="' + c + '"' + st + '/><circle cx="56" cy="23" r="2.500" fill="#fff"/><circle cx="57" cy="23" r="1.200" fill="#2a1a55"/><circle cx="22" cy="36" r="2.600" fill="#fff"/><circle cx="34" cy="38" r="2.600" fill="#fff"/><circle cx="44" cy="30" r="2.600" fill="#fff"/><path d="M20 44 l-3 8 M36 44 l3 8" stroke="' + c + '" stroke-width="4" stroke-linecap="round"/>';
+    else if (id === 'dragonfly') o += '<ellipse cx="18" cy="20" rx="15" ry="6" fill="#bfeaff" opacity=".75"' + st + ' transform="rotate(-20 18 20)"/><ellipse cx="42" cy="20" rx="15" ry="6" fill="#bfeaff" opacity=".75"' + st + ' transform="rotate(20 42 20)"/><ellipse cx="18" cy="28" rx="13" ry="5" fill="#bfeaff" opacity=".75"' + st + ' transform="rotate(14 18 28)"/><ellipse cx="42" cy="28" rx="13" ry="5" fill="#bfeaff" opacity=".75"' + st + ' transform="rotate(-14 42 28)"/><rect x="26" y="22" width="8" height="34" rx="4" fill="' + c + '"' + st + '/><circle cx="30" cy="20" r="7" fill="' + c + '"' + st + '/><circle cx="27" cy="18" r="2.800" fill="#fff"/><circle cx="33" cy="18" r="2.800" fill="#fff"/>';
     else o += '<path d="M30 4 L37 22 L56 23 L41 35 L46 54 L30 43 L14 54 L19 35 L4 23 L23 22Z" fill="' + c + '"' + st + '/><circle cx="30" cy="30" r="3" fill="#fff" opacity=".7"/>';
     return o + '</svg>';
   }
@@ -6015,9 +6043,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var h = ['<div class="sheet-card divesheet"><h3>Dive into ' + esc(lake.t) + '</h3><p class="srow-note">' + (teleReady('pond') ? '<b>' + esc(teleReady('pond').p.name) + ' feels a warp tunnel down below!</b> Find it to warp to another world. ' : '') + 'This water is deep! Swim down to find sea friends, house materials and star scrap. You can hold your breath for ' + base + ' seconds. An air tank adds ' + TANK_SEC + ' more.</p>'];
     h.push('<p class="srow-note">' + (ml.a.length ? '<b>Swimmers come along (+' + DIVE_MATE + ' seconds each):</b> ' + ml.a.slice(0, 3).map(function (p) { return esc(p.name); }).join(', ') + '. ' : 'None of your pets can swim yet. Water pets, fish, frogs and turtles can. ') + (ml.b.length ? ml.b.map(function (p) { return esc(p.name); }).join(', ') + ' wait' + (ml.b.length === 1 ? 's' : '') + ' on the shore.' : '') + '</p>');
     h.push('<div class="astrostat"><span><b>' + S.coins + '</b> coins</span><span><b>' + S.air + '</b> air tank' + (S.air === 1 ? '' : 's') + '</span></div>');
-    var n = SEA.filter(function (q) { return S.sea[q.id]; }).length;
-    h.push('<p class="srow-note">' + (seaDone() ? '<b>Sea Master!</b> You met all 7 sea friends: +5 seconds of breath and room for 7 air tanks.' : 'Meet all 7 sea friends to become a Sea Master: +5 seconds of breath and room for 7 air tanks.') + (S.diveBest ? ' Best dive: <b>' + S.diveBest + ' points</b>.' : '') + '</p>');
-    h.push('<p class="srow-note">Sea friends found: <b>' + n + ' of ' + SEA.length + '</b>' + (n ? ' &middot; ' + SEA.filter(function (q) { return S.sea[q.id]; }).map(function (q) { return esc(q.name) + ' x' + S.sea[q.id]; }).join(', ') : '') + '</p>');
+    var pool = waterPool(lake), homeK = lake.lake ? 'lake' : 'pond', n = SEA.filter(function (q) { return q.home === homeK && S.sea[q.id]; }).length;
+    h.push('<p class="srow-note"><b>' + esc(lake.t) + ' is home to:</b> ' + pool.map(function (q) { return esc(q.name) + (S.sea[q.id] ? '' : ' (new!)'); }).join(', ') + '. ' + (lake.lake ? 'Lakes are deep and have sea creatures; ponds have different pond creatures.' : 'Ponds have their own pond creatures; the big lakes have different sea creatures.') + '</p>');
+    h.push('<p class="srow-note">' + (pondDone() ? '<b>Pond Master!</b> You met all 7 pond friends: +3 seconds of breath. ' : '') + (seaDone() ? '<b>Sea Master!</b> You met all 7 sea friends: +5 seconds of breath and room for 7 air tanks.' : 'Meet all 7 sea friends to become a Sea Master: +5 seconds of breath and room for 7 air tanks.') + (S.diveBest ? ' Best dive: <b>' + S.diveBest + ' points</b>.' : '') + '</p>');
+    h.push('<p class="srow-note">' + (lake.lake ? 'Sea' : 'Pond') + ' friends found: <b>' + n + ' of 7</b>' + (n ? ' &middot; ' + SEA.filter(function (q) { return q.home === homeK && S.sea[q.id]; }).map(function (q) { return esc(q.name) + ' x' + S.sea[q.id]; }).join(', ') : '') + '</p>');
     h.push('<button class="btn small" data-act="diveair"' + (S.coins >= DIVE_TANK_COST && S.air < tankMax() ? '' : ' disabled') + '>' + (S.air >= tankMax() ? 'Air tank rack is full' : 'Buy an air tank (' + DIVE_TANK_COST + ' coins)') + '</button>');
     h.push('<button class="btn primary" data-act="divego" data-air="0">Dive! (' + base + ' seconds)</button>');
     h.push('<button class="btn" data-act="divego" data-air="1"' + (S.air > 0 ? '' : ' disabled') + '>Dive with an air tank (' + (base + TANK_SEC) + ' seconds)</button>');
@@ -6056,10 +6085,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       items.push({ el: el, kind: kind, sub: sub, x: x, y: y, sz: size, vx: kind === 'sea' ? (Math.random() < 0.5 ? -1 : 1) * (25 + Math.random() * 40) : 0, ph: Math.random() * 6 });
     }
     function rx() { return 60 + Math.random() * (WW - 120); } function ry() { return 170 + Math.random() * (HH - 330); }
-    var mats = worldMats(S.cur), ni;
+    var mats = worldMats(S.cur), ni, divePool = waterPool(lake);
     if (level() >= HOUSE_LV) for (ni = 0; ni < (small ? 3 : 5); ni++) { var mk = Math.random() < 0.5 ? mats[0] : Math.random() < 0.6 ? mats[1] : mats[2]; add('mat', mk, rx(), ry(), 44, '<svg viewBox="0 0 60 60"><rect x="12" y="12" width="36" height="36" rx="9" fill="' + MAT_BY[mk].col + '" stroke="#fff" stroke-width="3" transform="rotate(12 30 30)"/><circle cx="23" cy="22" r="4" fill="#fff" opacity=".7"/></svg>'); }
     if (level() >= ASTRO_LV) for (ni = 0; ni < (small ? 1 : 3); ni++) add('scrap', '', rx(), ry(), 44, scrapSVG().replace(/<span.*$/, ''));
-    for (ni = 0; ni < (small ? 5 : 9); ni++) { var sc = SEA[Math.floor(Math.random() * SEA.length)]; add('sea', sc.id, rx(), 200 + Math.random() * (HH - 380), sc.sz, seaSVG(sc.id, sc.col)); }
+    for (ni = 0; ni < (small ? 5 : 9); ni++) { var sc = divePool[Math.floor(Math.random() * divePool.length)]; add('sea', sc.id, rx(), 200 + Math.random() * (HH - 380), sc.sz, seaSVG(sc.id, sc.col)); }
     var tun = teleReady('pond');
     if (tun) add('tunnel', '', small ? WW / 2 + (Math.random() < 0.5 ? -1 : 1) * (130 + Math.random() * 120) : rx(), small ? HH - 200 : HH - 230 - Math.random() * 60, 104, tunnelSVG());
     if (Math.random() < 0.2) add('pearl', '', rx(), HH - 190 - Math.random() * 60, 58, pearlSVG());
@@ -7211,10 +7240,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var SEA_IN = {
     fish: function (c) { return [[0, 10, 0, 14, 8, 8, c], [-9, 11, 0, 5, 6, 2, c]]; }, crab: function (c) { return [[0, 6, 0, 14, 6, 10, c], [-9, 8, -3, 5, 4, 4, c], [9, 8, -3, 5, 4, 4, c]]; },
     jelly: function (c) { return [[0, 16, 0, 12, 8, 12, c], [-3, 8, 0, 2, 8, 2, c], [3, 8, 0, 2, 8, 2, c]]; }, octo: function (c) { return [[0, 14, 0, 12, 10, 12, c], [-6, 6, 0, 3, 8, 3, c], [6, 6, 0, 3, 8, 3, c], [0, 6, -6, 3, 8, 3, c]]; },
-    horse: function (c) { return [[0, 8, 0, 5, 16, 5, c], [3, 20, 0, 7, 5, 5, c]]; }, turtle: function (c) { return [[0, 6, 0, 16, 6, 12, c], [9, 8, 0, 5, 4, 5, c]]; }, star: function (c) { return [[0, 6, 0, 18, 2, 6, c], [0, 6, 0, 6, 2, 18, c]]; }
+    horse: function (c) { return [[0, 8, 0, 5, 16, 5, c], [3, 20, 0, 7, 5, 5, c]]; }, turtle: function (c) { return [[0, 6, 0, 16, 6, 12, c], [9, 8, 0, 5, 4, 5, c]]; }, star: function (c) { return [[0, 6, 0, 18, 2, 6, c], [0, 6, 0, 6, 2, 18, c]]; },
+    koi: function (c) { return [[0, 10, 0, 14, 8, 8, c], [-9, 11, 0, 5, 6, 2, c], [2, 17, 0, 6, 2, 6, '#fff']]; }, frog: function (c) { return [[0, 5, 0, 12, 6, 10, c], [-3, 11, 3, 4, 3, 3, '#fff'], [3, 11, 3, 4, 3, 3, '#fff']]; },
+    tadpole: function (c) { return [[0, 10, 0, 8, 6, 6, c], [-8, 11, 0, 7, 2, 2, c]]; }, duck: function (c) { return [[0, 9, 0, 10, 8, 8, c], [5, 15, 0, 6, 5, 5, c], [8, 16, 0, 3, 2, 3, '#ff9b3d']]; },
+    snail: function (c) { return [[0, 4, 0, 12, 3, 7, '#d8c8b8'], [-2, 7, 0, 8, 7, 7, c]]; }, newt: function (c) { return [[0, 4, 0, 16, 3, 5, c], [8, 5, 0, 5, 4, 5, c], [-9, 4, 0, 6, 2, 3, c]]; },
+    dragonfly: function (c) { return [[0, 16, 0, 14, 3, 3, c], [-1, 18, -5, 6, 1, 10, '#bfe8ff'], [-1, 18, 5, 6, 1, 10, '#bfe8ff']]; }
   };
   /* one aquarium for every sea friend: put the ones you have met inside and they swim around */
-  var AQ_MAX = 6, AQ_FLOOR = { crab: 1, star: 1 };
+  var AQ_MAX = 6, AQ_FLOOR = { crab: 1, star: 1, frog: 1, snail: 1, newt: 1 };
   FURN.aquarium = { name: 'Aquarium', sea: 'any', cost: { C: 3 }, bx: function () { return [[0, 0, 0, 40, 4, 40, '#6b7390'], [0, 4, 0, 38, 32, 38, 'rgba(120,205,255,.42)'], [0, 36, 0, 40, 3, 40, '#6b7390'], [0, 4, 0, 34, 3, 34, '#f2dfae'], [9, 7, 9, 4, 15, 4, '#3f9d4a']]; } };
   function aqUsed(sid) { var n = 0; Object.keys(S.houses || {}).forEach(function (k) { (S.houses[k].f || []).forEach(function (q) { if (q.aq) q.aq.forEach(function (x) { if (x === sid) n++; }); }); }); return n; }
   function aqFish(q) {

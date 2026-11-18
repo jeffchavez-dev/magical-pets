@@ -50,6 +50,8 @@ When you swim in a lake, a **Dive** button appears. Dive down to a see-through u
 
 **Dive score.** Everything you grab is worth points (materials 5, star scrap 8). The score shows while you dive and your best dive is saved and shown in the dive sheet.
 
+**Lakes and ponds have different creatures.** The big lakes hold the 7 sea friends (rainbow fish, crab, jellyfish, octopus, seahorse, sea turtle, starfish) and the small ponds hold 7 different pond friends (koi, pond frog, tadpole, duckling, water snail, newt, dragonfly). Every single lake (4 sea friends each) and every single pond (3 pond friends each) in the game has its own different set, shown on the dive sheet as "is home to" with a "new!" tag for ones you have not met. Meet all 7 pond friends to become a **Pond Master** (+3 seconds of breath). All of them can live in your Aquarium.
+
 **Sea Master.** Meet all 7 sea friends and you become a Sea Master for good: +5 seconds of breath on every dive and room for 7 air tanks instead of 5.
 
 **Aquariums.** Every sea friend you have met can be placed in your house as a little glass aquarium (Furniture tab, 3 of the third material).
