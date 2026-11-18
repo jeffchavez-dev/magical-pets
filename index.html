@@ -2554,6 +2554,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     W0.noExtra = true;
   });
   FAR_DEF.forEach(function (d) { WORLDS[d.id].noExtra = true; });
+  var MAX_PONDS = 2;
   var LAKE_RE = /Lake|Bay/, LAKE_K = 1.7, LAKE_R = 290;   /* lakes are much bigger than ponds */
   var EXTRA = { bush: ['Berry Patch', 'Sweet Bushes', 'Snack Grove', 'Munch Meadow', 'Nibble Nook', 'Tasty Thicket'],
     pond: ['Splash Pond', 'Sparkle Lake', 'Puddle Park', 'Giggle Brook', 'Play Pool', 'Bubble Bay'] };
@@ -2579,6 +2580,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       W.spots.push(kind === 'bush' ? { k: 'bush', x: x, y: y, r: 120, ly: -140, t: EXTRA.bush[made.bush++ % 6], extra: true } : isLake ? { k: 'pond', lake: true, x: x, y: y, r: LAKE_R, ly: -300, t: EXTRA.pond[made.pond++ % 6], extra: true } : { k: 'pond', x: x, y: y, r: 170, ly: -180, t: EXTRA.pond[made.pond++ % 6], extra: true });
       extra--;
     }
+    /* no world keeps more than 2 ponds (lakes and the original ponds stay; the extra ones go first) */
+    var pds = W.spots.filter(function (sp) { return sp.k === 'pond'; });
+    if (pds.length > MAX_PONDS) pds.map(function (sp, i) { return { sp: sp, r: (sp.extra ? 0 : 2) + (sp.lake ? 1 : 0), i: i }; }).sort(function (m, n) { return m.r - n.r || n.i - m.i; }).slice(0, pds.length - MAX_PONDS).forEach(function (q) { W.spots.splice(W.spots.indexOf(q.sp), 1); });
     if (W.land) {
       W.walk = W.land.slice();
       pathsFor(W).forEach(function (q) { var nk = Math.max(14, Math.ceil(Math.hypot(q[4] - q[0], q[5] - q[1]) / 45)); for (var k = 0; k <= nk; k++) { var t = k / nk, u = 1 - t; W.walk.push([u * u * q[0] + 2 * u * t * q[2] + t * t * q[4], u * u * q[1] + 2 * u * t * q[3] + t * t * q[5], 62]); } });
