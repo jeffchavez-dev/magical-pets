@@ -883,6 +883,60 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .pdot { display: block; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; }
 .hv-parts { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; }
 .hv-parts button { border: 0; border-radius: 10px; padding: 5px 12px; font-weight: 800; background: rgba(255,255,255,.2); color: #fff; cursor: pointer; }
+.rv { position: fixed; inset: 0; z-index: 9600; opacity: 0; transition: opacity .35s ease; color: #fff; font-family: var(--font-body, sans-serif); }
+.rv.in { opacity: 1; } .rv.out { opacity: 0; }
+.rv-bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 20%, #5a1d8f 0, #1d0b45 55%, #07021c 100%); }
+.rv-bg::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,80,200,.07) 0 3px, transparent 3px 7px); animation: rvGlitch 2.4s steps(2) infinite; }
+@keyframes rvGlitch { 50% { transform: translateX(3px); opacity: .6; } }
+.rv-wrap { position: relative; max-width: 560px; height: 100%; margin: 0 auto; padding: 14px 14px 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; overflow: auto; }
+.rv-logo { font-family: var(--font-display, Fredoka, sans-serif); font-weight: 800; font-size: clamp(26px, 7vw, 40px); letter-spacing: 2px; color: #ffd34e; text-shadow: 3px 0 #ff3d9a, -3px 0 #35e0c9; animation: rvShake .3s steps(2) infinite; margin-top: 6px; }
+@keyframes rvShake { 50% { transform: translate(2px, -1px) skewX(-2deg); } }
+.rv-cast { display: flex; justify-content: center; gap: 18px; align-items: flex-end; margin: 4px 0; }
+.rv-vil { width: clamp(110px, 28vw, 160px); text-align: center; animation: rvBob 2.2s ease-in-out infinite; } .rv-vil.v2 { animation-delay: -1s; width: clamp(96px, 25vw, 140px); } .rv-vil svg { width: 100%; display: block; } .rv-vil b { font-family: var(--font-display, sans-serif); color: #ffe27a; }
+@keyframes rvBob { 50% { transform: translateY(-8px) rotate(1.5deg); } }
+.rv-say { background: #fff; color: #2a1a55; border-radius: 16px; padding: 10px 14px; font-weight: 700; text-align: center; max-width: 92%; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+.rv-sub { margin: 0; text-align: center; color: #ffe27a; font-weight: 700; } .rv-hint { margin: 0; font-size: 13px; opacity: .8; text-align: center; min-height: 18px; }
+.rv-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 6px 0; }
+.rv-top { width: 100%; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-display, sans-serif); font-weight: 700; color: #ffd34e; }
+.rv-bots { display: flex; gap: 12px; justify-content: center; width: 100%; }
+.rv-bot { position: relative; flex: 1; max-width: 190px; padding: 6px; border-radius: 16px; background: rgba(255,255,255,.08); border: 3px solid transparent; color: #fff; cursor: default; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.rv-bot svg { width: 70%; max-width: 110px; animation: rvBob 2s ease-in-out infinite; } .rv-bot.tgt { border-color: #ffd34e; cursor: pointer; animation: rvPulse .6s ease-in-out infinite alternate; } .rv-bot.down { opacity: .35; filter: grayscale(1); } .rv-bot.down svg { animation: none; transform: rotate(80deg) translateY(14px); }
+@keyframes rvPulse { to { background: rgba(255,211,78,.25); } }
+.rv-hp { display: block; position: relative; width: 100%; height: 9px; border-radius: 9px; background: rgba(0,0,0,.45); overflow: hidden; } .rv-hp u { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(#7ff58f, #29c45a); transition: width .4s; } .rv-hp s { position: absolute; left: 0; top: 0; height: 3px; background: #7fe8ff; }
+.rv-bot .rv-hp u { background: linear-gradient(#ff8fb0, #ff3d6e); }
+.rv-st { min-height: 16px; } .rv-st em { font-style: normal; font-size: 11px; background: #ff3d9a; border-radius: 8px; padding: 1px 6px; margin: 0 2px; }
+.rv-log { margin: 0; min-height: 44px; width: 100%; text-align: center; background: rgba(0,0,0,.4); border-radius: 12px; padding: 8px 10px; font-weight: 700; }
+.rv-team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+.rv-pet { position: relative; padding: 6px 4px 8px; border-radius: 14px; background: rgba(255,255,255,.12); border: 3px solid transparent; color: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; font: inherit; }
+.rv-pet .rv-face { width: 54px; height: 54px; } .rv-pet .rv-face svg { width: 100%; height: 100%; } .rv-pet b { font-size: 13px; } .rv-pet .rv-mv { font-size: 11px; color: #ffe27a; font-weight: 700; }
+.rv-pet.on { border-color: #ffd34e; } .rv-pet.wait { opacity: .6; } .rv-pet.down { opacity: .3; filter: grayscale(1); }
+.rv-bot.hit, .rv-pet.hit { animation: rvHit .4s linear; } .rv-pet.act { animation: rvAct .5s ease-out; } .rv-pet.boost { box-shadow: 0 0 18px 4px #7ff58f; }
+@keyframes rvHit { 0%, 100% { transform: none; } 20% { transform: translateX(-9px); background: rgba(255,60,90,.5); } 40% { transform: translateX(9px); } 60% { transform: translateX(-6px); } }
+@keyframes rvAct { 40% { transform: translateY(-14px) scale(1.1); } }
+.rv-pop { position: absolute; left: 50%; top: 20%; transform: translateX(-50%); font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 18px; white-space: nowrap; pointer-events: none; text-shadow: 0 2px 4px #000; animation: rvPop 1.2s ease-out forwards; z-index: 3; }
+.rv-pop.dmg { color: #ff8fa0; } .rv-pop.heal { color: #8fffa0; } .rv-pop.st { color: #7fe8ff; } .rv-pop.big { color: #ffe27a; font-size: 20px; top: 40%; }
+@keyframes rvPop { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -46px; } }
+@media (prefers-reduced-motion: reduce) { .rv-bg::after, .rv-logo, .rv-vil, .rv-bot svg, .rv-bot.tgt { animation: none; } }
+.dv-pick { position: absolute; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(6,20,60,.55); }
+.dv-pickcard { width: min(92vw, 380px); padding: 18px; border-radius: 22px; background: linear-gradient(#1b3f8f, #12295f); border: 3px solid #7fe8ff; color: #fff; text-align: center; box-shadow: 0 0 40px #4fd1ff88; }
+.dv-pickcard h3 { margin: 0 0 6px; color: #ffe27a; } .dv-pickcard p { margin: 0 0 10px; }
+.dv-pickl { display: grid; gap: 8px; max-height: 42vh; overflow: auto; margin-bottom: 10px; } .dv-pickl .btn small { display: block; font-size: 12px; opacity: .8; }
+.dv-vx { position: absolute; inset: 0; z-index: 60; overflow: hidden; background: radial-gradient(circle at 50% 52%, #fff 0, var(--c1, #8fd8ff) 10%, var(--c2, #3e9fe0) 40%, #061a46 100%); animation: vxIn .45s ease-out both; }
+.dv-vx.out { animation: vxOut .7s ease-in forwards; }
+@keyframes vxIn { from { opacity: 0; transform: scale(1.3); } to { opacity: 1; transform: none; } }
+@keyframes vxOut { to { opacity: 0; transform: scale(1.6); } }
+.vx-glow { position: absolute; left: 50%; top: 52%; width: 38vmin; height: 38vmin; margin: -19vmin 0 0 -19vmin; border-radius: 50%; background: radial-gradient(#fff, transparent 70%); animation: vxGlow var(--d, 2.8s) ease-in both; }
+@keyframes vxGlow { 0% { transform: scale(.2); opacity: .4; } 85% { transform: scale(2.4); opacity: 1; } 100% { transform: scale(5); opacity: 1; } }
+.vx-spin { position: absolute; left: 50%; top: 52%; width: 170vmax; height: 170vmax; margin: -85vmax 0 0 -85vmax; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.55) 0 9deg, rgba(255,255,255,0) 9deg 30deg); -webkit-mask: radial-gradient(circle, transparent 5%, #000 18%, #000 60%, transparent 72%); mask: radial-gradient(circle, transparent 5%, #000 18%, #000 60%, transparent 72%); animation: vxSpin var(--d, 2.8s) cubic-bezier(.5,0,.9,.6) both; }
+.vx-spin.s2 { background: repeating-conic-gradient(from 15deg, rgba(120,230,255,.6) 0 6deg, rgba(120,230,255,0) 6deg 24deg); animation-direction: reverse; animation-duration: calc(var(--d, 2.8s) * .9); }
+@keyframes vxSpin { from { transform: rotate(0) scale(.35); } to { transform: rotate(900deg) scale(.08); } }
+.vx-ring { position: absolute; left: 50%; top: 52%; width: 90vmin; height: 90vmin; margin: -45vmin 0 0 -45vmin; border-radius: 50%; border: 4px solid rgba(255,255,255,.75); animation: vxRing 1.2s ease-in infinite; }
+@keyframes vxRing { from { transform: scale(1.4); opacity: 0; } 20% { opacity: 1; } to { transform: scale(0); opacity: 0; } }
+.vx-bub { position: absolute; left: 50%; top: 52%; width: var(--s, 10px); height: var(--s, 10px); border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,.35)); animation: vxBub 1.2s ease-in infinite; }
+@keyframes vxBub { from { transform: translate(var(--sx), var(--sy)) scale(1); opacity: 0; } 15% { opacity: 1; } to { transform: translate(0, 0) scale(.1); opacity: 0; } }
+.vx-txt { position: absolute; left: 0; right: 0; top: 14%; text-align: center; font-family: var(--font-display, Fredoka, sans-serif); font-weight: 700; font-size: clamp(24px, 6vw, 44px); color: #fff; text-shadow: 0 3px 12px #06224f; animation: vxTxt var(--d, 2.8s) ease-out both; }
+@keyframes vxTxt { 0% { opacity: 0; transform: scale(.6); } 25% { opacity: 1; transform: scale(1.08); } 80% { opacity: 1; } 100% { opacity: 0; transform: scale(1.4); } }
+@media (prefers-reduced-motion: reduce) { .vx-spin, .vx-ring, .vx-bub, .vx-glow { animation: none; } }
 .hv-fish { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; animation: aqSwim linear infinite; }
 @keyframes aqSwim {
   0% { transform: translate3d(calc(var(--dx) * -1), calc(var(--y) * -1), calc(var(--dz) * -1)) rotateY(0deg); }
@@ -1807,7 +1861,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function savePet(p) { return { id: p.id, type: p.type, body: p.body, rid: p.rid, stage: p.stage, happy: p.happy, fav: p.fav, name: p.name, prog: p.prog, hun: Math.round(hunOf(p)), uc: p.uc, ut: p.ut, px: p.px }; }
   function baseState() {
     return { screen: 'intro', stone: STONES[0], awake: false, awakening: false, chosen: null, merging: false, eggs: null, taps: 0, hatch: null, suggest: '',
-      look: defaultLook(), lookReturn: 'sun', uni: {}, friendly: friendlyPref(), gf: {}, mats: {}, houses: {}, lockUntil: 0, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], suit: {}, ship: { hull: 0, eng: 0, rec: 0, scan: 0 }, scrap: 0, o2: 0, tank: 0, air: 0, sea: {}, diveBest: 0, portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
+      look: defaultLook(), lookReturn: 'sun', uni: {}, friendly: friendlyPref(), gf: {}, mats: {}, houses: {}, lockUntil: 0, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], suit: {}, ship: { hull: 0, eng: 0, rec: 0, scan: 0 }, scrap: 0, o2: 0, tank: 0, air: 0, sea: {}, rvWins: 0, diveBest: 0, portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
       evolving: false, justEvolved: null, msg: '', world: null, birds: false, hasSave: !!(readSave() && readSave().team && readSave().team.length) };
   }
   function newGame() {
@@ -1822,7 +1876,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!S.team.length) return;
       dexSync();
       stashWorld();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, rvWins: S.rvWins | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
         stones: S.stones.map(function (s) { return s.id; }), caught: S.caught, wilds: S.wilds, freed: S.freed, opened: S.opened, beaten: S.beaten, coins: S.coins, boots: S.boots, bag: S.bag, portals: S.portals, suns: S.suns, food: S.food,
         cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)), uc: q.uc, px: q.px } }; }) }));
     } catch (x) { /* storage can be unavailable; the game still works */ }
@@ -1851,7 +1905,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.cageLv = Math.max(0, Math.min(4, d.cageLv | 0));
     S.suit = {}; SUIT.forEach(function (p) { if (d.suit && d.suit[p.id]) S.suit[p.id] = 1; });
     S.ship = {}; SHIP.forEach(function (q) { S.ship[q.id] = Math.max(0, Math.min(3, (d.ship && d.ship[q.id]) | 0)); });
-    S.diveBest = Math.max(0, d.diveBest | 0); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
+    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
     S.scrap = Math.max(0, Math.min(99, d.scrap | 0)); S.tank = Math.max(0, Math.min(TANKS.length - 1, d.tank | 0)); S.o2 = Math.max(0, Math.min(TANKS[S.tank].cap, d.o2 | 0));
     S.cage = (Array.isArray(d.cage) ? d.cage : []).filter(function (p) { return p && TYPES[p.type]; }).slice(0, S.cageLv ? CAGE_CAP[S.cageLv - 1] : 0);
     S.team.concat(S.cage).forEach(function (p) { if (!p.body) p.body = bodyFor(p.type, p.id); if (!p.prog) migrateProg(p); });
@@ -3601,6 +3655,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function spawnPoint() {
     if (S.tele) {
       var tk = S.tele, ts = WD().spots.filter(function (x) { return x.k === tk; })[0], ang, pt; S.tele = null;
+      if (ts && tk === 'pond') return { x: ts.x, y: ts.y };
       if (ts) for (ang = 90; ang < 450; ang += 45) {
         pt = clampPt({ x: ts.x + Math.cos(ang * Math.PI / 180) * (ts.r * 0.72 + 90), y: ts.y + Math.sin(ang * Math.PI / 180) * (ts.r * 0.72 + 90) }, WALK_R);
         if (dist(pt, ts) > ts.r * 0.72 + 25) return pt;
@@ -5947,7 +6002,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     function blocked(x, y, m) { return obs.some(function (o) { return Math.hypot(x - o.x, y - o.y) < o.r + m; }); }
     var me = document.createElement('div'); me.className = 'dv-me'; me.innerHTML = heroSVG(S.boots); wd.appendChild(me);
     var dm = mates.map(function (p) { var el = document.createElement('div'); el.className = 'dv-pet'; el.innerHTML = petSVG(p.type, p.stage, p.name, p.body); wd.appendChild(el); return { el: el, x: WW / 2 - 40, y: 100 }; });
-    var bonkT = 0, touching = false, ending = false, P = { x: WW / 2, y: 70 }, tg = { x: WW / 2, y: 220 }, cam = { x: 0, y: 0 }, ang = 180, kbT = 0;
+    var picking = false, warpMode = false, warpMsg = '', bonkT = 0, touching = false, ending = false, P = { x: WW / 2, y: 70 }, tg = { x: WW / 2, y: 220 }, cam = { x: 0, y: 0 }, ang = 180, kbT = 0;
     function add(kind, sub, x, y, size, html) {
       for (var bt = 0; bt < 60 && blocked(x, y, size / 2 + 26); bt++) { x = rx(); if (bt > 30) y = ry(); }
       var el = document.createElement('div'); el.className = 'dv-it k-' + kind; el.style.width = el.style.height = size + 'px'; el.innerHTML = html; wd.appendChild(el);
@@ -5972,7 +6027,6 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     root.querySelector('#dvUp').addEventListener('click', function () { finish('up'); });
     function finish(why) {
       if (ending) return; ending = true;
-      if (loot.tunnel) setTimeout(teleOffer, 1700);
       document.removeEventListener('keydown', onKey); document.removeEventListener('keyup', onKey);
       var hint = root.querySelector('.as-hint'); if (hint) hint.textContent = why === 'out' ? 'Out of breath! Up you go!' : 'Up we go!';
       Object.keys(loot.mats).forEach(function (k) { S.mats[k] = Math.min(MAT_CAP, (S.mats[k] || 0) + loot.mats[k]); });
@@ -5986,7 +6040,45 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       save(); updateHud();
       var parts = Object.keys(loot.mats).map(function (k) { return loot.mats[k] + ' ' + MAT_BY[k].name; });
       if (foodGot) parts.push(foodGot + ' pet food'); if (loot.scrap) parts.push(loot.scrap + ' star scrap'); if (loot.sea.length) parts.push(loot.sea.length + ' sea friend' + (loot.sea.length > 1 ? 's' : '') + ' (+' + loot.coins + ' coins)');
-      wmsg((why === 'out' ? 'Whoosh! You ran out of breath and floated back up. ' : 'You came up for air. ') + (parts.length ? 'You found ' + parts.join(', ') + '.' : 'You found nothing this time. Try again!') + ' Dive score: ' + loot.pts + ' points' + (record ? ' (new best!)' : '') + '.' + (pearlPet ? ' A pearl! ' + pearlPet.name + ' the water pet joined your team!' : '') + (!wasMaster && seaDone() ? ' You met all 7 sea friends: SEA MASTER! +5 seconds of breath and room for 7 air tanks.' : ''));
+      (why === 'warp' ? function (m) { warpMsg = m; } : wmsg)((why === 'out' ? 'Whoosh! You ran out of breath and floated back up. ' : 'You came up for air. ') + (parts.length ? 'You found ' + parts.join(', ') + '.' : 'You found nothing this time. Try again!') + ' Dive score: ' + loot.pts + ' points' + (record ? ' (new best!)' : '') + '.' + (pearlPet ? ' A pearl! ' + pearlPet.name + ' the water pet joined your team!' : '') + (!wasMaster && seaDone() ? ' You met all 7 sea friends: SEA MASTER! +5 seconds of breath and room for 7 air tanks.' : ''));
+    }
+    /* the warp tunnel: pick a world, then the water itself twists into a whirlpool and carries you down into that world's pond */
+    function openPick(it, tr) {
+      picking = true;
+      var pk = document.createElement('div'); pk.className = 'dv-pick';
+      pk.innerHTML = '<div class="dv-pickcard"><h3>Warp tunnel!</h3><p>' + esc(tr.p.name) + ' can carry you through the water to another world. Where to?</p><div class="dv-pickl">' + tr.dests.map(function (id) { return '<button class="btn small primary" data-w="' + id + '">' + esc(WORLDS[id].name) + '<small>' + (dangerOf(id) ? 'Danger: ' + DANGER_WORD[dangerOf(id)] : 'Calm') + '</small></button>'; }).join('') + '</div><button class="btn ghost small" data-w="">Keep diving</button></div>';
+      root.appendChild(pk);
+      pk.addEventListener('click', function (ev) {
+        var b = ev.target.closest('button'); if (!b) return; ev.stopPropagation();
+        if (pk.parentNode) pk.parentNode.removeChild(pk);
+        if (!b.dataset.w) { picking = false; it.cool = performance.now() + 3000; return; }
+        startWarp(b.dataset.w, tr.p);
+      });
+    }
+    function startWarp(to, pet) {
+      pet.pcd = Date.now() + POWERS[pet.type].cd * 1000 / (pet.stage >= 4 ? 2 : 1); S.tele = 'pond';
+      picking = false; warpMode = true; finish('warp');
+      var W2 = WORLDS[to], pal = (W2.pal && W2.pal.lake) || ['#8fd8ff', '#3e9fe0'], vx = document.createElement('div'), h = '<div class="vx-glow"></div><div class="vx-spin"></div><div class="vx-spin s2"></div>', i, an, rr2, dur = REDUCE ? 700 : 2800;
+      vx.className = 'dv-vx'; vx.style.setProperty('--c1', pal[0]); vx.style.setProperty('--c2', pal[1]); vx.style.setProperty('--d', dur + 'ms');
+      for (i = 0; i < 4; i++) h += '<i class="vx-ring" style="animation-delay:' + (i * 0.35).toFixed(2) + 's"></i>';
+      for (i = 0; i < 54; i++) { an = Math.random() * 6.2832; rr2 = 0.55 + Math.random() * 0.4; h += '<i class="vx-bub" style="--sx:' + (Math.cos(an) * W * rr2).toFixed(0) + 'px;--sy:' + (Math.sin(an) * H * rr2).toFixed(0) + 'px;--s:' + (6 + Math.random() * 16).toFixed(0) + 'px;animation-delay:' + (Math.random() * 1.1).toFixed(2) + 's;animation-duration:' + (0.9 + Math.random() * 0.9).toFixed(2) + 's"></i>'; }
+      vx.innerHTML = h + '<div class="vx-txt">Warping to ' + esc(W2.name) + '!</div>';
+      root.appendChild(vx); auWarp(dur / 1000);
+      setTimeout(function () {
+        over = true; cancelAnimationFrame(raf);
+        stashWorld(); S.cur = to; S.arrive = null; S.world = null; S.birds = false;
+        S.team.forEach(function (p) { if (p.stage < 3) addProg(p, mostNeeded(p), 1); });
+        S.travelMsg = 'Whoosh! You warped through the water into ' + W2.name + ' and popped up in its pond! ' + (warpMsg || ''); save(); warping = false; render();
+      }, dur * 0.55);
+      setTimeout(function () {
+        var i2, e, sx = W / 2, sy = H * 0.58;
+        var fl = document.createElement('div'); fl.className = 'dv-flash'; root.appendChild(fl);
+        for (i2 = 0; i2 < 4; i2++) { e = document.createElement('i'); e.className = 'dv-ring'; e.style.left = sx + 'px'; e.style.top = sy + 'px'; e.style.animationDelay = (i2 * 0.14) + 's'; root.appendChild(e); }
+        for (i2 = 0; i2 < 34; i2++) { e = document.createElement('i'); e.className = 'dv-drop'; e.style.left = sx + 'px'; e.style.top = sy + 'px'; e.style.setProperty('--dx', ((Math.random() - 0.5) * 420).toFixed(0) + 'px'); e.style.setProperty('--up', (-(80 + Math.random() * 220)).toFixed(0) + 'px'); e.style.animationDelay = (Math.random() * 0.15).toFixed(2) + 's'; root.appendChild(e); }
+        vx.classList.add('out'); auArrive();
+        setTimeout(function () { root.classList.add('out'); var hh = S.world && S.world.ents[0]; if (hh) dripOff(hh); }, 500);
+        setTimeout(function () { if (root.parentNode) root.parentNode.removeChild(root); }, 1300);
+      }, dur);
     }
     function splash() {
       var sx = P.x - cam.x, sy = Math.max(30, P.y - cam.y), i, e;
@@ -6000,8 +6092,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     function frame(now) {
       if (over) return;
-      var dt = Math.min(0.05, (now - last) / 1000); last = now; if (!ending) left -= dt;
-      if (ending) { tg.x = P.x; tg.y = 4; }
+      var dt = Math.min(0.05, (now - last) / 1000); last = now;
+      if (picking) { raf = requestAnimationFrame(frame); return; }
+      if (!ending) left -= dt;
+      if (ending && !warpMode) { tg.x = P.x; tg.y = 4; }
       var kx = (keys.arrowright || keys.d ? 1 : 0) - (keys.arrowleft || keys.a ? 1 : 0), ky = (keys.arrowdown || keys.s ? 1 : 0) - (keys.arrowup || keys.w ? 1 : 0);
       if (kx || ky) { tg.x = Math.max(30, Math.min(WW - 30, tg.x + kx * 380 * dt)); tg.y = Math.max(50, Math.min(HH - 120, tg.y + ky * 380 * dt)); }
       var ox = P.x, oy = P.y, k = Math.min(1, dt * (ending ? 6 : 3.2)); P.x += (tg.x - P.x) * k; P.y += (tg.y - P.y) * k;
@@ -6032,7 +6126,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         if (ending || Math.hypot(it.x - P.x, it.y - P.y) > it.sz * 0.5 + 34) return true;
         if (it.kind === 'mat') { loot.mats[it.sub] = (loot.mats[it.sub] || 0) + 1; addPts(5); pop(it.x, it.y, MAT_BY[it.sub].name + ' +5'); }
         else if (it.kind === 'scrap') { loot.scrap++; addPts(8); pop(it.x, it.y, '+1 scrap +8'); }
-        else if (it.kind === 'tunnel') { loot.tunnel = true; pop(it.x, it.y, 'Warp tunnel!'); it.el.remove(); setTimeout(function () { finish('up'); }, 350); return false; }
+        else if (it.kind === 'tunnel') { if (it.cool && now < it.cool) return true; var tr = teleReady('pond'); if (!tr) { it.cool = now + 1e9; return true; } pop(it.x, it.y, 'Warp tunnel!'); openPick(it, tr); return true; }
         else if (it.kind === 'pearl') { loot.pearl = true; addPts(30); pop(it.x, it.y, 'A pearl! +30'); }
         else if (it.kind === 'air') { left = Math.min(secs, left + 5); pop(it.x, it.y, '+5 sec'); }
         else { var first = !S.sea[it.sub] && loot.sea.indexOf(it.sub) < 0; loot.sea.push(it.sub); var sq = SEA_BY[it.sub], c = first ? 10 : 2, pp2 = sq.pts + (first ? 10 : 0); loot.coins += c; loot.food += sq.food; addPts(pp2); pop(it.x, it.y, (first ? 'New friend! ' : '') + sq.name + ' +' + pp2 + (sq.food ? ' (+' + sq.food + ' food)' : '')); }
@@ -6041,7 +6135,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var bar = root.querySelector('#dvBar'), tt = root.querySelector('#dvT'); bar.style.width = Math.max(2, Math.round(left / secs * 100)) + '%'; tt.textContent = Math.max(0, Math.ceil(left)) + 's';
       root.classList.toggle('low', left < 5);
       if (left <= 0 && !ending) finish('out');
-      if (ending && P.y < 70) { over = true; splash(); return; }
+      if (ending && !warpMode && P.y < 70) { over = true; splash(); return; }
       raf = requestAnimationFrame(frame);
     }
     requestAnimationFrame(function () { root.classList.add('in'); });
@@ -6389,6 +6483,17 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       rdEl.innerHTML = 'SPEED <b>' + (moving ? Math.round((rescue ? SPEEDS[3].v : (target && target.id ? Math.max(70 * SS / 2, sd.v * Math.max(0.3, Math.min(1, tg2 / (600 * SS / 2)))) : sd.v)) / SS) : 0) + '</b><br>' + (target ? 'DIST <b>' + Math.round(tg2 / SS) + '</b><br>' : '') + 'O2 <b>' + Math.floor(o2) + '</b>';
       if (nw && !rescue) { btnLand.hidden = false; btnLand.textContent = (nw === from && !got.moved ? 'Land back on ' : 'Land on ') + WORLDS[nw].name; btnLand.dataset.w = nw; } else btnLand.hidden = true;
     }
+    /* ---- the Glitch Gang: after a while of flying through open space, Vex and Moxie intercept the ship ---- */
+    var rvPause = false, rvT = 28 + Math.random() * 30;
+    function rivalStep(dt) {
+      if (rvPause || rescue || !moving || nearWorld() || o2 < cap * 0.3 || !S.team.length) return;
+      rvT -= dt; if (rvT > 0) return;
+      rvPause = true; target = null; Object.keys(held).forEach(function (k) { held[k] = false; }); auAct('nope', 1);
+      rivalEncounter({ o2: o2, cap: cap, eng: shipLv('eng'), done: function (r) {
+        o2 = Math.max(0, Math.min(cap, o2 + (r.o2 || 0))); S.scrap = Math.max(0, Math.min(99, S.scrap + (r.scrap || 0))); if (r.scrap > 0) got.scrap += r.scrap; S.coins += r.coins || 0;
+        save(); setO2(); warn = r.msg || ''; warnT = 7; hud(true); rvPause = false; rvT = 55 + Math.random() * 55; last = performance.now();
+      } });
+    }
     /* ---- comets: they streak across open space; a warning shows which way one comes from, and steering away keeps your oxygen safe ---- */
     var DIRS = ['the right', 'the bottom right', 'the bottom', 'the bottom left', 'the left', 'the top left', 'the top', 'the top right'];
     function spawnComet() {
@@ -6496,6 +6601,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         }
         place(dt);
       } else if (ph === 'nav') {
+        if (rvPause) { raf = requestAnimationFrame(frame); return; }
         var sd = SPEEDS[sp];
         moving = false;
         var hx = (held.arrowright || held.d ? 1 : 0) - (held.arrowleft || held.a ? 1 : 0), hy = (held.arrowdown || held.s ? 1 : 0) - (held.arrowup || held.w ? 1 : 0);
@@ -6530,6 +6636,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         retRot += dt * 40; if (warnT > 0) { warnT -= dt; if (warnT <= 0) hud(true); }
         root.classList.toggle('warp', moving && sp >= 3);
         cometsStep(dt, now);
+        rivalStep(dt);
         drawCv(dt, now);
         var lead = ship, gap = 44 / N.k, hxu = Math.cos(ship.ang), hyu = Math.sin(ship.ang);
         pp.forEach(function (q, j) { var tx = lead.x - hxu * gap + Math.sin(ship.ang) * (j % 2 ? 12 : -12) / N.k, ty = lead.y - hyu * gap - Math.cos(ship.ang) * (j % 2 ? 12 : -12) / N.k, k2 = Math.min(1, dt * (4 - j * 0.6)); q.x += (tx - q.x) * k2; q.y += (ty - q.y) * k2; lead = q; });
@@ -6551,6 +6658,176 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     setO2(); requestAnimationFrame(function () { root.classList.add('in'); });
     raf = requestAnimationFrame(function (n) { last = n; frame(n); });
+  }
+
+  /* ----- The Glitch Gang: Vex and Moxie jump out of the dark. Run away, or battle their Glitchbots with your pets' own battle powers ----- */
+  var RV_MOVES = {
+    fairy: { n: 'Glitter Heal', d: 'Heals the whole team', t: 'team', heal: 9 },
+    fire: { n: 'Flame Burst', d: 'Big hit, then it keeps burning', t: 'one', dmg: 15, burn: 2 },
+    water: { n: 'Bubble Wash', d: 'Hits both bots', t: 'all', dmg: 9 },
+    grass: { n: 'Vine Wrap', d: 'Hits and ties it up: it skips its attack', t: 'one', dmg: 9, stun: 1 },
+    psychic: { n: 'Mind Swap', d: 'Dizzy bot attacks its own buddy', t: 'one', dmg: 6, confuse: 1 },
+    ice: { n: 'Deep Freeze', d: 'Freezes it. Frozen bots take extra damage', t: 'one', dmg: 8, stun: 1, chill: 1 },
+    electric: { n: 'Thunder Bolt', d: 'Zaps one and jumps to the other', t: 'one', dmg: 14, chain: 7 },
+    earth: { n: 'Rock Slam', d: 'A huge hit. Needs a rest after', t: 'one', dmg: 22, cd: 1 },
+    wind: { n: 'Gust Dance', d: 'Hits both and dodges 2 attacks', t: 'all', dmg: 7, dodge: 2 },
+    shadow: { n: 'Shadow Sneak', d: 'Hits, and its next attack is weak', t: 'one', dmg: 13, weak: 1 },
+    metal: { n: 'Steel Wall', d: 'Shields the whole team', t: 'team', shield: 12 },
+    light: { n: 'Sunbeam', d: 'Hits both and heals the team a bit', t: 'all', dmg: 8, heal: 5 },
+    dragon: { n: 'Dragon Roar', d: 'Huge roar hits both. Needs a rest', t: 'all', dmg: 15, cd: 1 },
+    cosmic: { n: 'Star Shower', d: 'Four stars hit random bots', t: 'rand', hits: 4, dmg: 6 },
+    music: { n: 'Lullaby', d: 'Puts both bots to sleep', t: 'all', sleep: 1, cd: 1 },
+    candy: { n: 'Sweet Trap', d: 'Hits one and heals the team a bit', t: 'one', dmg: 7, heal: 5 },
+    unicorn: { n: 'Rainbow Heal', d: 'Heals everyone fully. Needs a rest', t: 'team', heal: 999, cd: 2 }
+  };
+  var RV_BOTS = { zap: { name: 'Zapbot', col: '#ffd34e', hp: 1 }, gob: { name: 'Gobbler', col: '#7fe38a', hp: 1.15 }, clank: { name: 'Clanker', col: '#b4bdd8', hp: 1.3 } };
+  var RV_WIN = ['Grr! You got lucky, kid!', 'Impossible! Moxie, pay attention!', 'Fine! We will be back with a BIGGER bot!', 'No fair! Your pets are too good!'];
+  var RV_HI = ['Halt, little ship! We are the GLITCH GANG!', 'Well, well. A ship full of shiny scrap!', 'You again? Prepare to be GLITCHED!', 'Vex and Moxie are back, and we brought snacks for our bots!'];
+  function vexSVG() {
+    return '<svg viewBox="0 0 100 130" aria-hidden="true"><path d="M12 126 L28 52 L72 52 L88 126 Z" fill="#2a1760" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><rect x="34" y="62" width="32" height="52" rx="11" fill="#4b36b8" stroke="#fff" stroke-width="3"/><circle cx="50" cy="38" r="20" fill="#f4c9a4" stroke="#fff" stroke-width="3"/><path d="M28 32 L33 8 L42 25 L50 3 L58 25 L67 8 L72 32 Q50 20 28 32Z" fill="#35e0c9" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M38 38 l8 3 M62 38 l-8 3" stroke="#2a1a55" stroke-width="3.5" stroke-linecap="round"/><circle cx="43" cy="43" r="2.4" fill="#2a1a55"/><circle cx="57" cy="43" r="2.4" fill="#2a1a55"/><path d="M42 52 q8 6 16 -2" stroke="#2a1a55" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="50" cy="84" r="10" fill="#ffd34e" stroke="#fff" stroke-width="2"/><text x="50" y="89" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="800" font-size="14" fill="#2a1760">G</text><rect x="36" y="112" width="11" height="14" rx="5" fill="#2a1760"/><rect x="53" y="112" width="11" height="14" rx="5" fill="#2a1760"/></svg>';
+  }
+  function moxieSVG() {
+    return '<svg viewBox="0 0 100 130" aria-hidden="true"><rect x="34" y="112" width="12" height="14" rx="5" fill="#2a1760"/><rect x="54" y="112" width="12" height="14" rx="5" fill="#2a1760"/><rect x="26" y="78" width="48" height="40" rx="15" fill="#ff8a3d" stroke="#fff" stroke-width="3"/><circle cx="50" cy="96" r="9" fill="#ffd34e" stroke="#fff" stroke-width="2"/><text x="50" y="101" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="800" font-size="13" fill="#2a1760">G</text><circle cx="50" cy="56" r="24" fill="#f4c9a4" stroke="#fff" stroke-width="3"/><path d="M25 52 Q20 28 38 34 Q42 18 52 32 Q64 20 68 36 Q82 34 75 54 Q50 40 25 52Z" fill="#ff5fa8" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><rect x="27" y="47" width="46" height="17" rx="8.500" fill="#3b2a7a" stroke="#fff" stroke-width="3"/><circle cx="40" cy="55.500" r="7" fill="#7fe8ff" stroke="#fff" stroke-width="2"/><circle cx="60" cy="55.500" r="7" fill="#7fe8ff" stroke="#fff" stroke-width="2"/><circle cx="38" cy="53" r="2.200" fill="#fff"/><circle cx="58" cy="53" r="2.200" fill="#fff"/><path d="M38 69 q12 12 24 0 Z" fill="#fff" stroke="#2a1a55" stroke-width="3" stroke-linejoin="round"/></svg>';
+  }
+  function botSVG(k) {
+    var c = RV_BOTS[k].col, face = k === 'zap' ? '<circle cx="40" cy="48" r="5" fill="#ffd34e"/><circle cx="60" cy="48" r="5" fill="#ffd34e"/><path d="M47 56 l-4 8 h6 l-4 8" stroke="#ffd34e" stroke-width="3" fill="none" stroke-linejoin="round"/>' :
+      k === 'gob' ? '<circle cx="39" cy="43" r="4" fill="#7fe38a"/><circle cx="61" cy="43" r="4" fill="#7fe38a"/><path d="M31 54 h38 l-3 12 h-32z" fill="#fff"/><path d="M36 54 v6 M44 54 v8 M52 54 v8 M60 54 v6" stroke="#1d1346" stroke-width="2.500"/>' :
+      '<rect x="30" y="42" width="40" height="9" rx="4.500" fill="#ff5c7a"/><path d="M38 60 h24" stroke="#b4bdd8" stroke-width="4" stroke-linecap="round"/>';
+    return '<svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 22 V10" stroke="#fff" stroke-width="3"/><circle cx="50" cy="8" r="5" fill="' + c + '" stroke="#fff" stroke-width="2"/><rect x="26" y="84" width="16" height="16" rx="5" fill="#4b36b8" stroke="#fff" stroke-width="3"/><rect x="58" y="84" width="16" height="16" rx="5" fill="#4b36b8" stroke="#fff" stroke-width="3"/><rect x="6" y="46" width="12" height="26" rx="6" fill="' + c + '" stroke="#fff" stroke-width="3"/><rect x="82" y="46" width="12" height="26" rx="6" fill="' + c + '" stroke="#fff" stroke-width="3"/><rect x="14" y="22" width="72" height="66" rx="18" fill="' + c + '" stroke="#fff" stroke-width="3"/><rect x="24" y="32" width="52" height="38" rx="9" fill="#1d1346"/>' + face + '</svg>';
+  }
+  function rivalEncounter(o) {
+    var lvl = Math.min(30, level()), wins = S.rvWins | 0, hpBase = Math.round(26 + lvl * 1.2 + wins * 2), dmgBase = 5 + lvl / 5 + Math.min(3, wins * 0.5);
+    var kinds = ['zap', 'gob', 'clank'].sort(function () { return Math.random() - 0.5; }).slice(0, 2);
+    var bots = kinds.map(function (k) { var h = Math.round(hpBase * RV_BOTS[k].hp); return { k: k, hp: h, max: h, st: {}, t: 0 }; });
+    var team = S.team.slice(0, 6).map(function (p) { var h = 22 + p.stage * 9; return { p: p, hp: h, max: h, sh: 0, cd: 0, stun: 0 }; });
+    var tm = { dodge: 0 }, el = document.createElement('div'), phase = 'intro', busy = false, pick = null, log = '', fx = [], pops = [], timers = [], finished = false;
+    el.className = 'rv'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'The Glitch Gang wants a battle');
+    document.body.appendChild(el);
+    function T(fn, ms) { timers.push(setTimeout(fn, REDUCE ? Math.min(ms, 150) : ms)); }
+    function aliveB() { return bots.map(function (b, i) { return b.hp > 0 ? i : -1; }).filter(function (i) { return i >= 0; }); }
+    function aliveT() { return team.map(function (f, i) { return f.hp > 0 ? i : -1; }).filter(function (i) { return i >= 0; }); }
+    function say(t) { log = t; var m = el.querySelector('#rvlog'); if (m) m.textContent = t; }
+    function pop(side, i, txt, cls) { pops.push({ u: side + i, t: txt, c: cls || '' }); }
+    function flash(side, i, cls) { fx.push({ u: side + i, c: cls }); }
+    function hpBar(hp, max, sh) { return '<i class="rv-hp"><u style="width:' + Math.max(0, Math.round(hp / max * 100)) + '%"></u>' + (sh > 0 ? '<s style="width:' + Math.min(100, Math.round(sh / max * 100)) + '%"></s>' : '') + '</i>'; }
+    function chips(st) { var r = []; if (st.burn > 0) r.push('burning'); if (st.stun > 0) r.push(st.chill ? 'frozen' : 'tied up'); if (st.sleep > 0) r.push('asleep'); if (st.confuse > 0) r.push('dizzy'); if (st.weak > 0) r.push('weak'); return r.map(function (x) { return '<em>' + x + '</em>'; }).join(''); }
+    function ui() {
+      var h = '';
+      if (phase === 'intro' || phase === 'end' || phase === 'ran') {
+        var talk = phase === 'intro' ? RV_HI[(S.rvWins | 0) % RV_HI.length] : log;
+        h += '<div class="rv-logo">THE GLITCH GANG</div><div class="rv-cast"><div class="rv-vil v1">' + vexSVG() + '<b>Vex</b></div><div class="rv-vil v2">' + moxieSVG() + '<b>Moxie</b></div></div>' +
+          '<div class="rv-say"><b>' + 'Vex' + ':</b> ' + esc(talk) + '</div>';
+        if (phase === 'intro') h += '<p class="rv-sub">Moxie: Hand over your star scrap, or battle us!</p><div class="rv-btns"><button class="btn primary" data-rv="fight">Battle!</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Your pets use their own battle powers. Running costs a little oxygen and can fail.</p>';
+        else h += '<div class="rv-btns"><button class="btn primary" data-rv="close">Continue</button></div>';
+      } else {
+        h += '<div class="rv-top"><span>Vex &amp; Moxie</span><button class="btn ghost small" data-rv="flee">Run away</button></div><div class="rv-bots">' + bots.map(function (b, i) {
+          return '<button class="rv-bot' + (b.hp <= 0 ? ' down' : '') + (pick !== null && b.hp > 0 ? ' tgt' : '') + '" data-rv="tgt" data-i="' + i + '" data-u="b' + i + '">' + botSVG(b.k) + '<b>' + RV_BOTS[b.k].name + '</b>' + hpBar(b.hp, b.max, 0) + '<span class="rv-st">' + chips(b.st) + '</span></button>';
+        }).join('') + '</div><p class="rv-log" id="rvlog" aria-live="polite">' + esc(log) + '</p><div class="rv-team">' + team.map(function (f, i) {
+          var mv = RV_MOVES[f.p.type] || RV_MOVES.fairy, ok = f.hp > 0 && f.cd <= 0 && f.stun <= 0;
+          return '<button class="rv-pet' + (f.hp <= 0 ? ' down' : '') + (!ok ? ' wait' : '') + (pick === i ? ' on' : '') + '" data-rv="pet" data-i="' + i + '" data-u="p' + i + '"><div class="rv-face">' + petSVG(f.p.type, f.p.stage, f.p.name, f.p.body) + '</div><b>' + esc(f.p.name) + '</b>' + hpBar(f.hp, f.max, f.sh) + '<span class="rv-mv">' + (f.hp <= 0 ? 'Fainted' : f.stun > 0 ? 'Zapped! Skips' : f.cd > 0 ? 'Resting (' + f.cd + ')' : esc(mv.n)) + '</span></button>';
+        }).join('') + '</div><p class="rv-hint">' + (pick !== null ? 'Tap a Glitchbot to aim!' : busy ? '&nbsp;' : 'Tap a pet to use its battle power.') + '</p>';
+      }
+      el.innerHTML = '<div class="rv-bg"></div><div class="rv-wrap">' + h + '</div>';
+      fx.forEach(function (f) { var n = el.querySelector('[data-u="' + f.u + '"]'); if (n) n.classList.add(f.c); });
+      pops.forEach(function (q) { var n = el.querySelector('[data-u="' + q.u + '"]'); if (n) { var s = document.createElement('span'); s.className = 'rv-pop ' + q.c; s.textContent = q.t; n.appendChild(s); } });
+      fx = []; pops = [];
+    }
+    function dealBot(i, amt, quiet) {
+      var b = bots[i]; if (!b || b.hp <= 0) return;
+      if (b.st.chill) { amt = Math.round(amt * 1.5); b.st.chill = 0; }
+      amt = Math.max(1, Math.round(amt)); b.hp = Math.max(0, b.hp - amt); flash('b', i, 'hit'); pop('b', i, '-' + amt, 'dmg'); if (b.hp <= 0) { b.st = {}; pop('b', i, 'Glitched out!', 'big'); }
+    }
+    function healTeam(n) { aliveT().forEach(function (i) { var f = team[i], g = Math.min(f.max - f.hp, n >= 999 ? f.max : Math.round(n)); if (g > 0) { f.hp += g; pop('p', i, '+' + g, 'heal'); flash('p', i, 'boost'); } }); }
+    function useMove(pi, bi) {
+      var f = team[pi], mv = RV_MOVES[f.p.type] || RV_MOVES.fairy, s = 0.8 + 0.2 * f.p.stage, tg = [], i;
+      if (mv.t === 'one') tg = [bi]; else if (mv.t === 'all') tg = aliveB();
+      flash('p', pi, 'act');
+      if (mv.hits) { for (i = 0; i < mv.hits; i++) { var al = aliveB(); if (!al.length) break; dealBot(al[Math.floor(Math.random() * al.length)], mv.dmg * s); } }
+      else if (mv.dmg) tg.forEach(function (x) { dealBot(x, mv.dmg * s); });
+      if (mv.chain) aliveB().forEach(function (x) { if (x !== bi) dealBot(x, mv.chain * s); });
+      tg.forEach(function (x) {
+        var b = bots[x]; if (!b || b.hp <= 0) return;
+        if (mv.burn) { b.st.burn = mv.burn; pop('b', x, 'Burning!', 'st'); } if (mv.stun) { b.st.stun = mv.stun; pop('b', x, mv.chill ? 'Frozen!' : 'Tied up!', 'st'); } if (mv.chill) b.st.chill = 1;
+        if (mv.confuse) { b.st.confuse = mv.confuse; pop('b', x, 'Dizzy!', 'st'); } if (mv.weak) { b.st.weak = mv.weak; pop('b', x, 'Weak!', 'st'); } if (mv.sleep) { b.st.sleep = mv.sleep; pop('b', x, 'Zzz...', 'st'); }
+      });
+      if (mv.heal) healTeam(mv.heal * (mv.heal >= 999 ? 1 : s));
+      if (mv.shield) aliveT().forEach(function (x) { team[x].sh += Math.round(mv.shield * s); pop('p', x, 'Shield!', 'heal'); flash('p', x, 'boost'); });
+      if (mv.dodge) { tm.dodge += mv.dodge; pop('p', pi, 'Dodge x' + tm.dodge, 'heal'); }
+      f.cd = mv.cd ? mv.cd + 1 : 0;
+      say(f.p.name + ' uses ' + mv.n + '!');
+    }
+    function hurtPet(amt, srcName) {
+      var al = aliveT(); if (!al.length) return;
+      var i = al[Math.floor(Math.random() * al.length)], f = team[i];
+      if (tm.dodge > 0) { tm.dodge--; pop('p', i, 'Dodged!', 'heal'); say(f.p.name + ' dodged ' + srcName + '!'); return; }
+      var ab = Math.min(f.sh, amt); f.sh -= ab; amt -= ab;
+      if (ab) pop('p', i, 'Blocked ' + ab, 'heal');
+      if (amt > 0) { f.hp = Math.max(0, f.hp - amt); pop('p', i, '-' + amt, 'dmg'); }
+      flash('p', i, 'hit'); if (f.hp <= 0) pop('p', i, 'Fainted!', 'big');
+      say(srcName + ' hits ' + f.p.name + '!');
+    }
+    function botTurn(n) {
+      if (finished) return;
+      if (!aliveB().length) return endBattle(true);
+      if (n >= bots.length) {
+        team.forEach(function (f) { if (f.cd > 0) f.cd--; if (f.stun > 0) f.stun--; });
+        if (!aliveT().length) return endBattle(false);
+        busy = false; pick = null; ui(); return;
+      }
+      var b = bots[n], nm = RV_BOTS[b.k].name;
+      if (b.hp <= 0) return botTurn(n + 1);
+      var dmg = Math.round(dmgBase * (0.85 + Math.random() * 0.3)), msg = '';
+      if (b.st.burn > 0) { b.st.burn--; dealBot(n, 4); if (b.hp <= 0) { say(nm + ' burned out!'); ui(); return T(function () { botTurn(n + 1); }, 700); } }
+      if (b.st.sleep > 0) { b.st.sleep--; say(nm + ' is fast asleep...'); }
+      else if (b.st.stun > 0) { b.st.stun--; say(nm + ' is stuck and cannot attack!'); }
+      else if (b.st.confuse > 0) {
+        b.st.confuse--; var pa = aliveB().filter(function (x) { return x !== n; })[0];
+        if (pa !== undefined) { say(nm + ' is dizzy and bonks its buddy!'); dealBot(pa, dmg); } else say(nm + ' is dizzy and spins in circles!');
+      } else {
+        b.t++; var wk = b.st.weak > 0 ? 0.5 : 1; if (b.st.weak > 0) b.st.weak--;
+        if (b.t % 3 === 0 && b.k === 'zap') { var al = aliveT(), zi = al[Math.floor(Math.random() * al.length)]; team[zi].stun = 2; pop('p', zi, 'Zapped!', 'st'); flash('p', zi, 'hit'); say('Zapbot zaps ' + team[zi].p.name + '! It cannot move next turn.'); hurtPet(Math.round(dmg * 0.4 * wk), nm); }
+        else if (b.t % 3 === 0 && b.k === 'gob') { say('Gobbler goes CHOMP!'); hurtPet(Math.round(dmg * 1.6 * wk), nm); }
+        else if (b.t % 3 === 0 && b.k === 'clank') { var hh = Math.min(b.max - b.hp, 12); b.hp += hh; pop('b', n, '+' + hh, 'heal'); say('Clanker patches itself up with spare parts!'); }
+        else hurtPet(Math.round(dmg * wk), nm);
+      }
+      ui(); T(function () { botTurn(n + 1); }, 850);
+    }
+    function endBattle(won) {
+      if (finished) return; finished = true; phase = 'end';
+      var lv2 = Math.min(30, level());
+      if (won) { S.rvWins = (S.rvWins | 0) + 1; var sc = 4 + Math.floor(Math.random() * 5); o.won = true; o.res = { o2: 10, scrap: sc, coins: 15 + lv2, msg: 'You beat the Glitch Gang! +' + sc + ' star scrap, +' + (15 + lv2) + ' coins and a spare oxygen tank (+10).' }; log = RV_WIN[(S.rvWins - 1) % RV_WIN.length] + ' Moxie: We lost the scrap AND our bots!'; }
+      else { var lo = Math.min(Math.round(o.cap * 0.2), Math.max(0, Math.floor(o.o2) - 1)), ls = Math.min(S.scrap, 5); o.won = false; o.res = { o2: -lo, scrap: -ls, coins: 0, msg: 'The Glitch Gang won this time. They took ' + ls + ' star scrap and ' + lo + ' oxygen. Your pets are fine, and you can beat them next time!' }; log = 'Hahaha! Vex: Thanks for the scrap! Moxie: And the oxygen!'; }
+      ui();
+    }
+    function finishAll() { timers.forEach(clearTimeout); el.classList.add('out'); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 500); o.done(o.res || { o2: 0, scrap: 0, coins: 0, msg: '' }); }
+    function startFight(firstStrike) {
+      phase = 'fight'; busy = !!firstStrike; pick = null; log = firstStrike ? 'The Glitch Gang caught you with a tractor beam! They strike first!' : 'Choose a pet to attack with its battle power!'; ui();
+      if (firstStrike) T(function () { botTurn(0); }, 900);
+    }
+    function tryRun(inFight) {
+      var ch = Math.min(0.9, 0.5 + 0.1 * (o.eng | 0) + (inFight ? 0 : 0.05)), lo = Math.min(5, Math.max(0, Math.floor(o.o2) - 1));
+      if (Math.random() < ch) { finished = true; phase = 'ran'; o.won = false; o.res = { o2: -lo, scrap: 0, coins: 0, msg: 'You zoomed away from the Glitch Gang! The jets used ' + lo + ' oxygen.' }; log = 'Hey! Come back here with that scrap! Moxie: They are so fast!'; ui(); }
+      else if (!inFight) { say('Oh no! They tractor-beam you!'); startFight(true); }
+      else { busy = true; say('You tried to run but the tractor beam pulled you back!'); ui(); T(function () { botTurn(0); }, 800); }
+    }
+    el.addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-rv]'); if (!b) return; var a = b.dataset.rv, i = +b.dataset.i;
+      if (a === 'fight') startFight(false);
+      else if (a === 'run') tryRun(false);
+      else if (a === 'close') finishAll();
+      else if (busy || finished) return;
+      else if (a === 'flee') tryRun(true);
+      else if (a === 'pet') {
+        var f = team[i], mv = RV_MOVES[f.p.type] || RV_MOVES.fairy; if (!f || f.hp <= 0) return;
+        if (f.stun > 0) { say(f.p.name + ' is zapped and cannot move this turn! Pick another pet.'); return; }
+        if (f.cd > 0) { say(f.p.name + ' needs ' + f.cd + ' more turn' + (f.cd > 1 ? 's' : '') + ' to rest. Pick another pet.'); return; }
+        if (mv.t === 'one' && aliveB().length > 1) { pick = pick === i ? null : i; say(pick === null ? 'Choose a pet to attack with its battle power!' : mv.n + ': ' + mv.d + '. Tap a Glitchbot!'); ui(); return; }
+        busy = true; useMove(i, aliveB()[0]); pick = null; ui(); T(function () { botTurn(0); }, 1000);
+      } else if (a === 'tgt' && pick !== null) {
+        if (bots[i].hp <= 0) return; var pi = pick; busy = true; pick = null; useMove(pi, i); ui(); T(function () { botTurn(0); }, 1000);
+      }
+    });
+    ui(); requestAnimationFrame(function () { el.classList.add('in'); });
   }
 
   /* ----- My house: collect materials in every world, then build a house piece by piece ----- */
@@ -7546,10 +7823,6 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.world.cd[key] = now + 6000; teleAsk = { p: r.p, kind: kind };
     openSheet(teleHTML(r.p, r.dests));
     return true;
-  }
-  function teleOffer() {
-    var r = teleReady('pond'); if (!r || S.screen !== 'world') return;
-    teleAsk = { p: r.p, kind: 'pond' }; openSheet(teleHTML(r.p, r.dests));
   }
   function teleHTML(p, dests) {
     var PW = POWERS[p.type], kindName = PW.tele === 'pond' ? 'pond' : 'berry patch';
