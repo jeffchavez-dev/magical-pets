@@ -895,6 +895,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .rv-vil { width: clamp(110px, 28vw, 160px); text-align: center; animation: rvBob 2.2s ease-in-out infinite; } .rv-vil.v2 { animation-delay: -1s; width: clamp(96px, 25vw, 140px); } .rv-vil svg { width: 100%; display: block; } .rv-vil b { font-family: var(--font-display, sans-serif); color: #ffe27a; }
 @keyframes rvBob { 50% { transform: translateY(-8px) rotate(1.5deg); } }
 .rv-say { background: #fff; color: #2a1a55; border-radius: 16px; padding: 10px 14px; font-weight: 700; text-align: center; max-width: 92%; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+.rv-rec { margin: 0; font-size: 13px; font-weight: 700; color: #ffb3d9; text-align: center; max-width: 90%; }
 .rv-sub { margin: 0; text-align: center; color: #ffe27a; font-weight: 700; } .rv-hint { margin: 0; font-size: 13px; opacity: .8; text-align: center; min-height: 18px; }
 .rv-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 6px 0; }
 .rv-wrap, .rv-wrap * { box-sizing: border-box; }
@@ -967,6 +968,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .rv-pop.dmg { color: #ff8fa0; } .rv-pop.heal { color: #8fffa0; } .rv-pop.st { color: #7fe8ff; } .rv-pop.big { color: #ffe27a; font-size: 20px; top: 40%; }
 @keyframes rvPop { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -46px; } }
 @media (prefers-reduced-motion: reduce) { .rv-bg::after, .rv-logo, .rv-vil, .rv-bot svg, .rv-bot.tgt { animation: none; } }
+.as-sunr { animation: asSpin 90s linear infinite; } .as-sunb { animation: asHalo 3.6s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .as-sunr, .as-sunb { animation: none; } }
 .as-spin, .as-orb, .as-ring, .as-halo { animation-timing-function: linear; animation-iteration-count: infinite; }
 .as-spin { animation-name: asSpin; } .as-orb { animation-name: asSpin; } .as-ring { animation-name: asRing; transform-box: fill-box; transform-origin: center; }
 .as-halo { animation-name: asHalo; animation-timing-function: ease-in-out; animation-direction: alternate; }
@@ -1935,7 +1938,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function savePet(p) { return { id: p.id, type: p.type, body: p.body, rid: p.rid, stage: p.stage, happy: p.happy, fav: p.fav, name: p.name, prog: p.prog, hun: Math.round(hunOf(p)), uc: p.uc, ut: p.ut, px: p.px }; }
   function baseState() {
     return { screen: 'intro', stone: STONES[0], awake: false, awakening: false, chosen: null, merging: false, eggs: null, taps: 0, hatch: null, suggest: '',
-      look: defaultLook(), lookReturn: 'sun', uni: {}, friendly: friendlyPref(), gf: {}, mats: {}, houses: {}, lockUntil: 0, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], suit: {}, ship: { hull: 0, eng: 0, rec: 0, scan: 0 }, scrap: 0, o2: 0, tank: 0, air: 0, sea: {}, dig: {}, rvDone: false, rvWins: 0, diveBest: 0, portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
+      look: defaultLook(), lookReturn: 'sun', uni: {}, friendly: friendlyPref(), gf: {}, mats: {}, houses: {}, lockUntil: 0, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], suit: {}, ship: { hull: 0, eng: 0, rec: 0, scan: 0 }, scrap: 0, o2: 0, tank: 0, air: 0, sea: {}, dig: {}, rvDone: false, rvFairy: 0, rvWins: 0, diveBest: 0, portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
       evolving: false, justEvolved: null, msg: '', world: null, birds: false, hasSave: !!(readSave() && readSave().team && readSave().team.length) };
   }
   function newGame() {
@@ -1950,7 +1953,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!S.team.length) return;
       dexSync();
       stashWorld();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, dig: S.dig || {}, rvDone: !!S.rvDone, rvWins: S.rvWins | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, dig: S.dig || {}, rvDone: !!S.rvDone, rvFairy: S.rvFairy | 0, rvWins: S.rvWins | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
         stones: S.stones.map(function (s) { return s.id; }), caught: S.caught, wilds: S.wilds, freed: S.freed, opened: S.opened, beaten: S.beaten, coins: S.coins, boots: S.boots, bag: S.bag, portals: S.portals, suns: S.suns, food: S.food,
         cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)), uc: q.uc, px: q.px } }; }) }));
     } catch (x) { /* storage can be unavailable; the game still works */ }
@@ -1979,7 +1982,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.cageLv = Math.max(0, Math.min(4, d.cageLv | 0));
     S.suit = {}; SUIT.forEach(function (p) { if (d.suit && d.suit[p.id]) S.suit[p.id] = 1; });
     S.ship = {}; SHIP.forEach(function (q) { S.ship[q.id] = Math.max(0, Math.min(3, (d.ship && d.ship[q.id]) | 0)); });
-    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
+    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
     S.scrap = Math.max(0, Math.min(99, d.scrap | 0)); S.tank = Math.max(0, Math.min(TANKS.length - 1, d.tank | 0)); S.o2 = Math.max(0, Math.min(TANKS[S.tank].cap, d.o2 | 0));
     S.cage = (Array.isArray(d.cage) ? d.cage : []).filter(function (p) { return p && TYPES[p.type]; }).slice(0, S.cageLv ? CAGE_CAP[S.cageLv - 1] : 0);
     S.team.concat(S.cage).forEach(function (p) { if (!p.body) p.body = bodyFor(p.type, p.id); if (!p.prog) migrateProg(p); });
@@ -5080,6 +5083,24 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     abyss: [-3000, -1950], voidw: [-3650, -2850], throne: [-2350, -3300], nightbloom: [2750, -2600] };
   FAR_DEF.forEach(function (d) { UNI_POS[d.id] = d.pos; });
   var U = null;
+  /* a solar system: a star in the middle and the worlds on rings around it, the earliest worlds on the inner rings */
+  var SUN_R = 230;
+  function layoutSolar() {
+    var ids = Object.keys(WORLDS).filter(function (id) { return UNI_POS[id]; }), adj = {}, depth = { home: 0 }, qu = ['home'], mx = 0, rings = {}, prev = 0, d, ang0 = {};
+    ids.forEach(function (id) { adj[id] = adj[id] || []; WORLDS[id].spots.forEach(function (sp) { if (sp.k === 'portal' && WORLDS[sp.to] && UNI_POS[sp.to]) { adj[id].push(sp.to); (adj[sp.to] = adj[sp.to] || []).push(id); } }); });
+    while (qu.length) { var a = qu.shift(); (adj[a] || []).forEach(function (b) { if (depth[b] === undefined) { depth[b] = depth[a] + 1; mx = Math.max(mx, depth[b]); qu.push(b); } }); }
+    ids.forEach(function (id) { if (depth[id] === undefined) depth[id] = mx + 1; ang0[id] = Math.atan2(UNI_POS[id][1], UNI_POS[id][0]); });
+    /* nearest worlds (by caves from Home) go on the inner rings: 1, 6, 8, 10, 12, ... worlds per ring */
+    var order = ids.slice().sort(function (m, n) { return depth[m] - depth[n] || ang0[m] - ang0[n]; }), k = 0, ri = 0;
+    while (k < order.length) { var cap = ri === 0 ? 1 : 4 + 2 * ri; rings[ri] = order.slice(k, k + (k + cap + 4 > order.length ? order.length - k : cap)); k += rings[ri].length; ri++; }
+    Object.keys(rings).map(Number).sort(function (m, n) { return m - n; }).forEach(function (dp) {
+      var list = rings[dp].sort(function (m, n) { return ang0[m] - ang0[n]; }), arcs = list.map(function (id) { return 2 * uRadius(id) + 460; }), tot = arcs.reduce(function (x, y) { return x + y; }, 0);
+      var r = Math.max(prev + (dp ? 720 : 0), dp ? 0 : 1050, tot / 6.2832), acc = 0, off = (dp * 0.9 + (dp % 2) * 0.5);
+      list.forEach(function (id, i) { var an = off + (acc + arcs[i] / 2) / r * (6.2832 * r / Math.max(tot, 6.2832 * r)); acc += arcs[i]; UNI_POS[id] = [Math.round(Math.cos(an) * r), Math.round(Math.sin(an) * r)]; });
+      prev = r;
+    });
+  }
+  layoutSolar();
   function uRadius(id) { return 30 * WORLDS[id].s; }
   function uVisible() {
     var vis = {};
@@ -5152,6 +5173,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     });
     for (i = 0; i < 320; i++) h.push('<circle cx="' + Math.round(-4200 + R() * 8400) + '" cy="' + Math.round(-3700 + R() * 7200) + '" r="' + (2 + R() * 4).toFixed(1) + '" fill="#fff" opacity="' + (0.25 + R() * 0.55).toFixed(2) + '"/>');
     if (farOn()) for (i = 0; i < 1100; i++) h.push('<circle cx="' + Math.round(-1500 + R() * 13000) + '" cy="' + Math.round(-9500 + R() * 18500) + '" r="' + (2 + R() * 4).toFixed(1) + '" fill="#fff" opacity="' + (0.25 + R() * 0.55).toFixed(2) + '"/>');
+    h.push('<g class="usun" pointer-events="none"><circle r="' + SUN_R * 3 + '" fill="#ffb24a" opacity=".14"/><circle r="' + SUN_R * 1.7 + '" fill="#ffd34e" opacity=".3"/><circle r="' + SUN_R + '" fill="#ffe066" stroke="#fff6c8" stroke-width="10"/><circle cx="' + (-SUN_R * 0.3) + '" cy="' + (-SUN_R * 0.3) + '" r="' + SUN_R * 0.22 + '" fill="#fff" opacity=".6"/></g>');
     edges.forEach(function (e) {
       var pa = UNI_POS[e.a], pb = UNI_POS[e.b], dx = pb[0] - pa[0], dy = pb[1] - pa[1], L = Math.hypot(dx, dy) || 1, ra = uRadius(e.a) + 12, rb = uRadius(e.b) + 12;
       var x1 = pa[0] + dx / L * ra, y1 = pa[1] + dy / L * ra, x2 = pb[0] - dx / L * rb, y2 = pb[1] - dy / L * rb;
@@ -6670,8 +6692,19 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       ids.forEach(function (id) { var p = UPOS[id]; x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); });
       var bw = x1 - x0 + 1400 * SS, bh = y1 - y0 + 1400 * SS, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
       N.kmin = Math.max(0.004, 0.85 * Math.min(W / bw, H / bh));
-      h.push('<defs><radialGradient id="ushade" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient></defs><g id="asCam">');
+      h.push('<defs><radialGradient id="ushade" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>' +
+        '<radialGradient id="skylight"><stop offset="0" stop-color="#ffb24a" stop-opacity=".34"/><stop offset=".3" stop-color="#ff8a3d" stop-opacity=".14"/><stop offset="1" stop-color="#ff8a3d" stop-opacity="0"/></radialGradient>' +
+        '<radialGradient id="sunglow"><stop offset=".25" stop-color="#fff6c8" stop-opacity=".95"/><stop offset=".5" stop-color="#ffc94a" stop-opacity=".45"/><stop offset="1" stop-color="#ff8a3d" stop-opacity="0"/></radialGradient>' +
+        '<radialGradient id="sunbody" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#fffbe0"/><stop offset=".45" stop-color="#ffe066"/><stop offset="1" stop-color="#ff9a2b"/></radialGradient>' +
+        '<linearGradient id="sunshade" x1="0" y1="0" x2="1" y2="0"><stop offset=".25" stop-color="#050218" stop-opacity="0"/><stop offset="1" stop-color="#050218" stop-opacity=".62"/></linearGradient></defs><g id="asCam">');
+      var farR = 0; ids.forEach(function (id) { farR = Math.max(farR, Math.hypot(UPOS[id][0], UPOS[id][1])); });
+      h.push('<circle r="' + (farR * 1.5).toFixed(0) + '" fill="url(#skylight)"/>');
       for (i = 0; i < 360; i++) h.push('<circle cx="' + Math.round(cx - bw * 0.9 + R() * bw * 1.8) + '" cy="' + Math.round(cy - bh * 0.9 + R() * bh * 1.8) + '" r="' + (2 + R() * 5).toFixed(1) + '" fill="#fff" opacity="' + (0.2 + R() * 0.55).toFixed(2) + '"/>');
+      var orb = {}; ids.forEach(function (id) { orb[Math.round(Math.hypot(UPOS[id][0], UPOS[id][1]) / 50) * 50] = 1; });
+      Object.keys(orb).forEach(function (rr0) { h.push('<circle r="' + rr0 + '" fill="none" stroke="#ffd9a0" stroke-opacity=".16" stroke-width="2" stroke-dasharray="6 10" vector-effect="non-scaling-stroke"/>'); });
+      var SR = SUN_R * SS, rays = '';
+      for (i = 0; i < 16; i++) { var ra = i / 16 * 6.2832; rays += '<path d="M' + (Math.cos(ra - 0.12) * SR * 1.02).toFixed(0) + ' ' + (Math.sin(ra - 0.12) * SR * 1.02).toFixed(0) + ' L' + (Math.cos(ra) * SR * (i % 2 ? 1.65 : 2.05)).toFixed(0) + ' ' + (Math.sin(ra) * SR * (i % 2 ? 1.65 : 2.05)).toFixed(0) + ' L' + (Math.cos(ra + 0.12) * SR * 1.02).toFixed(0) + ' ' + (Math.sin(ra + 0.12) * SR * 1.02).toFixed(0) + 'Z" fill="#ffd34e" opacity=".75"/>'; }
+      h.push('<g id="asSun"><circle r="' + (SR * 3.4).toFixed(0) + '" fill="url(#sunglow)"/><g class="as-sunr">' + rays + '</g><g class="as-sunb"><circle r="' + SR.toFixed(0) + '" fill="url(#sunbody)" stroke="#fff6c8" stroke-width="' + (SR * 0.04).toFixed(0) + '"/><circle cx="' + (-SR * 0.3).toFixed(0) + '" cy="' + (-SR * 0.3).toFixed(0) + '" r="' + (SR * 0.22).toFixed(0) + '" fill="#fff" opacity=".6"/></g><text y="' + (SR * 1.9).toFixed(0) + '" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="' + (SR * 0.34).toFixed(0) + '" fill="#ffe27a" stroke="#7a3dbf" stroke-width="' + (SR * 0.03).toFixed(0) + '" paint-order="stroke">The Sun</text></g>');
       h.push('<line id="asRoute" stroke="#ffd86b" stroke-width="3" stroke-dasharray="10 8" vector-effect="non-scaling-stroke" opacity="0"/>');
       ids.forEach(function (id) {
         var p = UPOS[id], r = uRadius(id), W2 = WORLDS[id];
@@ -6681,7 +6714,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
           (ring ? '<ellipse class="as-ring" rx="' + (r * 1.75).toFixed(0) + '" ry="' + (r * 0.55).toFixed(0) + '" fill="none" stroke="' + glow + '" stroke-width="' + (r * 0.07).toFixed(1) + '" stroke-opacity=".8" transform="rotate(' + (hs % 60 - 30) + ')"/>' : '') + '</g>' +
           '<circle class="as-hit" data-r="' + (r * 1.5).toFixed(0) + '" r="' + (r * 1.5).toFixed(0) + '" fill="transparent"/>' +
           '<g class="as-body"><g class="as-spin" style="animation-duration:' + sp + 's;animation-direction:' + (hs % 2 ? 'normal' : 'reverse') + '"><g transform="scale(' + (r / 50).toFixed(3) + ') translate(-50 -50)">' + planetInner(id, 'open') + '</g></g>' +
-          (moon ? '<g class="as-orb" style="animation-duration:' + od + 's;animation-direction:' + (hs % 5 < 2 ? 'reverse' : 'normal') + '"><circle cx="' + (r * 1.55).toFixed(0) + '" cy="0" r="' + (r * 0.16).toFixed(1) + '" fill="' + (pl.beach || '#fff') + '" stroke="#fff" stroke-width="' + (r * 0.04).toFixed(1) + '"/></g>' : '') + '</g>' +
+          '<circle r="' + (r * 0.98).toFixed(1) + '" fill="url(#sunshade)" transform="rotate(' + (Math.atan2(-p[1], -p[0]) * 180 / Math.PI - 180).toFixed(1) + ')"/>' + (moon ? '<g class="as-orb" style="animation-duration:' + od + 's;animation-direction:' + (hs % 5 < 2 ? 'reverse' : 'normal') + '"><circle cx="' + (r * 1.55).toFixed(0) + '" cy="0" r="' + (r * 0.16).toFixed(1) + '" fill="' + (pl.beach || '#fff') + '" stroke="#fff" stroke-width="' + (r * 0.04).toFixed(1) + '"/></g>' : '') + '</g>' +
           '<g class="as-lab" data-dy="' + (r + 14).toFixed(0) + '"><text text-anchor="middle" class="uname">' + esc(W2.name) + '</text></g></g>');
       });
       // floating oxygen bubbles and star scrap to catch on the way
@@ -6706,7 +6739,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!elCam) return;
       N.x = Math.max(-20000, Math.min(20000, N.x)); N.y = Math.max(-20000, Math.min(20000, N.y));
       elCam.setAttribute('transform', 'translate(' + (W / 2 - N.x * N.k).toFixed(1) + ' ' + (H / 2 - N.y * N.k).toFixed(1) + ') scale(' + N.k.toFixed(4) + ')');
-      var inv = (1 / N.k).toFixed(4);
+      var inv = (1 / N.k).toFixed(4), sunEl = svg.querySelector('#asSun'); if (sunEl) sunEl.setAttribute('transform', 'scale(' + Math.max(1, 46 / (SUN_R * SS * N.k)).toFixed(3) + ')');
       [].forEach.call(svg.querySelectorAll('.as-pl'), function (g) { var r = +g.dataset.r, f = Math.max(1, 22 / (r * N.k)), ft = 'scale(' + f.toFixed(3) + ')'; g.querySelector('.as-body').setAttribute('transform', ft); g.querySelector('.as-aura').setAttribute('transform', ft); g.querySelector('.as-lab').dataset.dy = (r * f + 14).toFixed(0); });
       [].forEach.call(svg.querySelectorAll('.as-lab'), function (g) { g.setAttribute('transform', 'translate(0 ' + (+g.dataset.dy + 6 / N.k).toFixed(1) + ') scale(' + inv + ')'); });
       pk.forEach(function (q, j) { var e = svg.querySelector('#pk' + j); if (e) e.setAttribute('transform', 'translate(' + q.x.toFixed(0) + ' ' + q.y.toFixed(0) + ') scale(' + ((N.k < 0.12 ? 0.32 : 0.6) / N.k).toFixed(4) + ')' + (q.on ? '' : ' scale(0)')); });
@@ -6784,9 +6817,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     function startRival(hunt) {
       if (rvPause || rescue || o2 < cap * 0.3 || !S.team.length) return;
       rvPause = true; hud(true); target = null; Object.keys(held).forEach(function (k) { held[k] = false; }); auAct('nope', 1);
-      rivalEncounter({ o2: o2, cap: cap, eng: shipLv('eng'), hull: shipLv('hull'), hunt: hunt === true, done: function (r) {
+      rivalEncounter({ o2: o2, cap: cap, eng: shipLv('eng'), hull: shipLv('hull'), ship: shipLv('hull') + shipLv('eng') + shipLv('rec') + shipLv('scan') > 0, hunt: hunt === true, done: function (r) {
         o2 = Math.max(0, Math.min(cap, o2 + (r.o2 || 0))); S.scrap = Math.max(0, Math.min(99, S.scrap + (r.scrap || 0))); if (r.scrap > 0) got.scrap += r.scrap; S.coins += r.coins || 0; if (r.balls) S.sleeping += r.balls;
-        if (r.fairy) { S.team.push(r.fairy); S.caught.fairy = true; if (S.world) addFollowerEnt(r.fairy); }
+        if (r.fairy) { S.team.push(r.fairy); S.rvFairy = (S.rvFairy | 0) + 1; S.caught.fairy = true; if (S.world) addFollowerEnt(r.fairy); }
         S.rvDone = true; save(); setO2(); warn = r.msg || ''; warnT = 7; hud(true); rvPause = false; rvTotal = rvT = 45 + Math.random() * 45; rvSaid = 0; last = performance.now();
       } });
     }
@@ -7095,13 +7128,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         h = '<div class="rv-vic">VICTORY!</div><div class="rv-cast beat"><div class="rv-vil v1 tumble">' + vexSVG() + '<b>Vex</b></div><div class="rv-vil v2 tumble">' + moxieSVG() + '<b>Moxie</b></div></div><div class="rv-say"><b>Vex:</b> ' + esc(o.vline || log) + '</div>' +
           (o.fairy ? '<div class="rv-fairy"><div class="rv-fp">' + petSVG(o.fairy.type, o.fairy.stage, '', o.fairy.body) + '</div><div><b>A special Fairy joins your team!</b><span>Say hello to ' + esc(o.fairy.name) + ', an ultra rare Fairy pet.</span></div></div>' : '') +
           '<div class="rv-loot">' + (o.lines || []).map(function (l, i) { return '<div class="rv-lr' + (l.k === 'bonus' ? ' bonus' : '') + '" style="animation-delay:' + (0.25 + i * 0.35).toFixed(2) + 's"><i>' + RV_ICON[l.k] + '</i><span>' + l.t + '</span><b>+<em data-n="' + l.n + '">0</em></b></div>'; }).join('') + '</div>' +
-          '<div class="rv-rank' + (newRk ? ' new' : '') + '">' + (newRk ? 'New title: ' : 'Title: ') + '<b>' + rk[1] + '</b> &middot; ' + (S.rvWins | 0) + ' win' + (S.rvWins === 1 ? '' : 's') + '</div><div class="rv-btns"><button class="btn primary" data-rv="close">Collect and go!</button></div>';
+          '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-rank' + (newRk ? ' new' : '') + '">' + (newRk ? 'New title: ' : 'Title: ') + '<b>' + rk[1] + '</b> &middot; ' + (S.rvWins | 0) + ' win' + (S.rvWins === 1 ? '' : 's') + '</div><div class="rv-btns"><button class="btn primary" data-rv="close">Collect and go!</button></div>';
         el.innerHTML = '<div class="rv-bg"></div><div class="rv-wrap">' + h + '</div>';
         return;
       }
       var talk = phase === 'intro' ? RV_HI[(S.rvWins | 0) % RV_HI.length] : log;
       h += '<div class="rv-logo">THE GLITCH GANG</div><div class="rv-cast"><div class="rv-vil v1">' + vexSVG() + '<b>Vex</b></div><div class="rv-vil v2">' + moxieSVG() + '<b>Moxie</b></div></div><div class="rv-say"><b>Vex:</b> ' + esc(talk) + '</div>';
-      if (phase === 'intro') h += '<p class="rv-sub">Moxie: Hand over your star scrap, or battle us!</p><div class="rv-btns"><button class="btn primary" data-rv="fight">Pet battle</button><button class="btn primary alt" data-rv="ship">Ship battle</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Pet battle: your pets fight up close with their own battle powers (higher-level pets hit much harder). Ship battle: fly your rocket and shoot it out in space! Running costs a little oxygen and can fail.</p>';
+      if (phase === 'intro') h += '<p class="rv-sub">Moxie: Hand over your star scrap, or battle us!</p><p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="fight">Pet battle</button><button class="btn primary alt" data-rv="ship"' + (o.ship ? '' : ' disabled') + '>' + (o.ship ? 'Ship battle' : 'Ship battle (locked)') + '</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Pet battle: your pets fight up close with their own battle powers (higher-level pets hit much harder). Ship battle: fly your rocket and shoot it out in space' + (o.ship ? '' : ' (locked: you need a rocket part first, so upgrade your rocket at the Rocket station)') + '! Running costs a little oxygen and can fail.</p>';
       else h += '<div class="rv-btns"><button class="btn primary" data-rv="close">Continue</button></div>';
       el.innerHTML = '<div class="rv-bg"></div><div class="rv-wrap">' + h + '</div>';
     }
@@ -7181,6 +7214,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         T(function tick() { if (!n.parentNode) return; k++; n.textContent = Math.round(to * k / steps); try { auAct('pad', 1); } catch (e) { /* sound is optional */ } if (k < steps) T(tick, 38); }, 350 + i * 350);
       });
     }
+    function fairyInfo() {
+      var w = S.rvWins | 0, owed = Math.floor(w / 3) - (S.rvFairy | 0);
+      return 'Battle wins: ' + w + ' (pet and ship battles both count). ' + (owed > 0 ? 'A special Fairy is waiting for you: win again to get it!' : 'Next special Fairy in ' + (3 - w % 3) + ' win' + (3 - w % 3 === 1 ? '' : 's') + '.');
+    }
     function grantWin(speedy, flawless) {
       var lv2 = Math.min(30, level()), sc = 4 + Math.floor(Math.random() * 5), co = 15 + lv2, ox = 10, lines = [];
       S.rvWins = (S.rvWins | 0) + 1;
@@ -7191,8 +7228,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var want = 2 + (flawless ? 1 : 0), room = Math.max(0, carryCap() - carried()), balls = Math.min(want, room);
       lines.splice(3, 0, { k: 'ball', t: balls < want ? 'Colorful balls (your bag is nearly full)' : 'Colorful balls', n: balls });
       if (S.rvWins % 3 === 0) { lines.push({ k: 'bonus', t: 'Win streak bonus: oxygen', n: 10 }); ox += 10; }
-      var fp = null;
-      if (S.rvWins % 3 === 0) { fp = newPet('fairy', 'ultra', BODY_OPTIONS.fairy[Math.floor(Math.random() * BODY_OPTIONS.fairy.length)]); fp.stage = 2; fp.name = S.world ? freeName(S.world) : 'Twinkle'; lines.push({ k: 'fairy', t: 'Special Fairy pet joins your team!', n: 1 }); }
+      var fp = null, owed = Math.floor(S.rvWins / 3) - (S.rvFairy | 0);
+      if (owed > 0) { fp = newPet('fairy', 'ultra', BODY_OPTIONS.fairy[Math.floor(Math.random() * BODY_OPTIONS.fairy.length)]); fp.stage = 2; fp.name = S.world ? freeName(S.world) : 'Twinkle'; lines.push({ k: 'fairy', t: 'Special Fairy pet joins your team!', n: 1 }); }
       o.won = true; o.lines = lines; o.fairy = fp;
       o.res = { o2: ox, scrap: sc, coins: co, balls: balls, fairy: fp, msg: 'You beat the Glitch Gang! +' + sc + ' star scrap, +' + co + ' coins, +' + ox + ' oxygen' + (balls ? ', +' + balls + ' colorful ball' + (balls > 1 ? 's' : '') : '') + (fp ? ' and a special Fairy pet named ' + fp.name + '!' : '.') };
       o.vline = RV_WIN[(S.rvWins - 1) % RV_WIN.length] + ' Moxie: We lost the scrap AND our bots!';
@@ -7210,7 +7247,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var cv = el.querySelector('#rvcv'), cx = cv.getContext('2d'), W = cv.width = window.innerWidth, H = cv.height = window.innerHeight;
       var Z = Math.max(1, Math.min(1.8, window.innerHeight / 620)), hullMax = 5 + (o.hull | 0), hull = hullMax, spd = 420 * (1 + 0.12 * (o.eng | 0)), fireGap = 0.26 / (1 + 0.1 * (o.eng | 0));
       var P = { x: W / 2, y: H - 80 }, tg = { x: W / 2, y: H - 80 }, shots = [], eb = [], foes = [], fxs = [], pws = [], t = 0, waveN = -1, waveT = 0, pend = [], fireT = 0, inv = 0, triple = 0, shield = 0, kills = 0, ended = false, boss = null, bossIn = 0, lastT = performance.now(), keys = {}, flashT = 0;
-      var wing = team.slice(0, 3).map(function (f) { return { img: svgImg(petSVG(f.p.type, f.p.stage, '', f.p.body)), col: RV_FXC[f.p.type] || '#fff', dmg: f.p.stage >= 4 ? 3 : f.p.stage >= 3 ? 2 : 1 }; });
+      var wing = team.slice(0, 3).map(function (f) { return { img: svgImg(petSVG(f.p.type, f.p.stage, '', f.p.body)), col: RV_FXC[f.p.type] || '#fff', dmg: rvPow(f.p) }; });
       var IMG = { ship: svgImg('<svg viewBox="-50 -52 100 116" width="100" height="116">' + rocketSVG('rv') + '</svg>'), zap: svgImg(botSVG('zap')), gob: svgImg(botSVG('gob')), clank: svgImg(botSVG('clank')), vex: svgImg(vexSVG()), mox: svgImg(moxieSVG()) };
       var WAVES = [{ n: 6, kinds: ['zap'], pat: 'sine' }, { n: 8, kinds: ['zap', 'gob'], pat: 'sine' }, { n: 6, kinds: ['clank', 'zap'], pat: 'sine' }];
       function hearts() { var h = ''; for (var i = 0; i < hullMax; i++) h += '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 21 C3 14 3 6 8 6 C10 6 11.500 7 12 8.500 C12.500 7 14 6 16 6 C21 6 21 14 12 21Z" fill="' + (i < hull ? '#ff4d7a' : 'rgba(255,255,255,.2)') + '" stroke="#fff" stroke-width="1.500"/></svg>'; var e = el.querySelector('#rvsHull'); if (e) e.innerHTML = hearts.cache = h; }
@@ -7315,7 +7352,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
           cx.restore();
           cx.fillStyle = 'rgba(0,0,0,.5)'; cx.fillRect(20, 8, W - 40, 12); cx.fillStyle = '#ff5c9a'; cx.fillRect(20, 8, Math.max(0, (W - 40) * boss.hp / boss.max), 12); cx.strokeStyle = '#fff'; cx.lineWidth = 2; cx.strokeRect(20, 8, W - 40, 12);
         }
-        shots.forEach(function (s) { cx.fillStyle = s.col; cx.shadowColor = s.col; cx.shadowBlur = 10; cx.beginPath(); cx.ellipse(s.x, s.y, (3.500 + (s.dmg - 1) * 1.600) * Z, (11 + (s.dmg - 1) * 3) * Z, 0, 0, 6.283); cx.fill(); cx.shadowBlur = 0; });
+        shots.forEach(function (s) { cx.fillStyle = s.col; cx.shadowColor = s.col; cx.shadowBlur = 10; cx.beginPath(); cx.ellipse(s.x, s.y, Math.max(2.400, 3.500 + (s.dmg - 1) * 1.800) * Z, Math.max(8, 11 + (s.dmg - 1) * 4) * Z, 0, 0, 6.283); cx.fill(); cx.shadowBlur = 0; });
         eb.forEach(function (b) { cx.fillStyle = b.c; cx.shadowColor = b.c; cx.shadowBlur = 12; cx.beginPath(); cx.arc(b.x, b.y, 6 * Z, 0, 6.283); cx.fill(); cx.shadowBlur = 0; cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(b.x, b.y, 2.500 * Z, 0, 6.283); cx.fill(); });
         if (!ended || hull > 0) {
           wing.forEach(function (w, i) { var wx = P.x + (i % 2 ? 1 : -1) * (46 + Math.floor(i / 2) * 30) * Z, wy = P.y + 8 * Z + Math.sin(t * 4 + i) * 3; pic(w.img, wx, wy, 36 * Z, 36 * Z); });
@@ -7365,7 +7402,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var b = ev.target.closest('[data-rv]'); if (!b) return; var a = b.dataset.rv, i = +b.dataset.i;
       if (a === 'fight') startFight(false);
       else if (a === 'run') tryRun(false);
-      else if (a === 'ship') startShip();
+      else if (a === 'ship') { if (o.ship) startShip(); }
       else if (a === 'sflee') { if (shipOff) shipOff(); timers.forEach(clearTimeout); finished = true; phase = 'ran'; var lo2 = Math.min(4, Math.max(0, Math.floor(o.o2) - 1)); o.won = false; o.res = { o2: -lo2, scrap: 0, coins: 0, msg: 'You flew away from the Glitch Gang! The jets used ' + lo2 + ' oxygen.' }; log = 'Hey! Come back and fight, you chicken! Moxie: Bawk bawk!'; ui(); }
       else if (a === 'close') finishAll();
       else if (busy || finished) return;
