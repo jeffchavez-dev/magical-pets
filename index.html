@@ -5091,13 +5091,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     ids.forEach(function (id) { adj[id] = adj[id] || []; WORLDS[id].spots.forEach(function (sp) { if (sp.k === 'portal' && WORLDS[sp.to] && UNI_POS[sp.to]) { adj[id].push(sp.to); (adj[sp.to] = adj[sp.to] || []).push(id); } }); });
     while (qu.length) { var a = qu.shift(); (adj[a] || []).forEach(function (b) { if (depth[b] === undefined) { depth[b] = depth[a] + 1; mx = Math.max(mx, depth[b]); qu.push(b); } }); }
     ids.forEach(function (id) { if (depth[id] === undefined) depth[id] = mx + 1; ang0[id] = Math.atan2(UNI_POS[id][1], UNI_POS[id][0]); });
-    /* nearest worlds (by caves from Home) go on the inner rings: 1, 6, 8, 10, 12, ... worlds per ring */
+    /* nearest worlds (by caves from Home) go on the inner rings: 1, 3, 4, 5, 6, 7, 7, ... worlds per ring, spread all the way around */
     var order = ids.slice().sort(function (m, n) { return depth[m] - depth[n] || ang0[m] - ang0[n]; }), k = 0, ri = 0;
-    while (k < order.length) { var cap = ri === 0 ? 1 : 4 + 2 * ri; rings[ri] = order.slice(k, k + (k + cap + 4 > order.length ? order.length - k : cap)); k += rings[ri].length; ri++; }
+    while (k < order.length) { var cap = ri === 0 ? 1 : Math.min(7, 2 + ri); rings[ri] = order.slice(k, k + (k + cap + 4 > order.length ? order.length - k : cap)); k += rings[ri].length; ri++; }
     Object.keys(rings).map(Number).sort(function (m, n) { return m - n; }).forEach(function (dp) {
       var list = rings[dp].sort(function (m, n) { return ang0[m] - ang0[n]; }), arcs = list.map(function (id) { return 2 * uRadius(id) + 460; }), tot = arcs.reduce(function (x, y) { return x + y; }, 0);
-      var r = Math.max(prev + (dp ? 720 : 0), dp ? 0 : 1050, tot / 6.2832), acc = 0, off = (dp * 0.9 + (dp % 2) * 0.5);
-      list.forEach(function (id, i) { var an = off + (acc + arcs[i] / 2) / r * (6.2832 * r / Math.max(tot, 6.2832 * r)); acc += arcs[i]; UNI_POS[id] = [Math.round(Math.cos(an) * r), Math.round(Math.sin(an) * r)]; });
+      var r = Math.max(prev + (dp ? 560 : 0), dp ? 0 : 1050, tot / 6.2832), off = dp * 2.399 + 0.4;
+      list.forEach(function (id, i) { var an = off + (i + 0.5) * 6.2832 / list.length; UNI_POS[id] = [Math.round(Math.cos(an) * r), Math.round(Math.sin(an) * r)]; });
       prev = r;
     });
   }
@@ -6699,7 +6699,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         '<radialGradient id="sunbody" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#fffbe0"/><stop offset=".45" stop-color="#ffe066"/><stop offset="1" stop-color="#ff9a2b"/></radialGradient>' +
         '<linearGradient id="sunshade" x1="0" y1="0" x2="1" y2="0"><stop offset=".25" stop-color="#050218" stop-opacity="0"/><stop offset="1" stop-color="#050218" stop-opacity=".62"/></linearGradient></defs><g id="asCam">');
       var farR = 0, rl = []; ids.forEach(function (id) { farR = Math.max(farR, Math.hypot(UPOS[id][0], UPOS[id][1])); var rk = Math.round(Math.hypot(UPOS[id][0], UPOS[id][1]) / 50) * 50; if (rl.indexOf(rk) < 0) rl.push(rk); }); rl.sort(function (m, n) { return m - n; });
-      ids.forEach(function (id) { var q = UPOS[id], rk = Math.round(Math.hypot(q[0], q[1]) / 50) * 50; ORB[id] = { R: Math.hypot(q[0], q[1]), a0: Math.atan2(q[1], q[0]), w: 6.2832 / (900 + 400 * rl.indexOf(rk)) }; });
+      ids.forEach(function (id) { var q = UPOS[id], rk = Math.round(Math.hypot(q[0], q[1]) / 50) * 50; ORB[id] = { R: Math.hypot(q[0], q[1]), a0: Math.atan2(q[1], q[0]), w: 6.2832 / (150 + 45 * rl.indexOf(rk)) * (0.88 + (strHash(id) % 25) / 100) }; });
       h.push('<circle r="' + (farR * 1.5).toFixed(0) + '" fill="url(#skylight)"/>');
       for (i = 0; i < 360; i++) h.push('<circle cx="' + Math.round(cx - bw * 0.9 + R() * bw * 1.8) + '" cy="' + Math.round(cy - bh * 0.9 + R() * bh * 1.8) + '" r="' + (2 + R() * 5).toFixed(1) + '" fill="#fff" opacity="' + (0.2 + R() * 0.55).toFixed(2) + '"/>');
       var orb = {}; ids.forEach(function (id) { orb[Math.round(Math.hypot(UPOS[id][0], UPOS[id][1]) / 50) * 50] = 1; });
