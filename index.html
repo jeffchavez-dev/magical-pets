@@ -882,6 +882,25 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .pdot { display: block; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; }
 .hv-parts { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; }
 .hv-parts button { border: 0; border-radius: 10px; padding: 5px 12px; font-weight: 800; background: rgba(255,255,255,.2); color: #fff; cursor: pointer; }
+.hv-fish { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; animation: aqSwim linear infinite; }
+@keyframes aqSwim {
+  0% { transform: translate3d(calc(var(--dx) * -1), calc(var(--y) * -1), calc(var(--dz) * -1)) rotateY(0deg); }
+  48% { transform: translate3d(var(--dx), calc((var(--y) + var(--dy)) * -1), var(--dz)) rotateY(0deg); }
+  50% { transform: translate3d(var(--dx), calc((var(--y) + var(--dy)) * -1), var(--dz)) rotateY(180deg); }
+  98% { transform: translate3d(calc(var(--dx) * -1), calc(var(--y) * -1), calc(var(--dz) * -1)) rotateY(180deg); }
+  100% { transform: translate3d(calc(var(--dx) * -1), calc(var(--y) * -1), calc(var(--dz) * -1)) rotateY(360deg); }
+}
+.aq-live { position: relative; height: 120px; margin: 4px 0 8px; border-radius: 14px; overflow: hidden; border: 3px solid #cfe9ff; background: linear-gradient(#7fd3ff, #2f8fd8 80%); }
+.aq-live::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: #f2dfae; }
+.aq-live em { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-style: normal; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.aq-sw { position: absolute; left: 2%; display: block; aspect-ratio: 1; animation: aq2d linear infinite; z-index: 1; }
+.aq-sw svg { width: 100%; height: 100%; display: block; overflow: visible; animation: aqBob 1.8s ease-in-out infinite alternate; }
+.aq-sw.fl svg { animation: none; }
+@keyframes aq2d { 0% { left: 2%; transform: scaleX(1); } 49% { left: 80%; transform: scaleX(1); } 50% { left: 80%; transform: scaleX(-1); } 99% { left: 2%; transform: scaleX(-1); } 100% { left: 2%; transform: scaleX(1); } }
+@keyframes aqBob { to { transform: translateY(7px); } }
+.hv-card.aqrow { display: flex; align-items: center; gap: 8px; } .hv-card.aqrow .hv-face { width: 34px; height: 34px; flex: none; } .aqn { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+.aqn button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: #ff7eb6; color: #fff; font-weight: 800; font-size: 20px; cursor: pointer; } .aqn button:disabled { opacity: .35; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .hv-fish, .aq-sw, .aq-sw svg { animation: none; } }
 .hv-grp { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
 .hv-grp.drop { animation: hvDrop .75s cubic-bezier(.3,1.5,.5,1) .45s both; }
 @keyframes hvDrop { 0% { transform: translateY(-300px) rotateZ(-6deg); opacity: 0; } 12% { opacity: 1; } 100% { transform: none; opacity: 1; } }
@@ -1821,7 +1840,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.lockUntil = +d.lockUntil > Date.now() ? +d.lockUntil : 0;
     S.mats = {}; Object.keys(d.mats || {}).forEach(function (k) { if (MAT_BY[k]) S.mats[k] = Math.max(0, Math.min(MAT_CAP, d.mats[k] | 0)); });
     S.houses = {}; Object.keys(d.houses || {}).forEach(function (k) { var h = d.houses[k]; if (WORLDS[k] && h && Array.isArray(h.p)) S.houses[k] = { p: h.p.slice(0, HOUSE_PIECES.length).map(function (v) { return v ? 1 : 0; }), x: +h.x || 0, y: +h.y || 0,
-      f: (Array.isArray(h.f) ? h.f : []).filter(function (q) { return q && FURN[q.k] && q.c >= 0 && q.c < COLS * ROWS; }).map(function (q) { return { k: q.k, c: q.c | 0, pt: sanPaintMap(q.pt, 12) }; }), pa: sanPaintMap(h.pa, HOUSE_PIECES.length),
+      f: (Array.isArray(h.f) ? h.f : []).filter(function (q) { return q && FURN[q.k] && q.c >= 0 && q.c < COLS * ROWS; }).map(function (q) { var old = /^tank_/.test(q.k), aq = old ? [q.k.slice(5)] : (Array.isArray(q.aq) ? q.aq : []); return { k: old ? 'aquarium' : q.k, c: q.c | 0, pt: sanPaintMap(q.pt, 12), aq: q.k === 'aquarium' || old ? aq.filter(function (x) { return SEA_BY[x]; }).slice(0, AQ_MAX) : undefined }; }), pa: sanPaintMap(h.pa, HOUSE_PIECES.length),
       res: (Array.isArray(h.res) ? h.res : []).filter(function (q) { return q && TYPES[q.type]; }).slice(0, 6).map(function (q) { if (!q.body) q.body = bodyFor(q.type, q.id); if (!q.prog) migrateProg(q); return q; }), gt: +h.gt || 0 }; }); loadArt(); artClean();
     S.losses = d.losses | 0; S.toll = d.toll || {}; S.weak = d.weak || {}; S.homeJ = Array.isArray(d.homeJ) ? d.homeJ.filter(function (n) { return typeof n === 'number'; }) : [];
     S.uni = d.uni || {}; S.jump = d.jump == null ? null : d.jump; S.away = Array.isArray(d.away) ? d.away.filter(function (a) { return a && a.pet && TYPES[a.pet.type] && TYPES[a.t]; }) : [];
@@ -2955,7 +2974,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var POWERS = {
     fairy: { name: 'Pixie Dust', cd: 90, d: 'Gives every growing pet one free cuddle, snack or game it still needs.' },
     fire: { name: 'Torch Light', cd: 60, d: 'Lights up the hidden cursed ground near you.' },
-    water: { name: 'Pond Warp', cd: 90, tele: 'pond', d: 'Step on any pond, and you can warp to a pond in any world you have opened.' },
+    water: { name: 'Pond Warp', cd: 90, tele: 'pond', d: 'Dive into any pond or lake and swim into the glowing warp tunnel at the bottom to warp to a pond in any world you have opened.' },
     grass: { name: 'Bloom', cd: 90, d: 'Berries sprout! Fills every tummy a little and gives 2 food.' },
     psychic: { name: 'Far Sight', scout: 150, d: 'Send it out to find a missing pet that a new world needs. Back in about 2 minutes.' },
     ice: { name: 'Frost Calm', cd: 70, d: 'Wild pets near you turn happy for 12 seconds, so a Happy Stone can work.' },
@@ -2979,7 +2998,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function usePower(p) {
     var w = S.world, PW = POWERS[p.type]; if (!w || !PW || PW.scout || p.stage < 3 || powerLeft(p) > 0) return false;
-    if (PW.tele) { wmsg(PW.name + ' works on its own. Walk onto ' + (PW.tele === 'pond' ? 'a pond' : 'a berry patch') + ' to choose a world!'); return false; }
+    if (PW.tele) { wmsg(PW.name + ' works on its own. ' + (PW.tele === 'pond' ? 'Dive into a pond and swim into the warp tunnel' : 'Walk onto a berry patch') + ' to choose a world!'); return false; }
     var lead = w.ents[0], now = performance.now(), msg = '', H = hazOf(S.cur), n = 0, X = p.stage >= 4 ? 2 : 1;
     if (p.type === 'fairy') {
       var ready = [];
@@ -3641,7 +3660,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         w.ents.push({ id: 'm' + mi, kind: 'find', slot: 2 + mi, mat: mk, x: mp.x, y: mp.y, tx: mp.x, ty: mp.y, name: MAT_BY[mk].name });
       }
       var hh = houseOf(S.cur);
-      if (!hh.x && !hh.y) { var pp = randomSpot(w); hh.x = Math.round(pp.x); hh.y = Math.round(pp.y); save(); }
+      if (!hh.x && !hh.y) { var pp = randomSpot(w); hh.x = Math.round(pp.x); hh.y = Math.round(pp.y); delete ART[S.cur]; delete V3.cache[S.cur]; delete OBS[S.cur]; save(); }
       w.ents.push({ id: 'house', kind: 'find', plot: true, x: hh.x, y: hh.y, tx: hh.x, ty: hh.y, name: 'My house' });
       if (S.houseArrive === S.cur) {
         var hq = clampPt({ x: hh.x, y: hh.y + 70 }, WALK_R), hero0 = w.ents[0];
@@ -3875,8 +3894,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         pathPts.push({ x: u * u * q[0] + 2 * u * t * q[2] + t * t * q[4], y: u * u * q[1] + 2 * u * t * q[3] + t * t * q[5] });
       }
     });
+    var HS = S && S.houses && S.houses[id] && (S.houses[id].x || S.houses[id].y) ? S.houses[id] : null;
     function clear(px, py, pathPad, spotPad) {
       if (Math.hypot(px - HXa, py - HYa) < 150) return false;
+      if (HS) { var hdx = (px - HS.x) / 270, hdy = (py - HS.y + 40) / 215; if (hdx * hdx + hdy * hdy < 1) return false; }   /* nothing grows where the house stands */
       var k;
       for (k = 0; k < SP.length; k++) if (Math.hypot(px - SP[k].x, py - SP[k].y) < SP[k].r + spotPad) return false;
       for (k = 0; k < pathPts.length; k++) if (Math.hypot(px - pathPts[k].x, py - pathPts[k].y) < pathPad) return false;
@@ -4102,7 +4123,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         if (e.lx !== undefined) { var ddx = e.x - e.lx; if (ddx > 0.4) e.face = 1; else if (ddx < -0.4) e.face = -1; }
         e.lx = e.x; e.el.classList.toggle('faceL', e.face === -1); e.el.classList.toggle('faceR', e.face !== -1);
       }
-      if (e.kind === 'hero') { var dvb = $('#divebtn'), showDv = !!(ws && ws.lake && !warping); if (dvb && dvb.hidden === showDv) dvb.hidden = !showDv; }
+      if (e.kind === 'hero') { var dvb = $('#divebtn'), showDv = !!(ws && !warping); if (dvb && dvb.hidden === showDv) dvb.hidden = !showDv; }
     }
     var hb = e.kind === 'follower' ? hunBand(hunOf(e.pet)) : 0;
     e.el.classList.toggle('hungry', hb === 2); e.el.classList.toggle('starving', hb === 3);
@@ -5844,6 +5865,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function seaDone() { return SEA.every(function (q) { return S.sea && S.sea[q.id]; }); }
   function diveBase() { return DIVE_BASE + (seaDone() ? 5 : 0); }
   function tankMax() { return seaDone() ? 7 : 5; }
+  function tunnelSVG() {
+    return '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#7fe8ff" opacity=".25"/><circle cx="50" cy="50" r="38" fill="none" stroke="#b9f3ff" stroke-width="6"/><circle cx="50" cy="50" r="30" fill="#2a1a7a"/><g fill="none" stroke-linecap="round"><path d="M50 50 m0 -6 a6 6 0 1 1 -6 6 a14 14 0 1 1 14 -14 a22 22 0 1 1 -22 22" stroke="#ffe27a" stroke-width="4"/><path d="M50 50 m6 0 a6 6 0 1 0 6 6" stroke="#fff" stroke-width="3"/></g><circle cx="26" cy="22" r="3" fill="#fff"/><circle cx="78" cy="28" r="2.5" fill="#fff"/><circle cx="76" cy="78" r="3" fill="#fff"/></svg>';
+  }
   function pearlSVG() { return '<svg viewBox="0 0 60 60" aria-hidden="true"><path d="M6 36 Q6 12 30 12 Q54 12 54 36 Q54 52 30 52 Q6 52 6 36Z" fill="#ffb3d9" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 34 q16 -14 32 0 M18 42 q12 -10 24 0" stroke="#fff" stroke-width="2" fill="none" opacity=".6"/><circle cx="30" cy="30" r="9" fill="#fff"/><circle cx="27" cy="27" r="3" fill="#fff" opacity=".9" stroke="#e6f4ff"/></svg>'; }
   function seaSVG(id, c) {
     var o = '<svg viewBox="0 0 60 60" aria-hidden="true">', st = ' stroke="#fff" stroke-width="2.5" stroke-linejoin="round"';
@@ -5885,7 +5909,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function diveHTML(lake) {
     var ml = mateLine(S.team, canSwim), base = diveBase() + DIVE_MATE * Math.min(3, ml.a.length);
-    var h = ['<div class="sheet-card divesheet"><h3>Dive into ' + esc(lake.t) + '</h3><p class="srow-note">This lake is deep! Swim down to find sea friends, house materials and star scrap. You can hold your breath for ' + base + ' seconds. An air tank adds ' + TANK_SEC + ' more.</p>'];
+    var h = ['<div class="sheet-card divesheet"><h3>Dive into ' + esc(lake.t) + '</h3><p class="srow-note">' + (teleReady('pond') ? '<b>' + esc(teleReady('pond').p.name) + ' feels a warp tunnel down below!</b> Find it to warp to another world. ' : '') + 'This water is deep! Swim down to find sea friends, house materials and star scrap. You can hold your breath for ' + base + ' seconds. An air tank adds ' + TANK_SEC + ' more.</p>'];
     h.push('<p class="srow-note">' + (ml.a.length ? '<b>Swimmers come along (+' + DIVE_MATE + ' seconds each):</b> ' + ml.a.slice(0, 3).map(function (p) { return esc(p.name); }).join(', ') + '. ' : 'None of your pets can swim yet. Water pets, fish, frogs and turtles can. ') + (ml.b.length ? ml.b.map(function (p) { return esc(p.name); }).join(', ') + ' wait' + (ml.b.length === 1 ? 's' : '') + ' on the shore.' : '') + '</p>');
     h.push('<div class="astrostat"><span><b>' + S.coins + '</b> coins</span><span><b>' + S.air + '</b> air tank' + (S.air === 1 ? '' : 's') + '</span></div>');
     var n = SEA.filter(function (q) { return S.sea[q.id]; }).length;
@@ -5902,11 +5926,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (useTank) { S.air--; save(); }
     warping = true; var dvb = $('#divebtn'); if (dvb) dvb.hidden = true;
     var W = window.innerWidth, H = window.innerHeight, WW = Math.max(1500, W * 2.2), HH = Math.max(1100, H * 2), loot = { mats: {}, scrap: 0, sea: [], coins: 0, pts: 0, food: 0, pearl: false }, items = [], over = false, raf = 0, last = performance.now(), keys = {};
-    var root = document.createElement('div'); root.className = 'dive'; root.id = 'dive'; root.setAttribute('role', 'group'); root.setAttribute('aria-label', 'Diving under the water');
+    var tun0 = !!teleReady('pond'), root = document.createElement('div'); root.className = 'dive'; root.id = 'dive'; root.setAttribute('role', 'group'); root.setAttribute('aria-label', 'Diving under the water');
     root.style.background = 'linear-gradient(' + pal[0] + ', ' + pal[1] + ' 55%, #0c2a52)';
     root.innerHTML = '<div class="dv-world" id="dvWorld" style="width:' + WW + 'px;height:' + HH + 'px"><div class="dv-surface"></div><div class="dv-bed"></div></div><i class="dv-bub b1"></i><i class="dv-bub b2"></i><i class="dv-bub b3"></i>' +
       '<div class="as-top"><div class="as-title"><span>Diving &middot; <em id="dvPts">0 points</em></span><b>' + esc(lake.t) + '</b></div><div class="as-o2"><span>Breath <em id="dvT"></em></span><div class="as-bar"><i id="dvBar"></i></div></div><button class="btn ghost small" id="dvUp">Come up</button></div>' +
-      '<p class="as-hint">Tap or drag to swim. Steer around the corals and rocks! Touch things to grab them. Catch bubbles for more breath!</p>';
+      '<p class="as-hint">Tap or drag to swim. Steer around the corals and rocks! Touch things to grab them. Catch bubbles for more breath!' + (tun0 ? ' <b>A warp tunnel is hidden down here. Find it!</b>' : '') + '</p>';
     document.body.appendChild(root);
     var wd = root.querySelector('#dvWorld'), bed = root.querySelector('.dv-bed');
     for (var pi = 0; pi < 22; pi++) { var pl = document.createElement('i'); pl.className = 'dv-weed'; pl.style.left = (Math.random() * 100) + '%'; pl.style.height = (30 + Math.random() * 60) + 'px'; pl.style.animationDelay = '-' + (Math.random() * 3).toFixed(1) + 's'; bed.appendChild(pl); }
@@ -5933,6 +5957,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (level() >= HOUSE_LV) for (ni = 0; ni < 5; ni++) { var mk = Math.random() < 0.5 ? mats[0] : Math.random() < 0.6 ? mats[1] : mats[2]; add('mat', mk, rx(), ry(), 44, '<svg viewBox="0 0 60 60"><rect x="12" y="12" width="36" height="36" rx="9" fill="' + MAT_BY[mk].col + '" stroke="#fff" stroke-width="3" transform="rotate(12 30 30)"/><circle cx="23" cy="22" r="4" fill="#fff" opacity=".7"/></svg>'); }
     if (level() >= ASTRO_LV) for (ni = 0; ni < 3; ni++) add('scrap', '', rx(), ry(), 44, scrapSVG().replace(/<span.*$/, ''));
     for (ni = 0; ni < 9; ni++) { var sc = SEA[Math.floor(Math.random() * SEA.length)]; add('sea', sc.id, rx(), 200 + Math.random() * (HH - 380), sc.sz, seaSVG(sc.id, sc.col)); }
+    var tun = teleReady('pond');
+    if (tun) add('tunnel', '', rx(), HH - 230 - Math.random() * 60, 104, tunnelSVG());
     if (Math.random() < 0.2) add('pearl', '', rx(), HH - 190 - Math.random() * 60, 58, pearlSVG());
     for (ni = 0; ni < 4; ni++) add('air', '', rx(), ry(), 40, '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="#fff" fill-opacity=".3" stroke="#fff" stroke-width="3"/><ellipse cx="22" cy="21" rx="6" ry="4" fill="#fff" transform="rotate(-30 22 21)"/><text x="30" y="37" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="16" fill="#fff">+</text></svg>');
     function addPts(n) { loot.pts += n; var e = root.querySelector('#dvPts'); if (e) e.textContent = loot.pts + ' points'; }
@@ -5945,6 +5971,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     root.querySelector('#dvUp').addEventListener('click', function () { finish('up'); });
     function finish(why) {
       if (ending) return; ending = true;
+      if (loot.tunnel) setTimeout(teleOffer, 1700);
       document.removeEventListener('keydown', onKey); document.removeEventListener('keyup', onKey);
       var hint = root.querySelector('.as-hint'); if (hint) hint.textContent = why === 'out' ? 'Out of breath! Up you go!' : 'Up we go!';
       Object.keys(loot.mats).forEach(function (k) { S.mats[k] = Math.min(MAT_CAP, (S.mats[k] || 0) + loot.mats[k]); });
@@ -6004,6 +6031,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         if (ending || Math.hypot(it.x - P.x, it.y - P.y) > it.sz * 0.5 + 34) return true;
         if (it.kind === 'mat') { loot.mats[it.sub] = (loot.mats[it.sub] || 0) + 1; addPts(5); pop(it.x, it.y, MAT_BY[it.sub].name + ' +5'); }
         else if (it.kind === 'scrap') { loot.scrap++; addPts(8); pop(it.x, it.y, '+1 scrap +8'); }
+        else if (it.kind === 'tunnel') { loot.tunnel = true; pop(it.x, it.y, 'Warp tunnel!'); it.el.remove(); setTimeout(function () { finish('up'); }, 350); return false; }
         else if (it.kind === 'pearl') { loot.pearl = true; addPts(30); pop(it.x, it.y, 'A pearl! +30'); }
         else if (it.kind === 'air') { left = Math.min(secs, left + 5); pop(it.x, it.y, '+5 sec'); }
         else { var first = !S.sea[it.sub] && loot.sea.indexOf(it.sub) < 0; loot.sea.push(it.sub); var sq = SEA_BY[it.sub], c = first ? 10 : 2, pp2 = sq.pts + (first ? 10 : 0); loot.coins += c; loot.food += sq.food; addPts(pp2); pop(it.x, it.y, (first ? 'New friend! ' : '') + sq.name + ' +' + pp2 + (sq.food ? ' (+' + sq.food + ' food)' : '')); }
@@ -6651,10 +6679,21 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     jelly: function (c) { return [[0, 16, 0, 12, 8, 12, c], [-3, 8, 0, 2, 8, 2, c], [3, 8, 0, 2, 8, 2, c]]; }, octo: function (c) { return [[0, 14, 0, 12, 10, 12, c], [-6, 6, 0, 3, 8, 3, c], [6, 6, 0, 3, 8, 3, c], [0, 6, -6, 3, 8, 3, c]]; },
     horse: function (c) { return [[0, 8, 0, 5, 16, 5, c], [3, 20, 0, 7, 5, 5, c]]; }, turtle: function (c) { return [[0, 6, 0, 16, 6, 12, c], [9, 8, 0, 5, 4, 5, c]]; }, star: function (c) { return [[0, 6, 0, 18, 2, 6, c], [0, 6, 0, 6, 2, 18, c]]; }
   };
+  /* one aquarium for every sea friend: put the ones you have met inside and they swim around */
+  var AQ_MAX = 6, AQ_FLOOR = { crab: 1, star: 1 };
+  FURN.aquarium = { name: 'Aquarium', sea: 'any', cost: { C: 3 }, bx: function () { return [[0, 0, 0, 40, 4, 40, '#6b7390'], [0, 4, 0, 38, 32, 38, 'rgba(120,205,255,.42)'], [0, 36, 0, 40, 3, 40, '#6b7390'], [0, 4, 0, 34, 3, 34, '#f2dfae'], [9, 7, 9, 4, 15, 4, '#3f9d4a']]; } };
+  function aqUsed(sid) { var n = 0; Object.keys(S.houses || {}).forEach(function (k) { (S.houses[k].f || []).forEach(function (q) { if (q.aq) q.aq.forEach(function (x) { if (x === sid) n++; }); }); }); return n; }
+  function aqFish(q) {
+    return (q.aq || []).map(function (sid, n) {
+      var sq = SEA_BY[sid], fl = !!AQ_FLOOR[sid], dur = 7 + (n * 1.9) % 6 + (sid.length % 3), y = fl ? 0 : (n * 5) % 7 - 3, dx = fl ? 5 : 7, dz = fl ? 8 : ((n % 3) - 1) * 6 + 2;
+      return '<div class="hv-fish" style="--dx:' + dx + 'px;--dz:' + dz + 'px;--y:' + y + 'px;--dy:' + (fl ? 0 : 2 + n % 3) + 'px;animation-duration:' + dur.toFixed(1) + 's;animation-delay:-' + (n * 2.3).toFixed(1) + 's">' +
+        SEA_IN[sid](sq.col).map(function (b) { return hvBox(b[0], FLOOR_Y - b[1] - b[4] / 2, b[2], b[3], b[4], b[5], b[6]); }).join('') + '</div>';
+    }).join('');
+  }
   SEA.forEach(function (q) {
     FURN['tank_' + q.id] = { name: q.name + ' tank', sea: q.id, cost: { C: 3 }, bx: function () { return [[0, 0, 0, 32, 4, 32, '#6b7390'], [0, 4, 0, 30, 26, 30, 'rgba(120,205,255,.5)'], [0, 30, 0, 32, 2, 32, '#6b7390']].concat(SEA_IN[q.id](q.col)); } };
-    FURN_ORDER.push('tank_' + q.id);
   });
+  FURN_ORDER.push('aquarium');
   function furnCost(id, k) {
     var m = worldMats(id), out = {}, c = FURN[k].cost;
     Object.keys(c).forEach(function (l) { var t = m['ABC'.indexOf(l)]; out[t] = (out[t] || 0) + c[l]; });
@@ -6680,11 +6719,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function paintCol(o, def) { return o && (o.c || o.d) ? (o.c || def) + (o.d && DESIGNS[o.d] ? '|' + o.d + '|' + (o.e || '#ffffff') : '') : def; }
   /* freestyle drawings: pictures a child draws on one face of a part of a piece of furniture, kept in their own storage key */
-  var ART = {}, ART_KEY = 'magical-pets-art-v1';
-  function loadArt() { try { var d = JSON.parse(localStorage.getItem(ART_KEY) || '{}'); ART = d && typeof d === 'object' ? d : {}; } catch (e) { ART = {}; } }
-  function saveArt() { try { var t = JSON.stringify(ART); if (t.length > 4200000) return false; localStorage.setItem(ART_KEY, t); return true; } catch (e) { return false; } }
-  function artDrop(id, c) { var pre = id + ':' + c + ':', any = false; Object.keys(ART).forEach(function (k) { if (k.indexOf(pre) === 0) { delete ART[k]; any = true; } }); if (any) saveArt(); }
-  function artClean() { Object.keys(ART).forEach(function (k) { var a = k.split(':'), h = S.houses[a[0]]; if (!h || !h.f.some(function (q) { return q.c === +a[1]; })) delete ART[k]; }); }
+  var PIX = {}, ART_KEY = 'magical-pets-art-v1';
+  function loadArt() { try { var d = JSON.parse(localStorage.getItem(ART_KEY) || '{}'); PIX = d && typeof d === 'object' ? d : {}; } catch (e) { PIX = {}; } }
+  function saveArt() { try { var t = JSON.stringify(PIX); if (t.length > 4200000) return false; localStorage.setItem(ART_KEY, t); return true; } catch (e) { return false; } }
+  function artDrop(id, c) { var pre = id + ':' + c + ':', any = false; Object.keys(PIX).forEach(function (k) { if (k.indexOf(pre) === 0) { delete PIX[k]; any = true; } }); if (any) saveArt(); }
+  function artClean() { Object.keys(PIX).forEach(function (k) { var a = k.split(':'), h = S.houses[a[0]]; if (!h || !h.f.some(function (q) { return q.c === +a[1]; })) delete PIX[k]; }); }
   function sanPaint(o) {
     var r = null;
     if (o && typeof o === 'object') { var c = /^#[0-9a-f]{6}$/i.test(o.c || '') ? o.c : '', d = DESIGNS[o.d] ? o.d : '', e = /^#[0-9a-f]{6}$/i.test(o.e || '') ? o.e : '#ffffff'; if (c || d) r = { c: c, d: d, e: e }; }
@@ -6712,6 +6751,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var gh = function (n, extra) { return (p[n] ? '' : 'ghost ') + (extra || ''); }, pa = h.pa || {}, cl = function (n, c) { return p[n] ? paintCol(pa[n], c) : 'transparent'; };
     var ST = houseForm(id), wy = FLOOR_Y - HH / 2, ridge = FLOOR_Y - HH - HR, L = Math.hypot(HW / 2 + 14, HR), th = Math.atan2(HR, HW / 2 + 14) * 180 / Math.PI;
     var PL = (WORLDS[id] && WORLDS[id].pal) || {}, SEA = PL.sea || ['#2c86d8', '#4fb3ec'], GR = (PL.grass || [])[1] || '#7ccf6a', LF = PL.leaf || ['#2f9a55', '#35a85d'];
+    /* standing in the world: a little beach-edged lawn and path under the house, so it sits planted on the ground */
+    if (mini) o.push(hvFace(420, 396, 'translate3d(0,16px,0) rotateX(90deg)', PL.beach || '#f2dfae', 'lawn'), hvFace(384, 360, 'translate3d(0,14px,0) rotateX(90deg)', GR, 'lawn'), hvFace(44, 120, 'translate3d(0,13px,170px) rotateX(90deg)', PL.path || '#f0e2b6', 'lawn'));
     if (!mini) o.push(hvFace(1600, 1600, 'translate3d(0,19px,0) rotateX(90deg)', SEA[1], 'lawn'), hvFace(500, 470, 'translate3d(0,16.5px,0) rotateX(90deg)', PL.beach || '#f2dfae', 'lawn'),
       hvFace(430, 400, 'translate3d(0,14px,0) rotateX(90deg)', GR, 'lawn'), hvFace(44, 130, 'translate3d(0,13px,165px) rotateX(90deg)', PL.path || '#f0e2b6', 'lawn'));
     if (!mini) [[-185, -150], [190, -160], [-100, -185], [70, -188], [-200, -10], [205, -20], [-190, 120], [200, 130]].forEach(function (q, n) {
@@ -6763,7 +6804,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         if (HV && HV.pendF === q.c) return;
         var ps = furnPos(q.c), cols = { A: A, B: B, C: C }, bx = FURN[q.k].bx(cols);
         var fsel = HV && HV.tab === 'paint' && HV.paint.mode === 'furn' && HV.paint.fc === q.c;
-        o.push('<div class="hv-furn" data-c="' + q.c + '" style="transform:translate3d(' + ps.x + 'px,0,' + ps.z + 'px)"><div class="hv-grp' + (HV && HV.anim && HV.anim.f === q.c ? ' dropf' : '') + '">' + bx.map(function (b, bi) { return '<div class="hv-bp' + (fsel && HV.paint.part === bi ? ' psel' : '') + '" data-part="' + bi + '">' + hvBox(b[0], FLOOR_Y - b[1] - b[4] / 2, b[2], b[3], b[4], b[5], paintCol(q.pt && q.pt[bi], b[6]), '', ART[HV.id + ':' + q.c + ':' + bi]) + '</div>'; }).join('') + '</div></div>');
+        o.push('<div class="hv-furn" data-c="' + q.c + '" style="transform:translate3d(' + ps.x + 'px,0,' + ps.z + 'px)"><div class="hv-grp' + (HV && HV.anim && HV.anim.f === q.c ? ' dropf' : '') + '">' + bx.map(function (b, bi) { return '<div class="hv-bp' + (fsel && HV.paint.part === bi ? ' psel' : '') + '" data-part="' + bi + '">' + hvBox(b[0], FLOOR_Y - b[1] - b[4] / 2, b[2], b[3], b[4], b[5], paintCol(q.pt && q.pt[bi], b[6]), '', PIX[HV.id + ':' + q.c + ':' + bi]) + '</div>'; }).join('') + (q.k === 'aquarium' ? aqFish(q) : '') + '</div></div>');
       });
       h.res.forEach(function (pt, n) {
         var q = HV && HV.pos[n] ? HV.pos[n] : (HV.pos[n] = { x: (n - 1) * 50, z: 30 });
@@ -6809,10 +6850,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     } else if (!done) {
       o.push('<p class="hv-note">Build all 8 pieces of your house first. Then you can ' + (t === 'furn' ? 'furnish it.' : 'let pets move in.') + '</p>');
     } else if (t === 'furn') {
-      o.push('<div class="hv-items">' + FURN_ORDER.filter(function (k) { return !FURN[k].sea || S.sea[FURN[k].sea]; }).map(function (k) {
+      o.push('<div class="hv-items">' + FURN_ORDER.filter(function (k) { return !FURN[k].sea || (FURN[k].sea === 'any' ? SEA.some(function (z) { return S.sea[z.id]; }) : S.sea[FURN[k].sea]); }).map(function (k) {
         var c = furnCost(id, k), ok = canPay(c);
         return '<button class="hv-card' + (HV.tool === k ? ' on' : '') + (ok ? '' : ' dim') + '" data-hv="item" data-k="' + k + '"><b>' + FURN[k].name + '</b><span>' + Object.keys(c).map(function (mm) { return matChip(mm, (S.mats[mm] || 0) + '/' + c[mm]); }).join('') + '</span></button>';
       }).join('') + '<button class="hv-card tidy' + (HV.tool === 'tidy' ? ' on' : '') + '" data-hv="item" data-k="tidy"><b>Tidy up</b><span>Tap furniture to remove it and get the materials back</span></button></div>');
+      o.push(hvAquariumTray(h));
       o.push('<p class="hv-note" id="hvmsg">' + (HV.tool === 'tidy' ? 'Tap a piece of furniture to take it away.' : HV.tool ? 'Now tap a floor square to place the ' + FURN[HV.tool].name.toLowerCase() + '.' : 'Pick something to place. Furniture: ' + h.f.length + ' of ' + COLS * ROWS + ' squares.') + '</p>');
     } else {
       var team = S.team.filter(function (q) { return q.type !== 'unicorn' && !S.away.some(function (a) { return a.pet === q; }); }), full = h.res.length >= hvCap(id), g = hvGifts(id);
@@ -6823,6 +6865,25 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         team.map(function (q) { return '<div class="hv-card"><i class="hv-face">' + petSVG(q.type, q.stage, '', q.body) + '</i><b>' + esc(q.name) + '</b><button class="btn small primary" data-hv="in" data-id="' + q.id + '"' + (full || S.team.length < 2 ? ' disabled' : '') + '>Move in</button></div>'; }).join('') + '</div>');
     }
     return tabs + o.join('');
+  }
+  function hvAquariumTray(h) {
+    var aqs = h.f.filter(function (q) { return q.k === 'aquarium'; }); if (!aqs.length) return '';
+    var sel = aqs.filter(function (q) { return q.c === HV.aqc; })[0] || aqs[0]; HV.aqc = sel.c; sel.aq = sel.aq || [];
+    var live = sel.aq.map(function (sid, n) {
+      var sq = SEA_BY[sid], fl = !!AQ_FLOOR[sid];
+      return '<span class="aq-sw' + (fl ? ' fl' : '') + '" style="top:' + (fl ? 66 : 8 + (n * 17) % 44) + '%;width:' + Math.round(sq.sz * 0.62) + 'px;animation-duration:' + (9 + (n * 2.7) % 7).toFixed(1) + 's;animation-delay:-' + (n * 3.1).toFixed(1) + 's">' + seaSVG(sid, sq.col) + '</span>';
+    }).join('');
+    var rows = SEA.filter(function (z) { return S.sea[z.id]; }).map(function (z) {
+      var inT = sel.aq.filter(function (x) { return x === z.id; }).length, free = S.sea[z.id] - aqUsed(z.id), canAdd = free > 0 && sel.aq.length < AQ_MAX;
+      return '<div class="hv-card sm aqrow"><i class="hv-face">' + seaSVG(z.id, z.col) + '</i><b>' + z.name + '</b><span class="aqn"><button data-hv="aqdel" data-id="' + z.id + '"' + (inT ? '' : ' disabled') + ' aria-label="Take a ' + z.name + ' out">&minus;</button><b>' + inT + '</b><button data-hv="aqadd" data-id="' + z.id + '"' + (canAdd ? '' : ' disabled') + ' aria-label="Put a ' + z.name + ' in">+</button></span></div>';
+    }).join('');
+    return '<h4 class="hv-h">Aquarium' + (aqs.length > 1 ? ' (tap an aquarium in the room to choose it)' : '') + '</h4><div class="aq-live" aria-label="Your aquarium">' + (live || '<em>Empty. Add sea friends below!</em>') + '</div><p class="hv-note">' + sel.aq.length + ' of ' + AQ_MAX + ' sea friends live here. You can add as many of each kind as you have met.</p><div class="hv-items">' + rows + '</div>';
+  }
+  function hvAquarium(sid, add) {
+    var h = houseOf(HV.id), q = h.f.filter(function (x) { return x.c === HV.aqc && x.k === 'aquarium'; })[0]; if (!q || !SEA_BY[sid]) return; q.aq = q.aq || [];
+    if (add) { if (q.aq.length >= AQ_MAX || S.sea[sid] - aqUsed(sid) <= 0) return; q.aq.push(sid); auHouse('place'); }
+    else { var i = q.aq.lastIndexOf(sid); if (i < 0) return; q.aq.splice(i, 1); }
+    save(); hvPaint();
   }
   function hvPaintTray() {
     var id = HV.id, h = houseOf(id), P = HV.paint, o = [], i, sw = function (cols, what, cur) {
@@ -6974,7 +7035,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function openStudio(c, part) {
     if (STU || !HV) return; var id = HV.id, h = houseOf(id), q = h.f.filter(function (x) { return x.c === c; })[0]; if (!q) return;
     var m = worldMats(id).map(function (k) { return MAT_BY[k].col; }), bx = FURN[q.k].bx({ A: m[0], B: m[1], C: m[2] }), b = bx[part]; if (!b) return;
-    var o = q.pt && q.pt[part], base = (o && o.c) || b[6], art = ART[id + ':' + c + ':' + part] || {}, faces = {}, best = 's3', area = -1;
+    var o = q.pt && q.pt[part], base = (o && o.c) || b[6], art = PIX[id + ':' + c + ':' + part] || {}, faces = {}, best = 's3', area = -1;
     ['s3', 's0', 's1'].forEach(function (f) { var d = stDims(b, f); if (d[0] * d[1] > area) { area = d[0] * d[1]; best = f; } faces[f] = { data: art[f] || null, dirty: false, empty: !art[f] }; });
     var root = document.createElement('div'); root.className = 'st'; root.id = 'studio'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', 'Paint studio');
     root.innerHTML = '<div class="st-top"><b>Painting the ' + esc(FURN[q.k].name.toLowerCase()) + ' (part ' + (part + 1) + ')</b><div class="st-faces">' + Object.keys(ST_FACES).map(function (f) { return '<button data-st="face" data-v="' + f + '">' + ST_FACES[f] + '</button>'; }).join('') + '</div><button data-st="cancel">Cancel</button><button class="primary" data-st="done">Done</button></div>' +
@@ -7035,9 +7096,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function stClose(save2) {
     if (!STU) return; var S0 = STU, root = $('#studio'), ok = true;
     if (save2) {
-      stStoreFace(); var key = S0.id + ':' + S0.c + ':' + S0.part, rec = ART[key] || {}, any = false;
+      stStoreFace(); var key = S0.id + ':' + S0.c + ':' + S0.part, rec = PIX[key] || {}, any = false;
       Object.keys(S0.faces).forEach(function (f) { var q = S0.faces[f]; if (q.dirty) { if (q.data) { rec[f] = q.data; any = true; } else delete rec[f]; } });
-      if (Object.keys(rec).length) ART[key] = rec; else delete ART[key];
+      if (Object.keys(rec).length) PIX[key] = rec; else delete PIX[key];
       ok = saveArt(); if (!ok) { loadArt(); }
     }
     document.removeEventListener('keydown', S0.onKey); window.removeEventListener('resize', S0.onResize); STU = null;
@@ -7155,6 +7216,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     else if (what === 'in') hvMoveIn(+t.dataset.id);
     else if (what === 'out') hvMoveOut(+t.dataset.id);
     else if (what === 'gifts') hvCollect();
+    else if (what === 'aqadd') hvAquarium(t.dataset.id, true);
+    else if (what === 'aqdel') hvAquarium(t.dataset.id, false);
   }
   function hvMsg(t) { var m = $('#hvmsg'); if (m) m.textContent = t; }
   function hvStandAt(c) { var ps = furnPos(c); return [Math.max(-100, Math.min(100, ps.x)), FLOOR_Y, Math.min(92, ps.z + 26)]; }
@@ -7177,6 +7240,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       });
       return;
     }
+    if (!HV.tool && at && at.k === 'aquarium' && HV.tab === 'furn') { HV.aqc = c; hvPaint(); return; }
     if (!HV.tool || !FURN[HV.tool]) return;
     if (at) return hvMsg('That square is taken. Pick an empty square.');
     var k = HV.tool, cost = furnCost(id, k);
@@ -7466,16 +7530,25 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function guardianHere() { return S.cur === 'crystal' && !S.freed.crystal; }
   var teleAsk = null, teleSkip = 0;
-  function teleTry(s, key) {
-    var now = performance.now(), kind = s.k;
-    if (now < teleSkip || S.screen !== 'world') return false;
+  function teleReady(kind) {
     var p = S.team.filter(function (q) { return q.stage >= 3 && POWERS[q.type] && POWERS[q.type].tele === kind && powerLeft(q) === 0 && !S.away.some(function (a) { return a.pet === q; }); })[0];
     if (!p) return false;
     var dests = Object.keys(WORLDS).filter(function (id) { return id !== S.cur && worldOpen(id) && shown(id) && WORLDS[id].spots.some(function (x) { return x.k === kind; }); });
-    if (!dests.length) return false;
-    S.world.cd[key] = now + 6000; teleAsk = { p: p, kind: kind };
-    openSheet(teleHTML(p, dests));
+    if (!dests.length) return null;
+    return { p: p, dests: dests };
+  }
+  /* ponds: dive first, the warp tunnel is down on the bed of the water (see startDive). Berry patches still warp right away. */
+  function teleTry(s, key) {
+    var now = performance.now(), kind = s.k;
+    if (now < teleSkip || S.screen !== 'world' || kind === 'pond') return false;
+    var r = teleReady(kind); if (!r) return false;
+    S.world.cd[key] = now + 6000; teleAsk = { p: r.p, kind: kind };
+    openSheet(teleHTML(r.p, r.dests));
     return true;
+  }
+  function teleOffer() {
+    var r = teleReady('pond'); if (!r || S.screen !== 'world') return;
+    teleAsk = { p: r.p, kind: 'pond' }; openSheet(teleHTML(r.p, r.dests));
   }
   function teleHTML(p, dests) {
     var PW = POWERS[p.type], kindName = PW.tele === 'pond' ? 'pond' : 'berry patch';
@@ -8704,7 +8777,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     gorest: function () { S.losses = 0; S.lockUntil = Date.now() + REST_MS; save(); closeSheet(); say('The guards are resting for 3 minutes. Explore, feed your pets and earn coins. Then try again!', 6000); },
     gostart: function () {
       var dex = S.dex; stopBattle(); closeSheet(); unlockLandscape();
-      try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(ART_KEY); } catch (x) { /* optional */ } ART = {};
+      try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(ART_KEY); } catch (x) { /* optional */ } PIX = {};
       newGame(); S.dex = dex; S.hasSave = false; S.stone = pick(STONES); S.look = defaultLook(); S.lookReturn = 'sun'; S.screen = 'look'; render();
     },
     rename: function (btn) {
@@ -8732,10 +8805,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     houseport: function (btn) { housePort(btn.dataset.id); },
     dive: function () {
       if (S.screen !== 'world' || warping) return;
-      var hh = S.world.ents[0], ws = waterAt(hh.x, hh.y); if (ws && ws.lake) openSheet(diveHTML(ws));
+      var hh = S.world.ents[0], ws = waterAt(hh.x, hh.y); if (ws) openSheet(diveHTML(ws));
     },
     diveair: function () { if (S.coins >= DIVE_TANK_COST && S.air < tankMax()) { S.coins -= DIVE_TANK_COST; S.air++; save(); updateHud(); var hh = S.world.ents[0], ws = waterAt(hh.x, hh.y); openSheet(diveHTML(ws)); } },
-    divego: function (btn) { var hh = S.world.ents[0], ws = waterAt(hh.x, hh.y); if (!ws || !ws.lake) return; var useTank = btn.dataset.air === '1'; if (useTank && S.air < 1) return; closeSheet(); startDive(ws, useTank); },
+    divego: function (btn) { var hh = S.world.ents[0], ws = waterAt(hh.x, hh.y); if (!ws) return; var useTank = btn.dataset.air === '1'; if (useTank && S.air < 1) return; closeSheet(); startDive(ws, useTank); },
     space: function () {
       if (S.screen !== 'world' || warping) return;
       if (level() < ASTRO_LV) { var more = ASTRO_LV - level(); wmsg('Astronaut mode unlocks at level ' + ASTRO_LV + '. You are level ' + level() + ', so open ' + more + ' more world' + (more > 1 ? 's' : '') + ' to build a space suit and fly between worlds!'); return; }
