@@ -5084,20 +5084,24 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     abyss: [-3000, -1950], voidw: [-3650, -2850], throne: [-2350, -3300], nightbloom: [2750, -2600] };
   FAR_DEF.forEach(function (d) { UNI_POS[d.id] = d.pos; });
   var U = null;
-  /* a solar system: a star in the middle and the worlds on rings around it, the earliest worlds on the inner rings */
+  /* a solar system: a star in the middle and the worlds on rings around it. The rings follow the caves: the further a world is from Home
+     (counting caves), the further out its ring, and every world sits in the slice of the circle right behind the world it was reached from,
+     so the cave lines stay short and tidy */
   var SUN_R = 230;
   function layoutSolar() {
-    var ids = Object.keys(WORLDS).filter(function (id) { return UNI_POS[id]; }), adj = {}, depth = { home: 0 }, qu = ['home'], mx = 0, rings = {}, prev = 0, d, ang0 = {};
-    ids.forEach(function (id) { adj[id] = adj[id] || []; WORLDS[id].spots.forEach(function (sp) { if (sp.k === 'portal' && WORLDS[sp.to] && UNI_POS[sp.to]) { adj[id].push(sp.to); (adj[sp.to] = adj[sp.to] || []).push(id); } }); });
-    while (qu.length) { var a = qu.shift(); (adj[a] || []).forEach(function (b) { if (depth[b] === undefined) { depth[b] = depth[a] + 1; mx = Math.max(mx, depth[b]); qu.push(b); } }); }
-    ids.forEach(function (id) { if (depth[id] === undefined) depth[id] = mx + 1; ang0[id] = Math.atan2(UNI_POS[id][1], UNI_POS[id][0]); });
-    /* nearest worlds (by caves from Home) go on the inner rings: 1, 3, 4, 5, 6, 7, 7, ... worlds per ring, spread all the way around */
-    var order = ids.slice().sort(function (m, n) { return depth[m] - depth[n] || ang0[m] - ang0[n]; }), k = 0, ri = 0;
-    while (k < order.length) { var cap = ri === 0 ? 1 : Math.min(7, 2 + ri); rings[ri] = order.slice(k, k + (k + cap + 4 > order.length ? order.length - k : cap)); k += rings[ri].length; ri++; }
-    Object.keys(rings).map(Number).sort(function (m, n) { return m - n; }).forEach(function (dp) {
-      var list = rings[dp].sort(function (m, n) { return ang0[m] - ang0[n]; }), arcs = list.map(function (id) { return 2 * uRadius(id) + 460; }), tot = arcs.reduce(function (x, y) { return x + y; }, 0);
-      var r = Math.max(prev + (dp ? 560 : 0), dp ? 0 : 1050, tot / 6.2832), off = dp * 2.399 + 0.4;
-      list.forEach(function (id, i) { var an = off + (i + 0.5) * 6.2832 / list.length; UNI_POS[id] = [Math.round(Math.cos(an) * r), Math.round(Math.sin(an) * r)]; });
+    var ids = Object.keys(WORLDS).filter(function (id) { return UNI_POS[id]; }), adj = {}, depth = { home: 0 }, kids = {}, qu = ['home'], leafN = {}, ang = {}, byD = {}, prev = 0, two = 6.2832;
+    ids.forEach(function (id) { adj[id] = adj[id] || []; kids[id] = []; WORLDS[id].spots.forEach(function (sp) { if (sp.k === 'portal' && WORLDS[sp.to] && UNI_POS[sp.to]) { adj[id].push(sp.to); (adj[sp.to] = adj[sp.to] || []).push(id); } }); });
+    while (qu.length) { var a = qu.shift(); adj[a].slice().sort().forEach(function (b) { if (depth[b] === undefined) { depth[b] = depth[a] + 1; kids[a].push(b); qu.push(b); } }); }
+    ids.forEach(function (id) { if (depth[id] === undefined) { depth[id] = 1; kids.home.push(id); } });
+    function leaves(id) { if (leafN[id]) return leafN[id]; var n = 0; kids[id].forEach(function (c) { n += leaves(c); }); return (leafN[id] = Math.max(1, n)); }
+    function place(id, a0, a1) { ang[id] = (a0 + a1) / 2; var tot = leaves(id), cur = a0; kids[id].slice().sort(function (m, n) { return leaves(n) - leaves(m); }).forEach(function (c) { var w = (a1 - a0) * leaves(c) / tot; place(c, cur, cur + w); cur += w; }); }
+    place('home', 0, two);
+    ids.forEach(function (id) { (byD[depth[id]] = byD[depth[id]] || []).push(id); });
+    Object.keys(byD).map(Number).sort(function (m, n) { return m - n; }).forEach(function (dp) {
+      var list = byD[dp].sort(function (m, n) { return ang[m] - ang[n]; }), need = 0, i;
+      for (i = 0; i < list.length && list.length > 1; i++) { var j = (i + 1) % list.length, da = ang[list[j]] - ang[list[i]]; if (da <= 0) da += two; need = Math.max(need, (uRadius(list[i]) + uRadius(list[j]) + 340) / Math.min(da, 3.1)); }
+      var r = dp ? Math.max(prev + 560, need) : 1050;
+      list.forEach(function (id) { UNI_POS[id] = [Math.round(Math.cos(ang[id]) * r), Math.round(Math.sin(ang[id]) * r)]; });
       prev = r;
     });
   }
