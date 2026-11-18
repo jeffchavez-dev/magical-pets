@@ -968,6 +968,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .rv-pop.dmg { color: #ff8fa0; } .rv-pop.heal { color: #8fffa0; } .rv-pop.st { color: #7fe8ff; } .rv-pop.big { color: #ffe27a; font-size: 20px; top: 40%; }
 @keyframes rvPop { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -46px; } }
 @media (prefers-reduced-motion: reduce) { .rv-bg::after, .rv-logo, .rv-vil, .rv-bot svg, .rv-bot.tgt { animation: none; } }
+.astro.hot::before { content: ''; position: absolute; inset: 0; z-index: 40; pointer-events: none; box-shadow: inset 0 0 140px 50px rgba(255,130,40,.6); animation: asHot .55s ease-in-out infinite alternate; } @keyframes asHot { to { box-shadow: inset 0 0 200px 80px rgba(255,70,30,.75); } }
 .as-sunr { animation: asSpin 90s linear infinite; } .as-sunb { animation: asHalo 3.6s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) { .as-sunr, .as-sunb { animation: none; } }
 .as-spin, .as-orb, .as-ring, .as-halo { animation-timing-function: linear; animation-iteration-count: infinite; }
@@ -1938,7 +1939,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function savePet(p) { return { id: p.id, type: p.type, body: p.body, rid: p.rid, stage: p.stage, happy: p.happy, fav: p.fav, name: p.name, prog: p.prog, hun: Math.round(hunOf(p)), uc: p.uc, ut: p.ut, px: p.px }; }
   function baseState() {
     return { screen: 'intro', stone: STONES[0], awake: false, awakening: false, chosen: null, merging: false, eggs: null, taps: 0, hatch: null, suggest: '',
-      look: defaultLook(), lookReturn: 'sun', uni: {}, friendly: friendlyPref(), gf: {}, mats: {}, houses: {}, lockUntil: 0, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], suit: {}, ship: { hull: 0, eng: 0, rec: 0, scan: 0 }, scrap: 0, o2: 0, tank: 0, air: 0, sea: {}, dig: {}, rvDone: false, rvFairy: 0, rvWins: 0, diveBest: 0, portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
+      look: defaultLook(), lookReturn: 'sun', uni: {}, friendly: friendlyPref(), gf: {}, mats: {}, houses: {}, lockUntil: 0, losses: 0, toll: {}, weak: {}, homeJ: [], jump: null, away: [], team: [], sel: 0, sleeping: 0, stones: [], caught: {}, wilds: {}, freed: {}, opened: {}, beaten: {}, coins: 0, boots: 0, bag: 0, cageLv: 0, cage: [], suit: {}, ship: { hull: 0, eng: 0, rec: 0, scan: 0 }, scrap: 0, o2: 0, tank: 0, air: 0, sea: {}, dig: {}, rvDone: false, rvN: 0, rvFairy: 0, rvWins: 0, diveBest: 0, portals: 0, suns: 0, food: 5, cur: 'home', nextPetId: 1, tipsSeen: false, prize: null, homeStyle: null, dex: {}, dexNew: false, tools: { chime: 0, clover: 0, focus: 0, ward: 0 }, luck: false, focus: false, finds: {},
       evolving: false, justEvolved: null, msg: '', world: null, birds: false, hasSave: !!(readSave() && readSave().team && readSave().team.length) };
   }
   function newGame() {
@@ -1953,7 +1954,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!S.team.length) return;
       dexSync();
       stashWorld();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, dig: S.dig || {}, rvDone: !!S.rvDone, rvFairy: S.rvFairy | 0, rvWins: S.rvWins | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, dig: S.dig || {}, rvDone: !!S.rvDone, rvN: S.rvN | 0, rvFairy: S.rvFairy | 0, rvWins: S.rvWins | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
         stones: S.stones.map(function (s) { return s.id; }), caught: S.caught, wilds: S.wilds, freed: S.freed, opened: S.opened, beaten: S.beaten, coins: S.coins, boots: S.boots, bag: S.bag, portals: S.portals, suns: S.suns, food: S.food,
         cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)), uc: q.uc, px: q.px } }; }) }));
     } catch (x) { /* storage can be unavailable; the game still works */ }
@@ -1982,7 +1983,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.cageLv = Math.max(0, Math.min(4, d.cageLv | 0));
     S.suit = {}; SUIT.forEach(function (p) { if (d.suit && d.suit[p.id]) S.suit[p.id] = 1; });
     S.ship = {}; SHIP.forEach(function (q) { S.ship[q.id] = Math.max(0, Math.min(3, (d.ship && d.ship[q.id]) | 0)); });
-    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
+    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.rvN = Math.max(0, Math.min(999, d.rvN | 0)); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
     S.scrap = Math.max(0, Math.min(99, d.scrap | 0)); S.tank = Math.max(0, Math.min(TANKS.length - 1, d.tank | 0)); S.o2 = Math.max(0, Math.min(TANKS[S.tank].cap, d.o2 | 0));
     S.cage = (Array.isArray(d.cage) ? d.cage : []).filter(function (p) { return p && TYPES[p.type]; }).slice(0, S.cageLv ? CAGE_CAP[S.cageLv - 1] : 0);
     S.team.concat(S.cage).forEach(function (p) { if (!p.body) p.body = bodyFor(p.type, p.id); if (!p.prog) migrateProg(p); });
@@ -6697,7 +6698,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         '<radialGradient id="sunglow"><stop offset=".25" stop-color="#fff6c8" stop-opacity=".95"/><stop offset=".5" stop-color="#ffc94a" stop-opacity=".45"/><stop offset="1" stop-color="#ff8a3d" stop-opacity="0"/></radialGradient>' +
         '<radialGradient id="sunbody" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#fffbe0"/><stop offset=".45" stop-color="#ffe066"/><stop offset="1" stop-color="#ff9a2b"/></radialGradient>' +
         '<linearGradient id="sunshade" x1="0" y1="0" x2="1" y2="0"><stop offset=".25" stop-color="#050218" stop-opacity="0"/><stop offset="1" stop-color="#050218" stop-opacity=".62"/></linearGradient></defs><g id="asCam">');
-      var farR = 0; ids.forEach(function (id) { farR = Math.max(farR, Math.hypot(UPOS[id][0], UPOS[id][1])); });
+      var farR = 0, rl = []; ids.forEach(function (id) { farR = Math.max(farR, Math.hypot(UPOS[id][0], UPOS[id][1])); var rk = Math.round(Math.hypot(UPOS[id][0], UPOS[id][1]) / 50) * 50; if (rl.indexOf(rk) < 0) rl.push(rk); }); rl.sort(function (m, n) { return m - n; });
+      ids.forEach(function (id) { var q = UPOS[id], rk = Math.round(Math.hypot(q[0], q[1]) / 50) * 50; ORB[id] = { R: Math.hypot(q[0], q[1]), a0: Math.atan2(q[1], q[0]), w: 6.2832 / (900 + 400 * rl.indexOf(rk)) }; });
       h.push('<circle r="' + (farR * 1.5).toFixed(0) + '" fill="url(#skylight)"/>');
       for (i = 0; i < 360; i++) h.push('<circle cx="' + Math.round(cx - bw * 0.9 + R() * bw * 1.8) + '" cy="' + Math.round(cy - bh * 0.9 + R() * bh * 1.8) + '" r="' + (2 + R() * 5).toFixed(1) + '" fill="#fff" opacity="' + (0.2 + R() * 0.55).toFixed(2) + '"/>');
       var orb = {}; ids.forEach(function (id) { orb[Math.round(Math.hypot(UPOS[id][0], UPOS[id][1]) / 50) * 50] = 1; });
@@ -6714,7 +6716,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
           (ring ? '<ellipse class="as-ring" rx="' + (r * 1.75).toFixed(0) + '" ry="' + (r * 0.55).toFixed(0) + '" fill="none" stroke="' + glow + '" stroke-width="' + (r * 0.07).toFixed(1) + '" stroke-opacity=".8" transform="rotate(' + (hs % 60 - 30) + ')"/>' : '') + '</g>' +
           '<circle class="as-hit" data-r="' + (r * 1.5).toFixed(0) + '" r="' + (r * 1.5).toFixed(0) + '" fill="transparent"/>' +
           '<g class="as-body"><g class="as-spin" style="animation-duration:' + sp + 's;animation-direction:' + (hs % 2 ? 'normal' : 'reverse') + '"><g transform="scale(' + (r / 50).toFixed(3) + ') translate(-50 -50)">' + planetInner(id, 'open') + '</g></g>' +
-          '<circle r="' + (r * 0.98).toFixed(1) + '" fill="url(#sunshade)" transform="rotate(' + (Math.atan2(-p[1], -p[0]) * 180 / Math.PI - 180).toFixed(1) + ')"/>' + (moon ? '<g class="as-orb" style="animation-duration:' + od + 's;animation-direction:' + (hs % 5 < 2 ? 'reverse' : 'normal') + '"><circle cx="' + (r * 1.55).toFixed(0) + '" cy="0" r="' + (r * 0.16).toFixed(1) + '" fill="' + (pl.beach || '#fff') + '" stroke="#fff" stroke-width="' + (r * 0.04).toFixed(1) + '"/></g>' : '') + '</g>' +
+          '<circle class="as-shd" r="' + (r * 0.98).toFixed(1) + '" fill="url(#sunshade)" transform="rotate(' + (Math.atan2(-p[1], -p[0]) * 180 / Math.PI - 180).toFixed(1) + ')"/>' + (moon ? '<g class="as-orb" style="animation-duration:' + od + 's;animation-direction:' + (hs % 5 < 2 ? 'reverse' : 'normal') + '"><circle cx="' + (r * 1.55).toFixed(0) + '" cy="0" r="' + (r * 0.16).toFixed(1) + '" fill="' + (pl.beach || '#fff') + '" stroke="#fff" stroke-width="' + (r * 0.04).toFixed(1) + '"/></g>' : '') + '</g>' +
           '<g class="as-lab" data-dy="' + (r + 14).toFixed(0) + '"><text text-anchor="middle" class="uname">' + esc(W2.name) + '</text></g></g>');
       });
       // floating oxygen bubbles and star scrap to catch on the way
@@ -6739,6 +6741,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!elCam) return;
       N.x = Math.max(-20000, Math.min(20000, N.x)); N.y = Math.max(-20000, Math.min(20000, N.y));
       elCam.setAttribute('transform', 'translate(' + (W / 2 - N.x * N.k).toFixed(1) + ' ' + (H / 2 - N.y * N.k).toFixed(1) + ') scale(' + N.k.toFixed(4) + ')');
+      [].forEach.call(svg.querySelectorAll('.as-pl'), function (g) { var q = UPOS[g.dataset.w]; if (!q) return; g.setAttribute('transform', 'translate(' + q[0].toFixed(1) + ' ' + q[1].toFixed(1) + ')'); var sh = g.querySelector('.as-shd'); if (sh) sh.setAttribute('transform', 'rotate(' + (Math.atan2(-q[1], -q[0]) * 180 / Math.PI - 180).toFixed(1) + ')'); });
       var inv = (1 / N.k).toFixed(4), sunEl = svg.querySelector('#asSun'); if (sunEl) sunEl.setAttribute('transform', 'scale(' + Math.max(1, 46 / (SUN_R * SS * N.k)).toFixed(3) + ')');
       [].forEach.call(svg.querySelectorAll('.as-pl'), function (g) { var r = +g.dataset.r, f = Math.max(1, 22 / (r * N.k)), ft = 'scale(' + f.toFixed(3) + ')'; g.querySelector('.as-body').setAttribute('transform', ft); g.querySelector('.as-aura').setAttribute('transform', ft); g.querySelector('.as-lab').dataset.dy = (r * f + 14).toFixed(0); });
       [].forEach.call(svg.querySelectorAll('.as-lab'), function (g) { g.setAttribute('transform', 'translate(0 ' + (+g.dataset.dy + 6 / N.k).toFixed(1) + ') scale(' + inv + ')'); });
@@ -6793,8 +6796,35 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       rdEl.innerHTML = 'SPEED <b>' + (moving ? Math.round((rescue ? SPEEDS[3].v : (target && target.id ? Math.max(70 * SS / 2, sd.v * Math.max(0.3, Math.min(1, tg2 / (600 * SS / 2)))) : sd.v)) / SS) : 0) + '</b><br>' + (target ? 'DIST <b>' + Math.round(tg2 / SS) + '</b><br>' : '') + 'O2 <b>' + Math.floor(o2) + '</b>';
       if (nw && !rescue) { btnLand.hidden = false; btnLand.textContent = (nw === from && !got.moved ? 'Land back on ' : 'Land on ') + WORLDS[nw].name; btnLand.dataset.w = nw; } else btnLand.hidden = true;
     }
+    /* ---- the Sun: planets slowly orbit it, and flying near it burns your oxygen (the core cannot be entered) ---- */
+    var ORB = {}, orbT = 0, SUNR = SUN_R * SS, HZ = SUNR * 3.6, SLIDE = SUNR * 1.8, CORE = SUNR * 1.35, hot = false, sunSaid = 0;
+    function sunSlide(mx, my) {
+      var d = Math.hypot(ship.x, ship.y) || 1; if (d > SLIDE * 1.05) return [mx, my];
+      var ux = ship.x / d, uy = ship.y / d, inw = -(mx * ux + my * uy); if (inw <= 0) return [mx, my];
+      return [mx + ux * inw, my + uy * inw];
+    }
+    function sunStep(dt) {
+      var d = Math.hypot(ship.x, ship.y) || 1;
+      if (d < CORE) { ship.x = ship.x / d * CORE; ship.y = ship.y / d * CORE; d = CORE; }
+      var t = Math.max(0, Math.min(1, (HZ - d) / (HZ - CORE))), was = hot; hot = t > 0; root.classList.toggle('hot', hot);
+      if (hot) {
+        o2 = Math.max(0, o2 - dt * (1.2 + 16 * t * t)); setO2(); if (o2 <= 0 && !rescue) startRescue();
+        sunSaid -= dt;
+        if (!was || sunSaid <= 0) { warn = t > 0.55 ? 'DANGER! The Sun is burning your oxygen! Turn back now!' : 'Too close to the Sun! It is hot and your oxygen is draining. Turn back!'; warnT = 2.6; hud(true); try { auAct('nope', 1); } catch (e) { /* sound is optional */ } sunSaid = 2.6; }
+      }
+    }
+    function orbitStep(dt) {
+      orbT += dt; var carry = !moving ? nearWorld() : null;
+      ids.forEach(function (id) {
+        var o = ORB[id]; if (!o) return; var a = o.a0 + o.w * orbT, nx = Math.cos(a) * o.R, ny = Math.sin(a) * o.R, q = UPOS[id];
+        if (id === carry) { ship.x += nx - q[0]; ship.y += ny - q[1]; }
+        q[0] = nx; q[1] = ny;
+      });
+    }
     /* ---- the Glitch Gang: after a while of flying through open space, Vex and Moxie intercept the ship ---- */
-    var rvPause = false, rvAlert = false, rvTotal = S.rvDone ? 45 + Math.random() * 45 : 6 + Math.random() * 6, rvT = rvTotal, rvSaid = 0, sigEl = root.querySelector('#asSig'), sigT = root.querySelector('#asSigT'), sigB = root.querySelector('#asSigB');
+    var rvPause = false, rvAlert = false, rvTotal = S.rvDone ? rvWait() : 6 + Math.random() * 6, rvT = rvTotal, rvSaid = 0, sigEl = root.querySelector('#asSig'), sigT = root.querySelector('#asSigT'), sigB = root.querySelector('#asSigB');
+    /* the wait grows with every battle: 30 seconds of flying after the first one, then 40, 50 ... up to 90 */
+    function rvWait() { return Math.min(90, 20 + 10 * Math.max(1, S.rvN | 0)); }
     /* the first time the Gang is easy to find; after that you have to fly around and watch the signal grow */
     function sigShow() {
       var on = !!(S.rvDone && !rvPause && !rvAlert && !rescue && ph === 'nav'), pc = Math.max(0, Math.min(1, 1 - rvT / rvTotal));
@@ -6820,7 +6850,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       rivalEncounter({ o2: o2, cap: cap, eng: shipLv('eng'), hull: shipLv('hull'), ship: shipLv('hull') + shipLv('eng') + shipLv('rec') + shipLv('scan') > 0, hunt: hunt === true, done: function (r) {
         o2 = Math.max(0, Math.min(cap, o2 + (r.o2 || 0))); S.scrap = Math.max(0, Math.min(99, S.scrap + (r.scrap || 0))); if (r.scrap > 0) got.scrap += r.scrap; S.coins += r.coins || 0; if (r.balls) S.sleeping += r.balls;
         if (r.fairy) { S.team.push(r.fairy); S.rvFairy = (S.rvFairy | 0) + 1; S.caught.fairy = true; if (S.world) addFollowerEnt(r.fairy); }
-        S.rvDone = true; save(); setO2(); warn = r.msg || ''; warnT = 7; hud(true); rvPause = false; rvTotal = rvT = 45 + Math.random() * 45; rvSaid = 0; last = performance.now();
+        S.rvDone = true; S.rvN = (S.rvN | 0) + 1; save(); setO2(); warn = r.msg || ''; warnT = 7; hud(true); rvPause = false; rvTotal = rvT = rvWait(); rvSaid = 0; last = performance.now();
       } });
     }
     /* ---- comets: they streak across open space; a warning shows which way one comes from, and steering away keeps your oxygen safe ---- */
@@ -6934,10 +6964,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         if (rvPause || rvAlert) { raf = requestAnimationFrame(frame); return; }
         var sd = SPEEDS[sp];
         moving = false;
+        if (target && target.id && UPOS[target.id]) { var tq = UPOS[target.id]; if (!target.off) target.off = { x: target.x - tq[0], y: target.y - tq[1] }; else { target.x = tq[0] + target.off.x; target.y = tq[1] + target.off.y; } }
         var hx = (held.arrowright || held.d ? 1 : 0) - (held.arrowleft || held.a ? 1 : 0), hy = (held.arrowdown || held.s ? 1 : 0) - (held.arrowup || held.w ? 1 : 0);
         if ((hx || hy) && !rescue) {
           target = null; follow = true; var hl = Math.hypot(hx, hy), hs = Math.min(sd.v, 260 * SS / 2) * dt;
-          ship.ang = Math.atan2(hy, hx); ship.x += hx / hl * hs; ship.y += hy / hl * hs; moving = true; got.moved = true;
+          ship.ang = Math.atan2(hy, hx); var sk = sunSlide(hx / hl * hs, hy / hl * hs); ship.x += sk[0]; ship.y += sk[1]; moving = true; got.moved = true;
           o2 = Math.max(0, o2 - hs * sd.m * crewSave() / (O2_UNIT * SS)); if (o2 <= 0) startRescue(); setO2();
         }
         if (target) {
@@ -6947,7 +6978,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
           if (d > 1) ship.ang = Math.atan2(dy, dx);
           if (step >= d) { ship.x = target.x; ship.y = target.y; var tid = target.id; target = null; if (rescue && tid) { startLanding(tid, true); raf = requestAnimationFrame(frame); return; } hud(true); }
           else {
-            moving = true; got.moved = true; ship.x += dx / d * step; ship.y += dy / d * step;
+            moving = true; got.moved = true; var sk2 = sunSlide(dx / d * step, dy / d * step); ship.x += sk2[0]; ship.y += sk2[1];
             if (!rescue) { o2 = Math.max(0, o2 - step * sd.m * crewSave() / (O2_UNIT * SS)); if (o2 <= 0) startRescue(); }
           }
           setO2();
@@ -6966,6 +6997,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         retRot += dt * 40; if (warnT > 0) { warnT -= dt; if (warnT <= 0) hud(true); }
         root.classList.toggle('warp', moving && sp >= 3);
         cometsStep(dt, now);
+        sunStep(dt); orbitStep(dt);
         rivalStep(dt);
         drawCv(dt, now);
         var lead = ship, gap = 44 / N.k, hxu = Math.cos(ship.ang), hyu = Math.sin(ship.ang);
