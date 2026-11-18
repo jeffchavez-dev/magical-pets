@@ -937,6 +937,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .rv-pop.dmg { color: #ff8fa0; } .rv-pop.heal { color: #8fffa0; } .rv-pop.st { color: #7fe8ff; } .rv-pop.big { color: #ffe27a; font-size: 20px; top: 40%; }
 @keyframes rvPop { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -46px; } }
 @media (prefers-reduced-motion: reduce) { .rv-bg::after, .rv-logo, .rv-vil, .rv-bot svg, .rv-bot.tgt { animation: none; } }
+.as-spin, .as-orb, .as-ring, .as-halo { animation-timing-function: linear; animation-iteration-count: infinite; }
+.as-spin { animation-name: asSpin; } .as-orb { animation-name: asSpin; } .as-ring { animation-name: asRing; transform-box: fill-box; transform-origin: center; }
+.as-halo { animation-name: asHalo; animation-timing-function: ease-in-out; animation-direction: alternate; }
+@keyframes asSpin { to { transform: rotate(360deg); } }
+@keyframes asRing { 50% { stroke-opacity: .3; } }
+@keyframes asHalo { from { transform: scale(.88); opacity: .55; } to { transform: scale(1.12); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .as-spin, .as-orb, .as-ring, .as-halo { animation: none; } }
 .portalbtn.digbtn { background: #8a5a2b; }
 .dive.dig { background: linear-gradient(#a2733f 0, #6a4527 35%, #3b2412 75%, #24140a 100%); }
 .dive.dig .dv-world { background-image: radial-gradient(rgba(0,0,0,.18) 2px, transparent 3px), radial-gradient(rgba(255,255,255,.07) 3px, transparent 4px); background-size: 46px 46px, 71px 71px; background-position: 0 0, 20px 30px; }
@@ -6576,8 +6583,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       h.push('<line id="asRoute" stroke="#ffd86b" stroke-width="3" stroke-dasharray="10 8" vector-effect="non-scaling-stroke" opacity="0"/>');
       ids.forEach(function (id) {
         var p = UPOS[id], r = uRadius(id), W2 = WORLDS[id];
-        h.push('<g class="as-pl" data-w="' + id + '" transform="translate(' + p[0] + ' ' + p[1] + ')"><circle r="' + (r * 1.3).toFixed(0) + '" fill="' + W2.pal.sea[1] + '" opacity=".22"/><circle class="as-hit" data-r="' + (r * 1.5).toFixed(0) + '" r="' + (r * 1.5).toFixed(0) + '" fill="transparent"/>' +
-          '<g transform="scale(' + (r / 50).toFixed(3) + ') translate(-50 -50)">' + planetInner(id, 'open') + '</g>' +
+        var hs = strHash(id), pl = W2.pal || {}, glow = pl.wave || '#fff', rim = (pl.grass && pl.grass[1]) || '#fff', rr0 = r.toFixed(1), sp = 26 + hs % 34, pulse = 2.4 + (hs % 30) / 10, moon = hs % 3 !== 0, ring = hs % 4 === 1, od = 7 + hs % 9;
+        h.push('<g class="as-pl" data-w="' + id + '" data-r="' + rr0 + '" transform="translate(' + p[0] + ' ' + p[1] + ')"><defs><radialGradient id="ag' + id + '"><stop offset=".35" stop-color="' + glow + '" stop-opacity=".75"/><stop offset=".62" stop-color="' + rim + '" stop-opacity=".32"/><stop offset="1" stop-color="' + rim + '" stop-opacity="0"/></radialGradient></defs>' +
+          '<g class="as-aura"><circle class="as-halo" r="' + (r * 2.1).toFixed(0) + '" fill="url(#ag' + id + ')" style="animation-duration:' + pulse.toFixed(1) + 's;animation-delay:-' + (hs % 7) + 's"/>' +
+          (ring ? '<ellipse class="as-ring" rx="' + (r * 1.75).toFixed(0) + '" ry="' + (r * 0.55).toFixed(0) + '" fill="none" stroke="' + glow + '" stroke-width="' + (r * 0.07).toFixed(1) + '" stroke-opacity=".8" transform="rotate(' + (hs % 60 - 30) + ')"/>' : '') + '</g>' +
+          '<circle class="as-hit" data-r="' + (r * 1.5).toFixed(0) + '" r="' + (r * 1.5).toFixed(0) + '" fill="transparent"/>' +
+          '<g class="as-body"><g class="as-spin" style="animation-duration:' + sp + 's;animation-direction:' + (hs % 2 ? 'normal' : 'reverse') + '"><g transform="scale(' + (r / 50).toFixed(3) + ') translate(-50 -50)">' + planetInner(id, 'open') + '</g></g>' +
+          (moon ? '<g class="as-orb" style="animation-duration:' + od + 's;animation-direction:' + (hs % 5 < 2 ? 'reverse' : 'normal') + '"><circle cx="' + (r * 1.55).toFixed(0) + '" cy="0" r="' + (r * 0.16).toFixed(1) + '" fill="' + (pl.beach || '#fff') + '" stroke="#fff" stroke-width="' + (r * 0.04).toFixed(1) + '"/></g>' : '') + '</g>' +
           '<g class="as-lab" data-dy="' + (r + 14).toFixed(0) + '"><text text-anchor="middle" class="uname">' + esc(W2.name) + '</text></g></g>');
       });
       // floating oxygen bubbles and star scrap to catch on the way
@@ -6603,8 +6615,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       N.x = Math.max(-20000, Math.min(20000, N.x)); N.y = Math.max(-20000, Math.min(20000, N.y));
       elCam.setAttribute('transform', 'translate(' + (W / 2 - N.x * N.k).toFixed(1) + ' ' + (H / 2 - N.y * N.k).toFixed(1) + ') scale(' + N.k.toFixed(4) + ')');
       var inv = (1 / N.k).toFixed(4);
+      [].forEach.call(svg.querySelectorAll('.as-pl'), function (g) { var r = +g.dataset.r, f = Math.max(1, 22 / (r * N.k)), ft = 'scale(' + f.toFixed(3) + ')'; g.querySelector('.as-body').setAttribute('transform', ft); g.querySelector('.as-aura').setAttribute('transform', ft); g.querySelector('.as-lab').dataset.dy = (r * f + 14).toFixed(0); });
       [].forEach.call(svg.querySelectorAll('.as-lab'), function (g) { g.setAttribute('transform', 'translate(0 ' + (+g.dataset.dy + 6 / N.k).toFixed(1) + ') scale(' + inv + ')'); });
-      pk.forEach(function (q, j) { var e = svg.querySelector('#pk' + j); if (e) e.setAttribute('transform', 'translate(' + q.x.toFixed(0) + ' ' + q.y.toFixed(0) + ') scale(' + ((N.k < 0.12 ? 0.45 : 0.8) / N.k).toFixed(4) + ')' + (q.on ? '' : ' scale(0)')); });
+      pk.forEach(function (q, j) { var e = svg.querySelector('#pk' + j); if (e) e.setAttribute('transform', 'translate(' + q.x.toFixed(0) + ' ' + q.y.toFixed(0) + ') scale(' + ((N.k < 0.12 ? 0.32 : 0.6) / N.k).toFixed(4) + ')' + (q.on ? '' : ' scale(0)')); });
       [].forEach.call(svg.querySelectorAll('.as-hit'), function (c) { c.setAttribute('r', Math.max(+c.dataset.r, 36 / N.k).toFixed(0)); });
       if (target && target.id) { var tp = UPOS[target.id], rr2 = uRadius(target.id) * 1.55; elRet.setAttribute('opacity', '1'); elRet.setAttribute('transform', 'translate(' + tp[0] + ' ' + tp[1] + ') scale(' + rr2.toFixed(1) + ') rotate(' + retRot.toFixed(1) + ')'); } else elRet.setAttribute('opacity', '0');
       elShip.setAttribute('transform', 'translate(' + ship.x.toFixed(1) + ' ' + ship.y.toFixed(1) + ') scale(' + (1.2 / N.k).toFixed(4) + ')');
