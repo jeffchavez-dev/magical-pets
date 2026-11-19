@@ -6570,7 +6570,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
 
   /* ----- Astronaut mode: build a space suit, fill an oxygen tank, then fly to any world you have opened ----- */
-  var ASTRO_LV = 6, ASTRO_WAIT = 150000, BUBBLE_O2 = 10, O2_COIN = 3, O2_UNIT = 70;
+  /* family mode: open the game with ?easy=1 on the end of the address to skip the space requirements (level, suit, rocket part, oxygen) */
+  var EASY = /[?&]easy(=1|&|$)/.test(location.search), ASTRO_LV = EASY ? 1 : 6, ASTRO_WAIT = 150000, BUBBLE_O2 = 10, O2_COIN = 3, O2_UNIT = 70;
   var SPACE_SCALE = 4;   /* how many times farther apart the worlds are when you fly (the map shows them close together) */
   var SPEEDS_BASE = [{ n: 'Slow', v: 200, m: 0.7 }, { n: 'Cruise', v: 400, m: 1 }, { n: 'Fast', v: 840, m: 1.5 }, { n: 'Turbo', v: 1600, m: 2 }];
   var SUIT = [
@@ -6592,14 +6593,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var TANKS = [{ name: 'Rocket tank', cap: 60, cost: 0 }, { name: 'Big rocket tank', cap: 120, cost: 60 }, { name: 'Huge rocket tank', cap: 200, cost: 150 }, { name: 'Giant rocket tank', cap: 320, cost: 300 }];
   function suitHave(id) { return !!(S.suit && S.suit[id]); }
   function suitCount() { return SUIT.filter(function (p) { return suitHave(p.id); }).length; }
-  function suitDone() { return suitCount() === SUIT.length; }
+  function suitDone() { return EASY || suitCount() === SUIT.length; }
   function tankCap() { return TANKS[S.tank | 0].cap; }
   function spaceCost(from, to) { var a = UNI_POS[from], b = UNI_POS[to]; return a && b ? Math.ceil(Math.hypot(a[0] - b[0], a[1] - b[1]) / O2_UNIT) : 0; }
   function spaceDests() {
     return Object.keys(WORLDS).filter(function (id) { return id !== S.cur && worldOpen(id) && UNI_POS[id]; })
       .map(function (id) { return { id: id, cost: spaceCost(S.cur, id) }; }).sort(function (a, b) { return (a.cost - b.cost) || WORLDS[a.id].name.localeCompare(WORLDS[b.id].name); });
   }
-  function spaceReady() { return suitDone() && spaceDests().length > 0 && S.o2 >= 5; }
+  function spaceReady() { if (EASY && S.o2 < 40) S.o2 = 60; return suitDone() && spaceDests().length > 0 && S.o2 >= 5; }
   function scrapSVG() { return '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="26" fill="#c5ccd8" opacity=".3"/><path d="M30 8l5 3 6-1 3 5 5 3-1 6 3 5-4 4-1 6-6 1-4 5-6-3-6 3-4-5-6-1-1-6-4-4 3-5-1-6 5-3 3-5 6 1z" fill="#c5ccd8" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/><circle cx="30" cy="30" r="8" fill="#5b6478" stroke="#fff" stroke-width="2.5"/></svg><span class="tag">Star scrap</span>'; }
   function bubbleSVG() { return '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="24" fill="#7fe8ff" opacity=".35" stroke="#fff" stroke-width="3"/><ellipse cx="22" cy="21" rx="6" ry="4" fill="#fff" opacity=".85" transform="rotate(-30 22 21)"/><text x="30" y="38" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="17" fill="#fff">O2</text></svg><span class="tag">Oxygen</span>'; }
   function collectAstro(e) {
@@ -6981,7 +6982,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     function startRival(hunt) {
       if (rvPause || rescue || o2 < cap * 0.3 || !S.team.length) return;
       rvPause = true; hud(true); target = null; Object.keys(held).forEach(function (k) { held[k] = false; }); auAct('nope', 1);
-      rivalEncounter({ o2: o2, cap: cap, eng: shipLv('eng'), hull: shipLv('hull'), ship: shipLv('hull') + shipLv('eng') + shipLv('rec') + shipLv('scan') > 0, hunt: hunt === true, done: function (r) {
+      rivalEncounter({ o2: o2, cap: cap, eng: shipLv('eng'), hull: shipLv('hull'), ship: EASY || shipLv('hull') + shipLv('eng') + shipLv('rec') + shipLv('scan') > 0, hunt: hunt === true, done: function (r) {
         o2 = Math.max(0, Math.min(cap, o2 + (r.o2 || 0))); S.scrap = Math.max(0, Math.min(99, S.scrap + (r.scrap || 0))); if (r.scrap > 0) got.scrap += r.scrap; S.coins += r.coins || 0; if (r.balls) S.sleeping += r.balls;
         if (r.fairy) { S.team.push(r.fairy); S.rvFairy = (S.rvFairy | 0) + 1; S.caught.fairy = true; if (S.world) addFollowerEnt(r.fairy); }
         S.rvDone = true; S.rvN = (S.rvN | 0) + 1; save(); setO2(); warn = r.msg || ''; warnT = 7; hud(true); rvPause = false; rvTotal = rvT = rvWait(); rvSaid = 0; last = performance.now();
