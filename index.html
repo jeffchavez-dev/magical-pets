@@ -922,6 +922,16 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .rv-act { --pw: clamp(76px, 15vmin, 190px); position: absolute; width: var(--pw); margin: calc(var(--pw) * -0.66) 0 0 calc(var(--pw) * -0.5); text-align: center; font-size: 11px; font-weight: 700; }
 .rv-act.bot { --pw: clamp(104px, 21vmin, 260px); cursor: default; } .rv-act.bot.tgt { cursor: pointer; }
 .rv-act .rv-sp { width: 100%; animation: rvIdle 1.7s ease-in-out infinite; } .rv-act .rv-sp svg { width: 100%; display: block; }
+.rv-arena .rv-bf { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.rv-rift { position: absolute; left: 66%; width: 22%; top: 4%; bottom: 14%; pointer-events: none; opacity: .55; mix-blend-mode: screen; background: linear-gradient(180deg, #ff3d9a, #35e0c9 50%, #ff3d9a); clip-path: polygon(40% 0, 60% 12%, 45% 25%, 62% 40%, 48% 55%, 64% 70%, 46% 85%, 55% 100%, 40% 100%, 52% 85%, 36% 70%, 50% 55%, 34% 40%, 50% 25%, 38% 12%); animation: rvGlitch 1.1s steps(2) infinite; }
+.rv-pt { position: absolute; font-style: normal; font-size: 15px; line-height: 1; pointer-events: none; opacity: 0; text-shadow: 0 0 7px currentColor; }
+.rv-pt.up { bottom: -6%; animation: bfUp 5s linear infinite; } .rv-pt.down { top: -6%; animation: bfDown 6s linear infinite; } .rv-pt.drift { top: 25%; animation: bfDrift 7s ease-in-out infinite; }
+@keyframes bfUp { 0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: .95; } 100% { transform: translate(24px, -300px); opacity: 0; } }
+@keyframes bfDown { 0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: .95; } 100% { transform: translate(-18px, 320px); opacity: 0; } }
+@keyframes bfDrift { 0% { transform: translate(-40px, 0); opacity: 0; } 20% { opacity: .9; } 50% { transform: translate(10px, 26px); } 100% { transform: translate(60px, -8px); opacity: 0; } }
+.rv-top small { display: block; font-size: 11px; font-weight: 700; color: #ffe27a; opacity: .95; }
+.scene.ggal { animation: ggAlert .5s steps(2) 3; } @keyframes ggAlert { 0% { filter: hue-rotate(0) contrast(1); transform: translateX(0); } 50% { filter: hue-rotate(160deg) contrast(1.4); transform: translateX(5px); } 100% { filter: none; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .rv-rift, .rv-pt, .scene.ggal { animation: none; } }
 @keyframes rvIdle { 50% { transform: translateY(-6px) scale(1.03); } }
 .rv-act b { display: block; text-shadow: 0 1px 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .rv-act .rv-hpw { display: block; width: 90%; margin: 1px auto 0; } .rv-act .rv-st { min-height: 14px; display: block; }
 .rv-act.bot.tgt::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 3px dashed #ffd34e; animation: rvSpinT 2s linear infinite; pointer-events: none; }
@@ -2780,13 +2790,33 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     worldBurst(e.x, e.y - 60, 'curse');
     auCurse(); save(); updateHud(); hzMsgT = now + 8000; say(line, 8000);
   }
+  /* ----- Glitch ambush: in a world with Medium or Deadly danger, Vex and Moxie jump out of the glowing ground and fight on that world's battlefield ----- */
+  function ggTick(w, now) {
+    var d = dangerOf(S.cur);
+    if (d < 2 || w.ggBusy) return;
+    if (!w.ggAt) { w.ggAt = now + (d > 2 ? 28000 : 45000) + Math.random() * 20000; return; }
+    if (now < w.ggAt) return;
+    if (HV || warping || flyOn() || !S.team.length || document.querySelector('#sheet, #dive, #dig, #astro, #studio, #par, #hv, .rv')) { w.ggAt = now + 6000; return; }
+    var F = bfOf(S.cur); if (!F) return;
+    w.ggBusy = true; say('The ground is glitching! The Glitch Gang is jumping out!', 3500); try { auWarn(); } catch (e) { /* sound is optional */ }
+    var sc = $('#scene'); if (sc) { sc.classList.remove('ggal'); void sc.offsetWidth; sc.classList.add('ggal'); setTimeout(function () { sc.classList.remove('ggal'); }, 1700); }
+    setTimeout(function () {
+      if (S.screen !== 'world' || S.world !== w) { w.ggBusy = false; return; }
+      rivalEncounter({ o2: 0, cap: 0, eng: shipLv('eng'), hull: shipLv('hull'), ship: EASY || shipLv('hull') + shipLv('eng') + shipLv('rec') + shipLv('scan') > 0, hunt: false, field: F, done: function (r) {
+        S.scrap = Math.max(0, Math.min(99, S.scrap + (r.scrap || 0))); S.coins += r.coins || 0; if (r.balls) S.sleeping += r.balls;
+        if (r.fairy) { S.team.push(r.fairy); S.rvFairy = (S.rvFairy | 0) + 1; S.caught.fairy = true; if (S.world) addFollowerEnt(r.fairy); }
+        S.rvDone = true; S.rvN = (S.rvN | 0) + 1; save(); updateHud(); w.ggBusy = false; w.ggAt = performance.now() + (r.fairy || r.scrap > 0 ? 150000 : 90000);
+        say(r.msg || '', 7000);
+      } });
+    }, 1800);
+  }
   function hazardTick(w, ents, lead, now) {
-    var H = hazOf(S.cur); if (!H.length) return;
+    var H = hazOf(S.cur); if (!H.length || w.ggBusy) return;
     var info = HZ[S.cur], i, j, h, dh, e;
     if (!w.hzIntro) w.hzIntro = now + 5400;
     else if (w.hzIntro > 0 && now > w.hzIntro) {
       w.hzIntro = -1;
-      if (now > hzMsgT) say('Danger: ' + DANGER_WORD[info.d] + '. Watch for glowing ' + info.name + 's on the ground. A pet that steps on one shrinks back a level. ' + TYPES[info.ward].name + ' pets are safe.' + (info.hide ? ' Some are hidden until you get close!' : ''), 9000);
+      if (now > hzMsgT) say('Danger: ' + DANGER_WORD[info.d] + '. Watch for glowing ' + info.name + 's on the ground. A pet that steps on one shrinks back a level. ' + TYPES[info.ward].name + ' pets are safe.' + (info.hide ? ' Some are hidden until you get close!' : '') + (info.d > 1 ? ' The Glitch Gang hides here too, so be ready for a battle!' : ''), 9000);
     }
     for (i = 0; i < H.length; i++) {
       h = H[i]; dh = dist(lead, h);
@@ -7309,6 +7339,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var RV_LV = [0.7, 1.0, 1.4, 1.9];
   function rvPow(p) { return RV_LV[Math.min(3, Math.max(0, (p.stage | 0) - 1))]; }
   var RV_BOTS = { zap: { name: 'Zapbot', col: '#ffd34e', hp: 1 }, gob: { name: 'Gobbler', col: '#7fe38a', hp: 1.15 }, clank: { name: 'Clanker', col: '#b4bdd8', hp: 1.3 } };
+  var RV_FH = ['Surprise! You wandered onto OUR turf, the @!', 'Nobody leaves the @ without a Glitch battle!', 'The ground went glitchy because WE are here!', 'This @ is the perfect place to glitch you up!'];
   var RV_WIN = ['Grr! You got lucky, kid!', 'Impossible! Moxie, pay attention!', 'Fine! We will be back with a BIGGER bot!', 'No fair! Your pets are too good!'];
   var RV_HI = ['Halt, little ship! We are the GLITCH GANG!', 'Well, well. A ship full of shiny scrap!', 'You again? Prepare to be GLITCHED!', 'Vex and Moxie are back, and we brought snacks for our bots!'];
   function vexSVG() {
@@ -7324,8 +7355,68 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return '<svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 22 V10" stroke="#fff" stroke-width="3"/><circle cx="50" cy="8" r="5" fill="' + c + '" stroke="#fff" stroke-width="2"/><rect x="26" y="84" width="16" height="16" rx="5" fill="#4b36b8" stroke="#fff" stroke-width="3"/><rect x="58" y="84" width="16" height="16" rx="5" fill="#4b36b8" stroke="#fff" stroke-width="3"/><rect x="6" y="46" width="12" height="26" rx="6" fill="' + c + '" stroke="#fff" stroke-width="3"/><rect x="82" y="46" width="12" height="26" rx="6" fill="' + c + '" stroke="#fff" stroke-width="3"/><rect x="14" y="22" width="72" height="66" rx="18" fill="' + c + '" stroke="#fff" stroke-width="3"/><rect x="24" y="32" width="52" height="38" rx="9" fill="#1d1346"/>' + face + '</svg>';
   }
   var RV_FXC = { fairy: '#ff9ed2', fire: '#ff7a2b', water: '#4fb3ff', grass: '#6fd45a', psychic: '#b388ff', ice: '#9fe8ff', electric: '#ffe24a', earth: '#b88a52', wind: '#e8f6ff', shadow: '#7a4fd0', metal: '#b4c4e0', light: '#fff2a0', dragon: '#ff5a3d', cosmic: '#ffd86b', music: '#ff7eb6', candy: '#ff8fc8', unicorn: '#c9a0ff' };
+  /* ----- battlefields: a Glitch ambush in a dangerous world is fought on that world's own kind of ground ----- */
+  var BF = {
+    fire: { n: 'Lava Flats', sky: ['#2a0a0a', '#7a1f0c', '#ff7a2b'], gr: '#3a1208', deco: 'lava', pt: ['•', '#ffb347', 'up'] },
+    ice: { n: 'Frozen Lake', sky: ['#0b2a4a', '#3a7fb8', '#cdf3ff'], gr: '#dff6ff', deco: 'ice', pt: ['❄', '#ffffff', 'down'] },
+    grass: { n: 'Rot Bog', sky: ['#10200c', '#2e4a1a', '#9ccc4a'], gr: '#26381a', deco: 'bog', pt: ['○', '#d6ff7a', 'up'] },
+    earth: { n: 'Cracked Crag', sky: ['#2a1c10', '#6a4a2a', '#d9a35a'], gr: '#4a3220', deco: 'crag', pt: ['▪', '#ffe14a', 'drift'] },
+    wind: { n: 'Sky Ruins', sky: ['#4a7fc0', '#9cc8f0', '#f2f8ff'], gr: '#e8f2ff', deco: 'sky', pt: ['◠', '#ffffff', 'drift'] },
+    shadow: { n: 'Gloom Graveyard', sky: ['#07041a', '#1d1245', '#4a2a7a'], gr: '#150d2e', deco: 'gloom', pt: ['•', '#c58bff', 'drift'] },
+    psychic: { n: 'Void Rift', sky: ['#05020f', '#2a0a4a', '#8a2fb0'], gr: '#1a0a30', deco: 'void', pt: ['✦', '#ff9af6', 'drift'] },
+    electric: { n: 'Storm Plateau', sky: ['#0a1020', '#1f3560', '#4a6fb0'], gr: '#1a2540', deco: 'storm', pt: ['⚡', '#ffe24a', 'down'] },
+    fairy: { n: 'Thorn Garden', sky: ['#2a0a2e', '#8a2a78', '#ffb3e0'], gr: '#3a1238', deco: 'bloom', pt: ['♥', '#ff9ed2', 'up'] },
+    candy: { n: 'Sticky Sweets', sky: ['#5a2a6a', '#d46ab0', '#ffd0ea'], gr: '#f08cb8', deco: 'candy', pt: ['●', '#fff2a0', 'down'] },
+    music: { n: 'Drum Stage', sky: ['#1a0a3a', '#6a1a8a', '#ff6bd6'], gr: '#2a0f4a', deco: 'music', pt: ['♪', '#ffe27a', 'up'] },
+    metal: { n: 'Scrap Foundry', sky: ['#141a24', '#3a4a60', '#8fa6c4'], gr: '#2a3342', deco: 'metal', pt: ['⚙', '#cfe0f5', 'drift'] },
+    dragon: { n: 'Dragon Bones', sky: ['#1a0606', '#5a1212', '#ff5a3a'], gr: '#2a0c0c', deco: 'dragon', pt: ['•', '#ff9a5a', 'up'] },
+    light: { n: 'Prism Hall', sky: ['#3a3a6a', '#b8b0ea', '#fff7c0'], gr: '#f4ecc0', deco: 'light', pt: ['✦', '#ffffff', 'down'] },
+    cosmic: { n: 'Star Deck', sky: ['#04030f', '#12104a', '#4a3aa0'], gr: '#12103a', deco: 'cosmic', pt: ['★', '#ffd86b', 'drift'] }
+  };
+  function bfOf(id) {
+    var info = HZ[id], b = info && (BF[info.ward] || BF.shadow); if (!b) return null;
+    return { n: b.n, sky: b.sky, gr: b.gr, deco: b.deco, pt: b.pt, ward: info.ward, c: info.c, d: info.d, world: WORLDS[id].name };
+  }
+  function bfSky(F) { return 'linear-gradient(180deg,' + F.sky[0] + ' 0,' + F.sky[1] + ' 52%,' + F.sky[2] + ' 100%)'; }
+  function bfSVG(F) {
+    var c = F.c, g = F.gr, o = [], i, x;
+    function tri(x0, h, w, f, op) { return '<path d="M' + x0 + ' 62 L' + (x0 + w / 2) + ' ' + (62 - h) + ' L' + (x0 + w) + ' 62Z" fill="' + f + '" opacity="' + (op || 1) + '"/>'; }
+    function zig(x0, y0, n, dx, dy, col, sw) { var pts = [], k; for (k = 0; k <= n; k++) pts.push((x0 + k * dx) + ',' + (y0 + (k % 2 ? dy : 0) + (k * 3) % 5)); return '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + col + '" stroke-width="' + (sw || 1.4) + '" stroke-linejoin="round" opacity=".9"/>'; }
+    switch (F.deco) {
+      case 'lava': o.push('<path d="M-10 62 L25 22 L38 30 L52 14 L85 62Z" fill="#1c0606"/><path d="M95 62 L125 26 L140 20 L170 62Z" fill="#1c0606"/><circle cx="52" cy="14" r="7" fill="#ff9a3a" opacity=".75"/><circle cx="140" cy="20" r="6" fill="#ff9a3a" opacity=".7"/>'); break;
+      case 'ice': for (i = 0; i < 9; i++) o.push(tri(i * 19 - 6, 14 + (i * 7) % 18, 16, '#cdf3ff', 0.75)); break;
+      case 'bog': for (i = 0; i < 14; i++) { x = 6 + i * 11.5; o.push('<path d="M' + x + ' 62 Q' + (x + 3) + ' ' + (46 - (i * 5) % 9) + ' ' + (x + 1) + ' ' + (34 - (i * 7) % 12) + '" stroke="#12200c" stroke-width="2" fill="none"/>'); } o.push('<ellipse cx="30" cy="80" rx="14" ry="4" fill="#a6e84f" opacity=".25"/><ellipse cx="118" cy="86" rx="18" ry="4" fill="#a6e84f" opacity=".25"/>'); break;
+      case 'crag': for (i = 0; i < 6; i++) { x = i * 30 - 4; o.push('<path d="M' + x + ' 62 L' + (x + 4) + ' ' + (24 + (i * 11) % 16) + ' L' + (x + 16) + ' ' + (22 + (i * 7) % 18) + ' L' + (x + 21) + ' 62Z" fill="#2c1c10" opacity=".85"/>'); } break;
+      case 'sky': o.push('<ellipse cx="25" cy="48" rx="26" ry="8" fill="#fff" opacity=".8"/><ellipse cx="55" cy="52" rx="22" ry="7" fill="#fff" opacity=".7"/><ellipse cx="120" cy="46" rx="30" ry="9" fill="#fff" opacity=".8"/><rect x="70" y="34" width="5" height="28" fill="#c9d6ea"/><rect x="82" y="40" width="5" height="22" fill="#c9d6ea"/><path d="M66 34 h24 v-4 h-24z" fill="#b8c8e0"/>'); break;
+      case 'gloom': o.push('<circle cx="124" cy="22" r="14" fill="#f4eaff" opacity=".85"/><circle cx="130" cy="19" r="12" fill="' + F.sky[1] + '"/>'); for (i = 0; i < 5; i++) { x = 10 + i * 36; o.push('<path d="M' + x + ' 62 V' + (36 + (i * 9) % 12) + ' M' + x + ' 48 l-8 -8 M' + x + ' 44 l8 -9" stroke="#0a0620" stroke-width="2" fill="none" stroke-linecap="round"/>'); } break;
+      case 'void': for (i = 0; i < 18; i++) o.push('<circle cx="' + ((i * 37) % 160) + '" cy="' + (4 + (i * 19) % 50) + '" r="' + (0.6 + (i % 3) * 0.4) + '" fill="#fff" opacity=".8"/>'); o.push('<ellipse cx="80" cy="34" rx="30" ry="10" fill="none" stroke="' + c + '" stroke-width="1.4" opacity=".7"/><ellipse cx="80" cy="34" rx="14" ry="4" fill="#000" opacity=".8"/><path d="M20 44 l12 -4 l8 6 l-6 7 l-12 -2z M118 52 l10 -3 l7 5 l-5 6 l-10 -2z" fill="#2a1450" stroke="' + c + '" stroke-width=".8"/>'); break;
+      case 'storm': o.push('<ellipse cx="30" cy="12" rx="40" ry="14" fill="#05080f" opacity=".85"/><ellipse cx="110" cy="8" rx="50" ry="14" fill="#05080f" opacity=".85"/><polyline points="40,22 32,36 40,36 30,56" fill="none" stroke="' + c + '" stroke-width="2.2" stroke-linejoin="round"/><polyline points="120,18 112,32 119,32 110,50" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>'); break;
+      case 'bloom': for (i = 0; i < 6; i++) { x = 12 + i * 28; o.push('<path d="M' + x + ' 62 Q' + (x + 10) + ' ' + (44 - (i * 5) % 8) + ' ' + (x - 4) + ' ' + (30 + (i * 7) % 10) + '" stroke="#120414" stroke-width="2.2" fill="none"/><circle cx="' + (x - 4) + '" cy="' + (30 + (i * 7) % 10) + '" r="4" fill="' + c + '" opacity=".9"/><circle cx="' + (x - 4) + '" cy="' + (30 + (i * 7) % 10) + '" r="1.6" fill="#fff"/>'); } break;
+      case 'candy': for (i = 0; i < 5; i++) { x = 12 + i * 34; o.push('<rect x="' + (x - 1) + '" y="40" width="2.4" height="22" fill="#fff" opacity=".9"/><circle cx="' + x + '" cy="34" r="9" fill="' + (i % 2 ? '#ff7eb6' : '#7fe8ff') + '"/><path d="M' + (x - 6) + ' 34 a6 6 0 0 1 12 0 a3 3 0 0 1 -6 0" fill="none" stroke="#fff" stroke-width="1.6"/>'); } break;
+      case 'music': o.push('<rect x="8" y="30" width="24" height="32" rx="3" fill="#120626"/><circle cx="20" cy="44" r="7" fill="#2a1450" stroke="' + c + '" stroke-width="1.2"/><rect x="126" y="30" width="24" height="32" rx="3" fill="#120626"/><circle cx="138" cy="44" r="7" fill="#2a1450" stroke="' + c + '" stroke-width="1.2"/>'); for (i = 0; i < 5; i++) o.push('<path d="M40 ' + (16 + i * 4) + ' H120" stroke="#fff" stroke-width=".5" opacity=".35"/>'); break;
+      case 'metal': for (i = 0; i < 3; i++) { x = 24 + i * 54; o.push('<circle cx="' + x + '" cy="' + (40 + (i % 2) * 6) + '" r="16" fill="#1c2430" stroke="#8fa6c4" stroke-width="3" stroke-dasharray="5 3"/><circle cx="' + x + '" cy="' + (40 + (i % 2) * 6) + '" r="5" fill="#8fa6c4"/>'); } break;
+      case 'dragon': o.push('<path d="M-10 62 L30 26 L48 36 L72 12 L110 62Z" fill="#150404"/><circle cx="72" cy="14" r="8" fill="#ff5a3a" opacity=".7"/>'); for (i = 0; i < 4; i++) o.push('<path d="M' + (96 + i * 14) + ' 62 Q' + (100 + i * 14) + ' ' + (30 - i * 2) + ' ' + (118 + i * 14) + ' 40" stroke="#efe3cc" stroke-width="2.4" fill="none" opacity=".85" stroke-linecap="round"/>'); break;
+      case 'light': for (i = 0; i < 5; i++) { x = i * 36 - 6; o.push('<path d="M' + x + ' 0 L' + (x + 14) + ' 0 L' + (x + 34) + ' 62 L' + (x + 8) + ' 62Z" fill="#fff" opacity=".16"/>'); } o.push(tri(14, 20, 14, '#fff7c0', 0.9) + tri(130, 24, 16, '#fff7c0', 0.9)); break;
+      case 'cosmic': for (i = 0; i < 24; i++) o.push('<circle cx="' + ((i * 41) % 160) + '" cy="' + (3 + (i * 17) % 56) + '" r="' + (0.5 + (i % 3) * 0.4) + '" fill="#fff" opacity=".85"/>'); o.push('<circle cx="34" cy="34" r="14" fill="#6a4ad0"/><ellipse cx="34" cy="34" rx="24" ry="5" fill="none" stroke="#ffd86b" stroke-width="1.6"/><circle cx="124" cy="24" r="8" fill="#ff7eb6"/>'); break;
+    }
+    o.push('<path d="M-5 100 V62 Q30 57 70 61 T165 60 V100Z" fill="' + g + '"/><path d="M-5 62 Q30 57 70 61 T165 60" fill="none" stroke="' + c + '" stroke-width="1.4" opacity=".55"/>');
+    if (F.deco === 'lava') { o.push(zig(10, 70, 7, 9, 5, '#ffb347', 1.6), zig(80, 82, 8, 9, 4, '#ff7a2b', 1.4), zig(30, 92, 5, 8, 3, '#ffd34e', 1.2)); }
+    else if (F.deco === 'ice') { o.push(zig(8, 74, 7, 10, 4, '#fff', 1), zig(86, 88, 6, 10, 3, '#9fdcff', 1)); }
+    else if (F.deco === 'crag') { o.push(zig(6, 72, 8, 9, 5, '#ffe14a', 1.3), zig(90, 86, 6, 10, 4, '#ffe14a', 1.1)); }
+    else if (F.deco === 'storm' || F.deco === 'metal') { o.push(zig(10, 76, 7, 9, 4, c, 1.1)); }
+    else if (F.deco === 'void' || F.deco === 'cosmic' || F.deco === 'gloom') { o.push('<ellipse cx="80" cy="82" rx="60" ry="6" fill="' + c + '" opacity=".14"/>'); }
+    return '<svg class="rv-bf" viewBox="0 0 160 100" preserveAspectRatio="xMidYMax slice" aria-hidden="true">' + o.join('') + '</svg>';
+  }
+  function bfPts(F) {
+    var o = [], i, dir = F.pt[2];
+    for (i = 0; i < 14; i++) o.push('<i class="rv-pt ' + dir + '" style="left:' + ((i * 7.3 + 3) % 96).toFixed(0) + '%;color:' + F.pt[1] + ';animation-delay:-' + ((i * 0.9) % 6).toFixed(1) + 's;animation-duration:' + (4 + (i % 4) * 1.2).toFixed(1) + 's">' + F.pt[0] + '</i>');
+    return o.join('');
+  }
   function rivalEncounter(o) {
-    var lvl = Math.min(30, level()), wins = S.rvWins | 0, hpBase = Math.round(26 + lvl * 1.2 + wins * 2), dmgBase = 5 + lvl / 5 + Math.min(3, wins * 0.5);
+    var F = o.field || null, lvl = Math.min(30, level()), wins = S.rvWins | 0, hpBase = Math.round((26 + lvl * 1.2 + wins * 2) * (F ? 1 + 0.12 * (F.d - 1) : 1)), dmgBase = (5 + lvl / 5 + Math.min(3, wins * 0.5)) * (F ? 1 + 0.08 * (F.d - 1) : 1);
+    function turf(p) { return F && p.type === F.ward ? 1.3 : 1; }
+    function bgH() { return F ? '<div class="rv-bg" style="background:linear-gradient(rgba(10,4,30,.45),rgba(10,4,30,.45)),radial-gradient(ellipse at 50% 20%,' + F.sky[1] + ' 0,' + F.sky[0] + ' 100%)"></div>' : '<div class="rv-bg"></div>'; }
+    function fieldNote() { return F ? '<p class="rv-rec">Battlefield: ' + esc(F.n) + ' in ' + esc(F.world) + '. ' + esc(TYPES[F.ward].name) + ' pets hit 30% harder here.</p>' : ''; }
     var kinds = ['zap', 'gob', 'clank'].sort(function () { return Math.random() - 0.5; }).slice(0, 2);
     var bots = kinds.map(function (k) { var h = Math.round(hpBase * RV_BOTS[k].hp); return { k: k, hp: h, max: h, st: {}, t: 0 }; });
     var team = S.team.slice(0, 6).map(function (p) { var h = 18 + p.stage * 12; return { p: p, hp: h, max: h, sh: 0, cd: 0, stun: 0 }; });
@@ -7400,7 +7491,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var pets = team.map(function (f, i) { var c = i % cols, r = Math.floor(i / cols), x = 9 + c * 17 + (r % 2) * 5, y = (r + 0.5) / rows * 86 + 7;
         return '<div class="rv-act pet" data-u="p' + i + '" style="left:' + x + '%;top:' + y + '%"><div class="rv-sp" style="animation-delay:-' + (i * 0.4).toFixed(1) + 's">' + petSVG(f.p.type, f.p.stage, f.p.name, f.p.body) + '</div><b>' + esc(f.p.name) + '</b><span class="rv-hpw"></span><span class="rv-st"></span></div>'; }).join('');
       var bp = [[68, 30], [80, 70]], bh = bots.map(function (b, i) { return '<div class="rv-act bot" data-rv="tgt" data-i="' + i + '" data-u="b' + i + '" style="left:' + bp[i][0] + '%;top:' + bp[i][1] + '%"><div class="rv-sp" style="animation-delay:-' + (i * 0.7).toFixed(1) + 's">' + botSVG(b.k) + '</div><b>' + RV_BOTS[b.k].name + '</b><span class="rv-hpw"></span><span class="rv-st"></span></div>'; }).join('');
-      el.querySelector('.rv-wrap').innerHTML = '<div class="rv-top"><span>Vex &amp; Moxie\'s Glitchbots</span><button class="btn ghost small" data-rv="flee">Run away</button></div><div class="rv-arena" id="rvarena"><i class="rv-gr"></i>' + pets + bh + '</div><p class="rv-log" id="rvlog" aria-live="polite"></p><div class="rv-team" id="rvcmd"></div><p class="rv-hint" id="rvhint"></p>';
+      el.querySelector('.rv-wrap').innerHTML = '<div class="rv-top"><span>' + (F ? 'Battlefield: ' + esc(F.n) + '<small>' + esc(TYPES[F.ward].name) + ' pets hit 30% harder here</small>' : 'Vex &amp; Moxie\'s Glitchbots') + '</span><button class="btn ghost small" data-rv="flee">Run away</button></div><div class="rv-arena" id="rvarena"' + (F ? ' style="background:' + bfSky(F) + '"' : '') + '>' + (F ? bfSVG(F) + bfPts(F) + '<i class="rv-rift"></i>' : '') + '<i class="rv-gr"></i>' + pets + bh + '</div><p class="rv-log" id="rvlog" aria-live="polite"></p><div class="rv-team" id="rvcmd"></div><p class="rv-hint" id="rvhint"></p>';
       arena = el.querySelector('#rvarena'); el.querySelector('.rv-wrap').classList.add('fight');
     }
     function refresh() {
@@ -7408,7 +7499,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       bots.forEach(function (b, i) { var a = A('b' + i); if (!a) return; a.classList.toggle('down', b.hp <= 0); a.classList.toggle('tgt', pick !== null && b.hp > 0); a.querySelector('.rv-hpw').innerHTML = hpBar(b.hp, b.max, 0); a.querySelector('.rv-st').innerHTML = chips(b.st); });
       el.querySelector('#rvcmd').innerHTML = team.map(function (f, i) {
         var mv = RV_MOVES[f.p.type] || RV_MOVES.fairy, ok = f.hp > 0 && f.cd <= 0 && f.stun <= 0;
-        return '<button class="rv-pet' + (f.hp <= 0 ? ' down' : '') + (!ok ? ' wait' : '') + (pick === i ? ' on' : '') + '" data-rv="pet" data-i="' + i + '"><div class="rv-face">' + petSVG(f.p.type, f.p.stage, f.p.name, f.p.body) + '</div><span class="rv-mv"><b>' + esc(f.p.name) + ' <i class="rv-lvl">Lv ' + f.p.stage + '</i></b>' + (f.hp <= 0 ? 'Fainted' : f.stun > 0 ? 'Zapped! Skips' : f.cd > 0 ? 'Resting (' + f.cd + ')' : esc(mv.n) + ' <u class="rv-x">x' + rvPow(f.p).toFixed(1) + '</u>') + '</span></button>';
+        return '<button class="rv-pet' + (f.hp <= 0 ? ' down' : '') + (!ok ? ' wait' : '') + (pick === i ? ' on' : '') + '" data-rv="pet" data-i="' + i + '"><div class="rv-face">' + petSVG(f.p.type, f.p.stage, f.p.name, f.p.body) + '</div><span class="rv-mv"><b>' + esc(f.p.name) + ' <i class="rv-lvl">Lv ' + f.p.stage + '</i></b>' + (f.hp <= 0 ? 'Fainted' : f.stun > 0 ? 'Zapped! Skips' : f.cd > 0 ? 'Resting (' + f.cd + ')' : esc(mv.n) + ' <u class="rv-x">x' + (rvPow(f.p) * turf(f.p)).toFixed(1) + '</u>') + '</span></button>';
       }).join('');
       var lg = el.querySelector('#rvlog'); if (lg) lg.textContent = log;
       el.querySelector('#rvhint').innerHTML = pick !== null ? 'Tap a Glitchbot to aim!' : busy ? '&nbsp;' : 'Tap a pet to use its battle power.';
@@ -7422,14 +7513,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
           (o.fairy ? '<div class="rv-fairy"><div class="rv-fp">' + petSVG(o.fairy.type, o.fairy.stage, '', o.fairy.body) + '</div><div><b>A special Fairy joins your team!</b><span>Say hello to ' + esc(o.fairy.name) + ', an ultra rare Fairy pet.</span></div></div>' : '') +
           '<div class="rv-loot">' + (o.lines || []).map(function (l, i) { return '<div class="rv-lr' + (l.k === 'bonus' ? ' bonus' : '') + '" style="animation-delay:' + (0.25 + i * 0.35).toFixed(2) + 's"><i>' + RV_ICON[l.k] + '</i><span>' + l.t + '</span><b>+<em data-n="' + l.n + '">0</em></b></div>'; }).join('') + '</div>' +
           (o.lt ? bookHTML() : '') + '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-rank' + (newRk ? ' new' : '') + '">' + (newRk ? 'New title: ' : 'Title: ') + '<b>' + rk[1] + '</b> &middot; ' + (S.rvWins | 0) + ' win' + (S.rvWins === 1 ? '' : 's') + '</div><div class="rv-btns"><button class="btn primary" data-rv="close">Collect and go!</button></div>';
-        el.innerHTML = '<div class="rv-bg"></div><div class="rv-wrap">' + h + '</div>';
+        el.innerHTML = bgH() + '<div class="rv-wrap">' + h + '</div>';
         return;
       }
-      var talk = phase === 'intro' ? RV_HI[(S.rvWins | 0) % RV_HI.length] : log;
+      var talk = phase === 'intro' ? (F ? RV_FH[(S.rvWins | 0) % RV_FH.length].replace('@', F.n) : RV_HI[(S.rvWins | 0) % RV_HI.length]) : log;
       h += '<div class="rv-logo">THE GLITCH GANG</div><div class="rv-cast"><div class="rv-vil v1">' + vexSVG() + '<b>Vex</b></div><div class="rv-vil v2">' + moxieSVG() + '<b>Moxie</b></div></div><div class="rv-say"><b>Vex:</b> ' + esc(talk) + '</div>';
-      if (phase === 'intro') h += '<p class="rv-sub">Moxie: Hand over your star scrap, or battle us!</p><p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="fight">Pet battle</button><button class="btn primary alt" data-rv="ship"' + (o.ship ? '' : ' disabled') + '>' + (o.ship ? 'Ship battle' : 'Ship battle (locked)') + '</button><button class="btn primary alt" data-rv="abc">Letter battle</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Pet battle: your pets fight up close with their own battle powers (higher-level pets hit much harder). Ship battle: fly your rocket and shoot it out in space' + (o.ship ? '' : ' (locked: you need a rocket part first, so upgrade your rocket at the Rocket station)') + '! Letter battle: a gentle space game with no damage. Shoot the ships carrying the right letters and numbers to spell words and count, and fill your Letter book (' + (S.lt || '').length + ' / 36). Running costs a little oxygen and can fail.</p>';
+      if (phase === 'intro') h += '<p class="rv-sub">Moxie: Hand over your star scrap, or battle us!</p>' + fieldNote() + '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="fight">Pet battle</button><button class="btn primary alt" data-rv="ship"' + (o.ship ? '' : ' disabled') + '>' + (o.ship ? 'Ship battle' : 'Ship battle (locked)') + '</button><button class="btn primary alt" data-rv="abc">Letter battle</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Pet battle: your pets fight up close with their own battle powers (higher-level pets hit much harder). Ship battle: fly your rocket and shoot it out in space' + (o.ship ? '' : ' (locked: you need a rocket part first, so upgrade your rocket at the Rocket station)') + '! Letter battle: a gentle space game with no damage. Shoot the ships carrying the right letters and numbers to spell words and count, and fill your Letter book (' + (S.lt || '').length + ' / 36). ' + (F ? 'Running away can fail.' : 'Running costs a little oxygen and can fail.') + '</p>';
       else h += '<div class="rv-btns"><button class="btn primary" data-rv="close">Continue</button></div>';
-      el.innerHTML = '<div class="rv-bg"></div><div class="rv-wrap">' + h + '</div>';
+      el.innerHTML = bgH() + '<div class="rv-wrap">' + h + '</div>';
     }
     function dealBot(i, amt) {
       var b = bots[i]; if (!b || b.hp <= 0) return;
@@ -7438,7 +7529,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     function healTeam(n) { aliveT().forEach(function (i) { var f = team[i], g = Math.min(f.max - f.hp, n >= 999 ? f.max : Math.round(n)); if (g > 0) { f.hp += g; pop('p', i, '+' + g, 'heal'); } }); }
     function applyMove(pi, bi) {
-      var f = team[pi], mv = RV_MOVES[f.p.type] || RV_MOVES.fairy, s = rvPow(f.p), tg = [], i;
+      var f = team[pi], mv = RV_MOVES[f.p.type] || RV_MOVES.fairy, s = rvPow(f.p) * turf(f.p), tg = [], i;
       if (mv.t === 'one') tg = [bi]; else if (mv.t === 'all') tg = aliveB();
       if (mv.hits) { for (i = 0; i < mv.hits; i++) { var al = aliveB(); if (!al.length) break; dealBot(al[Math.floor(Math.random() * al.length)], mv.dmg * s); } }
       else if (mv.dmg) tg.forEach(function (x) { dealBot(x, mv.dmg * s); });
@@ -7516,24 +7607,24 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       return 'Battle wins: ' + w + ' (pet and ship battles both count). ' + (owed > 0 ? 'A special Fairy is waiting for you: win again to get it!' : 'Next special Fairy in ' + (3 - w % 3) + ' win' + (3 - w % 3 === 1 ? '' : 's') + '.');
     }
     function grantWin(speedy, flawless) {
-      var lv2 = Math.min(30, level()), sc = 4 + Math.floor(Math.random() * 5), co = 15 + lv2, ox = 10, lines = [];
+      var lv2 = Math.min(30, level()), sc = 4 + Math.floor(Math.random() * 5), co = 15 + lv2, ox = F ? 0 : 10, lines = [];
       S.rvWins = (S.rvWins | 0) + 1;
-      lines.push({ k: 'scrap', t: 'Star scrap', n: sc }, { k: 'coin', t: 'Coins', n: co }, { k: 'o2', t: 'Spare oxygen tank', n: ox });
+      lines.push({ k: 'scrap', t: 'Star scrap', n: sc }, { k: 'coin', t: 'Coins', n: co }); if (!F) lines.push({ k: 'o2', t: 'Spare oxygen tank', n: ox });
       if (speedy) { lines.push({ k: 'bonus', t: 'Speedy win bonus: star scrap', n: 3 }); sc += 3; }
       if (flawless) { lines.push({ k: 'bonus', t: 'Flawless bonus: coins', n: 10 }); co += 10; }
       if (o.hunt) { lines.push({ k: 'bonus', t: 'Gang hunter bonus (you tracked them down): star scrap', n: 3 }); sc += 3; }
       var want = 2 + (flawless ? 1 : 0), room = Math.max(0, carryCap() - carried()), balls = Math.min(want, room);
-      lines.splice(3, 0, { k: 'ball', t: balls < want ? 'Colorful balls (your bag is nearly full)' : 'Colorful balls', n: balls });
-      if (S.rvWins % 3 === 0) { lines.push({ k: 'bonus', t: 'Win streak bonus: oxygen', n: 10 }); ox += 10; }
+      lines.splice(F ? 2 : 3, 0, { k: 'ball', t: balls < want ? 'Colorful balls (your bag is nearly full)' : 'Colorful balls', n: balls });
+      if (S.rvWins % 3 === 0) { if (F) { lines.push({ k: 'bonus', t: 'Win streak bonus: coins', n: 20 }); co += 20; } else { lines.push({ k: 'bonus', t: 'Win streak bonus: oxygen', n: 10 }); ox += 10; } }
       var fp = null, owed = Math.floor(S.rvWins / 3) - (S.rvFairy | 0);
       if (owed > 0) { fp = newPet('fairy', 'ultra', BODY_OPTIONS.fairy[Math.floor(Math.random() * BODY_OPTIONS.fairy.length)]); fp.stage = 2; fp.name = S.world ? freeName(S.world) : 'Twinkle'; lines.push({ k: 'fairy', t: 'Special Fairy pet joins your team!', n: 1 }); }
       o.won = true; o.lines = lines; o.fairy = fp;
-      o.res = { o2: ox, scrap: sc, coins: co, balls: balls, fairy: fp, msg: 'You beat the Glitch Gang! +' + sc + ' star scrap, +' + co + ' coins, +' + ox + ' oxygen' + (balls ? ', +' + balls + ' colorful ball' + (balls > 1 ? 's' : '') : '') + (fp ? ' and a special Fairy pet named ' + fp.name + '!' : '.') };
+      o.res = { o2: ox, scrap: sc, coins: co, balls: balls, fairy: fp, msg: 'You beat the Glitch Gang! +' + sc + ' star scrap, +' + co + ' coins' + (ox ? ', +' + ox + ' oxygen' : '') + (balls ? ', +' + balls + ' colorful ball' + (balls > 1 ? 's' : '') : '') + (fp ? ' and a special Fairy pet named ' + fp.name + '!' : '.') };
       o.vline = RV_WIN[(S.rvWins - 1) % RV_WIN.length] + ' Moxie: We lost the scrap AND our bots!';
     }
     function loseOutcome() {
       var lo = Math.min(Math.round(o.cap * 0.2), Math.max(0, Math.floor(o.o2) - 1)), ls = Math.min(S.scrap, 5); o.won = false;
-      o.res = { o2: -lo, scrap: -ls, coins: 0, msg: 'The Glitch Gang won this time. They took ' + ls + ' star scrap and ' + lo + ' oxygen. Your pets are fine, and you can beat them next time!' }; log = 'Hahaha! Vex: Thanks for the scrap! Moxie: And the oxygen!';
+      o.res = { o2: -lo, scrap: -ls, coins: 0, msg: 'The Glitch Gang won this time. They took ' + ls + ' star scrap' + (F ? '' : ' and ' + lo + ' oxygen') + '. Your pets are fine, and you can beat them next time!' }; log = 'Hahaha! Vex: Thanks for the scrap! Moxie: And the oxygen!';
     }
     /* ---- the other kind of battle: a little space-ship shooter against Vex and Moxie's Junk Comet ---- */
     var shipRaf = 0, shipOff = null;
@@ -7763,7 +7854,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     function tryRun(inFight) {
       var ch = Math.min(0.9, 0.5 + 0.1 * (o.eng | 0) + (inFight ? 0 : 0.05)), lo = Math.min(5, Math.max(0, Math.floor(o.o2) - 1));
-      if (Math.random() < ch) { finished = true; phase = 'ran'; o.won = false; o.res = { o2: -lo, scrap: 0, coins: 0, msg: 'You zoomed away from the Glitch Gang! The jets used ' + lo + ' oxygen.' }; log = 'Hey! Come back here with that scrap! Moxie: They are so fast!'; ui(); }
+      if (Math.random() < ch) { finished = true; phase = 'ran'; o.won = false; o.res = { o2: -lo, scrap: 0, coins: 0, msg: 'You zoomed away from the Glitch Gang!' + (F ? '' : ' The jets used ' + lo + ' oxygen.') }; log = 'Hey! Come back here with that scrap! Moxie: They are so fast!'; ui(); }
       else if (!inFight) { say('Oh no! They tractor-beam you!'); startFight(true); }
       else { busy = true; say('You tried to run but the tractor beam pulled you back!'); ui(); T(function () { botTurn(0); }, 900); }
     }
@@ -7773,7 +7864,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       else if (a === 'run') tryRun(false);
       else if (a === 'ship') { if (o.ship) startShip(); }
       else if (a === 'abc') startShip(true);
-      else if (a === 'sflee') { if (shipOff) shipOff(); timers.forEach(clearTimeout); finished = true; phase = 'ran'; var lo2 = Math.min(4, Math.max(0, Math.floor(o.o2) - 1)); o.won = false; o.res = { o2: -lo2, scrap: 0, coins: 0, msg: 'You flew away from the Glitch Gang! The jets used ' + lo2 + ' oxygen.' }; log = 'Hey! Come back and fight, you chicken! Moxie: Bawk bawk!'; ui(); }
+      else if (a === 'sflee') { if (shipOff) shipOff(); timers.forEach(clearTimeout); finished = true; phase = 'ran'; var lo2 = Math.min(4, Math.max(0, Math.floor(o.o2) - 1)); o.won = false; o.res = { o2: -lo2, scrap: 0, coins: 0, msg: 'You flew away from the Glitch Gang!' + (F ? '' : ' The jets used ' + lo2 + ' oxygen.') }; log = 'Hey! Come back and fight, you chicken! Moxie: Bawk bawk!'; ui(); }
       else if (a === 'close') finishAll();
       else if (busy || finished) return;
       else if (a === 'flee') tryRun(true);
@@ -9182,6 +9273,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       } else w.spT = performance.now() + 4000;
     }
     hazardTick(w, ents, lead, performance.now());
+    ggTick(w, performance.now());
     dexLook(ents, lead, performance.now());
     for (var fq = ents.length - 1; fq > 0; fq--) { if (treeWant && dist(treeWant.ob, lead) < GREACH + 30) { var tw = treeWant; treeWant = null; treeHit(tw.ob, tw.it); } var fe = ents[fq]; if (fe.gather) { if (fe.want && dist(fe, lead) < GREACH) { fe.want = false; nodeHit(fe); } } else if (fe.kind === 'find' && !fe.plot && !fe.beacon && dist(fe, lead) < 64) collectFind(fe); }
     var spots = WD().spots;
