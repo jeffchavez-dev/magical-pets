@@ -792,6 +792,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .hf.lawn { outline: 0; }
 .hf.ghost { background-image: none !important; background-color: transparent !important; border: 2px dashed rgba(255,255,255,.7); outline: 0; opacity: .75; }
 .hv.inside .front, .hv.inside .roofg { display: none; }
+.hv.inside:not(.fl1) .upg { display: none; }
+.hv-floors { margin: 0 0 6px; }
 .hv-cell { position: absolute; left: 0; top: 0; width: 42px; height: 42px; margin: -21px 0 0 -21px; border-radius: 6px; border: 1px solid rgba(255,255,255,.35); cursor: pointer; }
 .hv-cell.tool { background: rgba(255,255,255,.28); border-color: #ffd86b; }
 .hv-furn, .hv-pet { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
@@ -1978,8 +1980,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.friendly = d.friendly === undefined ? friendlyPref() : !!d.friendly; S.gf = d.gf && typeof d.gf === 'object' ? d.gf : {};
     S.lockUntil = +d.lockUntil > Date.now() ? +d.lockUntil : 0;
     S.mats = {}; Object.keys(d.mats || {}).forEach(function (k) { if (MAT_BY[k]) S.mats[k] = Math.max(0, Math.min(MAT_CAP, d.mats[k] | 0)); });
-    S.houses = {}; Object.keys(d.houses || {}).forEach(function (k) { var h = d.houses[k]; if (WORLDS[k] && h && Array.isArray(h.p)) S.houses[k] = { p: h.p.slice(0, HOUSE_PIECES.length).map(function (v) { return v ? 1 : 0; }), x: +h.x || 0, y: +h.y || 0,
-      f: (Array.isArray(h.f) ? h.f : []).filter(function (q) { return q && FURN[q.k] && q.c >= 0 && q.c < COLS * ROWS; }).map(function (q) { var old = /^tank_/.test(q.k), aq = old ? [q.k.slice(5)] : (Array.isArray(q.aq) ? q.aq : []); return { k: old ? 'aquarium' : q.k, c: q.c | 0, pt: sanPaintMap(q.pt, 12), aq: q.k === 'aquarium' || old ? aq.filter(function (x) { return SEA_BY[x]; }).slice(0, AQ_MAX) : undefined }; }), pa: sanPaintMap(h.pa, HOUSE_PIECES.length),
+    S.houses = {}; Object.keys(d.houses || {}).forEach(function (k) { var h = d.houses[k]; if (WORLDS[k] && h && Array.isArray(h.p)) S.houses[k] = { p: h.p.slice(0, HOUSE_PIECES.length).map(function (v) { return v ? 1 : 0; }), x: +h.x || 0, y: +h.y || 0, u: [0, 1, 2, 3].map(function (n) { return Array.isArray(h.u) && h.u[n] ? 1 : 0; }),
+      f: (Array.isArray(h.f) ? h.f : []).filter(function (q) { return q && FURN[q.k] && q.c >= 0 && q.c < 2 * COLS * ROWS; }).map(function (q) { var old = /^tank_/.test(q.k), aq = old ? [q.k.slice(5)] : (Array.isArray(q.aq) ? q.aq : []); return { k: old ? 'aquarium' : q.k, c: q.c | 0, pt: sanPaintMap(q.pt, 12), aq: q.k === 'aquarium' || old ? aq.filter(function (x) { return SEA_BY[x]; }).slice(0, AQ_MAX) : undefined }; }), pa: sanPaintMap(h.pa, HOUSE_PIECES.length),
       res: (Array.isArray(h.res) ? h.res : []).filter(function (q) { return q && TYPES[q.type]; }).slice(0, 6).map(function (q) { if (!q.body) q.body = bodyFor(q.type, q.id); if (!q.prog) migrateProg(q); return q; }), gt: +h.gt || 0 }; }); loadArt(); artClean();
     S.losses = d.losses | 0; S.toll = d.toll || {}; S.weak = d.weak || {}; S.homeJ = Array.isArray(d.homeJ) ? d.homeJ.filter(function (n) { return typeof n === 'number'; }) : [];
     S.uni = d.uni || {}; S.jump = d.jump == null ? null : d.jump; S.away = Array.isArray(d.away) ? d.away.filter(function (a) { return a && a.pet && TYPES[a.pet.type] && TYPES[a.t]; }) : [];
@@ -7695,9 +7697,18 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var ROOF_POS = { cottage: [[70, -150, 40], [55, -157, -10]], dome: [[60, -130, 50], [30, -162, 20]], adobe: [[30, -128, 40], [20, -128, 10]], spire: [[70, -128, 40], [20, -174, 10]] };
   function houseForm(id) { return HSTYLE[themeFor(id)] || HSTYLE[id] || HFORMS[strHash(id) % 4]; }
   function pieceName(id, i) { return i === 5 || i === 6 ? HFORM_NAMES[houseForm(id)][i - 5] : HOUSE_PIECES[i].name; }
-  function houseOf(id) { var h = S.houses[id] || (S.houses[id] = { p: HOUSE_PIECES.map(function () { return 0; }), x: 0, y: 0 }); if (!h.pa) h.pa = {}; if (!h.f) h.f = []; if (!h.res) h.res = []; return h; }
+  /* the second floor: four extra pieces you can add once the house is finished */
+  var UP_PIECES = [{ name: 'Upper floor', cost: { B: 5, A: 2 } }, { name: 'Stairs', cost: { B: 4, C: 2 } }, { name: 'Upper walls', cost: { A: 6, B: 2 } }, { name: 'Upper windows', cost: { C: 4 } }];
+  function upCost(id, i) {
+    var m = worldMats(id), out = {}, c = UP_PIECES[i].cost;
+    Object.keys(c).forEach(function (k) { out[m['ABC'.indexOf(k)]] = (out[m['ABC'.indexOf(k)]] || 0) + c[k]; });
+    return out;
+  }
+  function upBuilt(id) { return houseOf(id).u.filter(Boolean).length; }
+  function upUsable(id) { var u = houseOf(id).u; return houseDone(id) && !!(u[0] && u[1] && u[2]); }
+  function houseOf(id) { var h = S.houses[id] || (S.houses[id] = { p: HOUSE_PIECES.map(function () { return 0; }), x: 0, y: 0 }); if (!h.u) h.u = [0, 0, 0, 0]; if (!h.pa) h.pa = {}; if (!h.f) h.f = []; if (!h.res) h.res = []; return h; }
   function housesSave() {
-    var o = {}; Object.keys(S.houses || {}).forEach(function (k) { var h = S.houses[k]; o[k] = { p: h.p, x: h.x, y: h.y, pa: h.pa || {}, f: h.f || [], res: (h.res || []).map(savePet), gt: h.gt || 0 }; });
+    var o = {}; Object.keys(S.houses || {}).forEach(function (k) { var h = S.houses[k]; o[k] = { p: h.p, x: h.x, y: h.y, pa: h.pa || {}, u: h.u || [0, 0, 0, 0], f: h.f || [], res: (h.res || []).map(savePet), gt: h.gt || 0 }; });
     return o;
   }
   function houseCost(id, i) {
@@ -7736,12 +7747,15 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var order = ST === 'cottage' ? [0, 1, 2, 3, 4, 6, 5, 7] : [0, 1, 2, 3, 4, 5, 6, 7];
     h.push('<ellipse cx="110" cy="158" rx="100" ry="10" fill="#000" opacity=".18"/>');
     if (houseBuilt(id) < HOUSE_PIECES.length) h.push('<ellipse cx="110" cy="152" rx="104" ry="17" fill="#c9a36b" opacity=".6" stroke="#6b4a1f" stroke-opacity=".5" stroke-width="2" stroke-dasharray="6 4"/>');
-    var paO = houseOf(id).pa || {};
+    var paO = houseOf(id).pa || {}, uu = houseOf(id).u, up2 = !!uu[2], upDone = false;
     order.forEach(function (i) {
+      if (up2 && (i === 5 || i === 6) && !upDone) { upDone = true; h.push('<rect x="46" y="78" width="128" height="5" fill="' + B + '" stroke="rgba(0,0,0,.35)" stroke-width="2"/><rect x="50" y="30" width="120" height="50" fill="' + A + '" stroke="rgba(0,0,0,.35)" stroke-width="2"/>' + (uu[3] ? '<rect x="62" y="44" width="24" height="20" rx="3" fill="' + C + '" stroke="rgba(0,0,0,.35)" stroke-width="2"/><rect x="136" y="44" width="24" height="20" rx="3" fill="' + C + '" stroke="rgba(0,0,0,.35)" stroke-width="2"/>' : '')); }
+      if (up2 && (i === 5 || i === 6)) h.push('<g transform="translate(0 -50)">');
       h.push(p[i] ? parts[i](function (c) { return 'fill="' + (paO[i] && paO[i].c ? paO[i].c : c) + '" stroke="rgba(0,0,0,.35)" stroke-width="2"'; })
         : parts[i](function () { return 'fill="none" stroke="#3b2a7a" stroke-opacity=".55" stroke-width="4"'; }) + parts[i](function () { return 'fill="none" stroke="#fff" stroke-opacity=".95" stroke-width="2" stroke-dasharray="6 5"'; }));
+      if (up2 && (i === 5 || i === 6)) h.push('</g>');
     });
-    return '<svg viewBox="0 0 220 175" class="house-svg' + (big ? ' big' : '') + '" role="img" aria-label="House, ' + housePct(id) + ' percent built">' + h.join('') + '</svg>';
+    return '<svg viewBox="' + (up2 ? '0 -50 220 225' : '0 0 220 175') + '" class="house-svg' + (big ? ' big' : '') + '" role="img" aria-label="House, ' + housePct(id) + ' percent built">' + h.join('') + '</svg>';
   }
   function nearPlot() {
     var w = S.world; if (!w || !w.ents) return null;
@@ -7763,7 +7777,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var chest = MATS.filter(function (m) { return S.mats[m.id]; }).map(function (m) { return matChip(m.id, S.mats[m.id] + ' ' + m.name); }).join(' ') || 'nothing yet';
     return '<div class="sheet-card housesheet"><h3>' + (id === 'home' ? 'Your house on Home Island' : 'Your house on ' + esc(W.name)) + '</h3>' + houseMini(id, 0.72, true) +
       '<div class="row"><button class="btn primary small" data-act="hv3d">View in 3D' + (done ? ', furnish &amp; pets' : '') + '</button></div><div class="hprog" aria-label="' + pct + ' percent built"><i style="width:' + pct + '%"></i></div><p class="hpct"><b>' + pct + '%</b> built &middot; ' + bt + ' of ' + HOUSE_PIECES.length + ' pieces' + (done ? ' &middot; <b>House complete!</b>' : '') + '</p>' +
-      '<p class="srow-note">This island gives ' + tr.map(function (k) { return MAT_BY[k].name; }).join(', ') + '. Walk over the glowing orbs to collect materials.</p>' + missHTML +
+      '<p class="srow-note">This island gives ' + tr.map(function (k) { return MAT_BY[k].name; }).join(', ') + '. Walk over the glowing orbs to collect materials.</p>' + missHTML + (done ? '<p class="srow-note"><b>Second floor:</b> ' + upBuilt(id) + ' of ' + UP_PIECES.length + ' built. Open the 3D view and tap Upstairs to add a floor for more rooms.</p>' : '') +
       (done ? '<details class="hbuild"><summary>Build steps &middot; all ' + HOUSE_PIECES.length + ' built &#10003;</summary>' + rows + '</details>' : '<h4>Build</h4>' + rows) + port + '<h4>Your materials</h4><p class="srow-note">' + chest + '</p>' +
       '<button class="btn ghost small" data-act="closesheet">Close</button></div>';
   }
@@ -7816,7 +7830,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return out;
   }
   function canPay(c) { return Object.keys(c).every(function (m) { return (S.mats[m] || 0) >= c[m]; }); }
-  function furnPos(c) { return { x: (c % COLS - (COLS - 1) / 2) * CELL, z: (Math.floor(c / COLS) - (ROWS - 1) / 2) * CELL }; }
+  function furnPos(c) { var cc = c % (COLS * ROWS); return { x: (cc % COLS - (COLS - 1) / 2) * CELL, z: (Math.floor(cc / COLS) - (ROWS - 1) / 2) * CELL, y: c >= COLS * ROWS ? -HH : 0 }; }
   /* ----- painting: a colour for any part of the house or of a piece of furniture, plus an optional design drawn over it ----- */
   var DESIGNS = { stripes: 'Stripes', dots: 'Dots', checks: 'Checks', bricks: 'Bricks', diag: 'Slants', hearts: 'Hearts', stars: 'Stars', waves: 'Waves', flowers: 'Flowers' };
   var PAINT_COLS = ['#ff5c7a', '#ff9b3d', '#ffd34e', '#9be37f', '#2fbf71', '#4fd1c5', '#4fb3ec', '#4a6cf0', '#9b6bf0', '#e879c9', '#ffffff', '#c9c9d6', '#7a5a3a', '#2a2447'];
@@ -7865,7 +7879,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function hvHouse(id, mini) {
     var m = worldMats(id).map(function (k) { return MAT_BY[k].col; }), A = m[0], B = m[1], C = m[2], h = houseOf(id), p = h.p.map(function (v, n) { return HV && HV.pending === n ? 0 : v; }), o = [], i;
     var gh = function (n, extra) { return (p[n] ? '' : 'ghost ') + (extra || ''); }, pa = h.pa || {}, cl = function (n, c) { return p[n] ? paintCol(pa[n], c) : 'transparent'; };
-    var ST = houseForm(id), wy = FLOOR_Y - HH / 2, ridge = FLOOR_Y - HH - HR, L = Math.hypot(HW / 2 + 14, HR), th = Math.atan2(HR, HW / 2 + 14) * 180 / Math.PI;
+    var UPH = h.u && h.u[2] ? HH : 0, ST = houseForm(id), wy = FLOOR_Y - HH / 2, ridge = FLOOR_Y - UPH - HH - HR, L = Math.hypot(HW / 2 + 14, HR), th = Math.atan2(HR, HW / 2 + 14) * 180 / Math.PI;
     var PL = (WORLDS[id] && WORLDS[id].pal) || {}, SEA = PL.sea || ['#2c86d8', '#4fb3ec'], GR = (PL.grass || [])[1] || '#7ccf6a', LF = PL.leaf || ['#2f9a55', '#35a85d'];
     /* standing in the world: a little beach-edged lawn and path under the house, so it sits planted on the ground */
     if (mini) o.push(hvFace(420, 396, 'translate3d(0,16px,0) rotateX(90deg)', PL.beach || '#f2dfae', 'lawn'), hvFace(384, 360, 'translate3d(0,14px,0) rotateX(90deg)', GR, 'lawn'), hvFace(44, 120, 'translate3d(0,13px,170px) rotateX(90deg)', PL.path || '#f0e2b6', 'lawn'));
@@ -7882,12 +7896,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     /* walls: back, left, right, and a front wall with a door gap */
     o.push(G(2, [hvBox(0, wy, -HD / 2 + 4, HW, HH, 8, cl(2, A), gh(2)), hvBox(-HW / 2 + 4, wy, 0, 8, HH, HD, cl(2, A), gh(2)), hvBox(HW / 2 - 4, wy, 0, 8, HH, HD, cl(2, A), gh(2)),
       hvBox(-69, wy, HD / 2 - 4, 102, HH, 8, cl(2, A), gh(2, 'front')), hvBox(69, wy, HD / 2 - 4, 102, HH, 8, cl(2, A), gh(2, 'front')), hvBox(0, FLOOR_Y - 64 - 23, HD / 2 - 4, 36, HH - 64, 8, cl(2, A), gh(2, 'front')),
-      ST === 'cottage' ? hvFace(HW, HR, 'translate3d(0,' + (FLOOR_Y - HH - HR / 2) + 'px,' + (HD / 2 - 4) + 'px)', cl(2, A), gh(2, 'front roofg'), 'polygon(50% 0,100% 100%,0 100%)') : '',
-      ST === 'cottage' ? hvFace(HW, HR, 'translate3d(0,' + (FLOOR_Y - HH - HR / 2) + 'px,' + (-HD / 2 + 4) + 'px) rotateY(180deg)', cl(2, A), gh(2, 'roofg'), 'polygon(50% 0,100% 100%,0 100%)') : ''].join('')));
+      ST === 'cottage' ? hvFace(HW, HR, 'translate3d(0,' + (FLOOR_Y - UPH - HH - HR / 2) + 'px,' + (HD / 2 - 4) + 'px)', cl(2, A), gh(2, 'front roofg'), 'polygon(50% 0,100% 100%,0 100%)') : '',
+      ST === 'cottage' ? hvFace(HW, HR, 'translate3d(0,' + (FLOOR_Y - UPH - HH - HR / 2) + 'px,' + (-HD / 2 + 4) + 'px) rotateY(180deg)', cl(2, A), gh(2, 'roofg'), 'polygon(50% 0,100% 100%,0 100%)') : ''].join('')));
     o.push(G(3, hvBox(0, FLOOR_Y - 32, HD / 2 - 3, 36, 64, 4, cl(3, C), gh(3, 'front'))));
     o.push(G(4, [hvBox(-HW / 2 - 1, -66, -30, 3, 30, 36, cl(4, '#bfe8ff'), gh(4)), hvBox(HW / 2 + 1, -66, 30, 3, 30, 36, cl(4, '#bfe8ff'), gh(4)), hvBox(40, -66, -HD / 2 - 1, 36, 30, 3, cl(4, '#bfe8ff'), gh(4))].join('')));
     var roofC = cl(5, B), rg = gh(5, 'roofg'), roofH = '', chimH = '', tiers = function (list, col, cls) {
-      var y = FLOOR_Y - HH, out = '';
+      var y = FLOOR_Y - UPH - HH, out = '';
       list.forEach(function (t) { out += hvBox(0, y - t[2] / 2, 0, t[0], t[2], t[1], col, cls); y -= t[2]; });
       return { html: out, top: y };
     };
@@ -7895,8 +7909,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var dm = tiers([[HW + 20, HD + 20, 14], [200, 164, 16], [150, 120, 16], [96, 74, 14], [44, 36, 12]], roofC, rg);
       roofH = dm.html; chimH = hvBox(0, dm.top - 16, 0, 16, 32, 16, cl(6, A), gh(6, 'roofg'));
     } else if (ST === 'adobe') {
-      var top = FLOOR_Y - HH - 12;
-      roofH = hvBox(0, FLOOR_Y - HH - 6, 0, HW + 16, 12, HD + 16, roofC, rg) + hvBox(0, top - 5, (HD + 16) / 2 - 4, HW + 16, 10, 8, roofC, rg) + hvBox(0, top - 5, -(HD + 16) / 2 + 4, HW + 16, 10, 8, roofC, rg) +
+      var top = FLOOR_Y - UPH - HH - 12;
+      roofH = hvBox(0, FLOOR_Y - UPH - HH - 6, 0, HW + 16, 12, HD + 16, roofC, rg) + hvBox(0, top - 5, (HD + 16) / 2 - 4, HW + 16, 10, 8, roofC, rg) + hvBox(0, top - 5, -(HD + 16) / 2 + 4, HW + 16, 10, 8, roofC, rg) +
         hvBox((HW + 16) / 2 - 4, top - 5, 0, 8, 10, HD, roofC, rg) + hvBox(-(HW + 16) / 2 + 4, top - 5, 0, 8, 10, HD, roofC, rg);
       chimH = hvBox(60, top - 22, -40, 50, 44, 50, cl(6, A), gh(6, 'roofg')) + hvBox(60, top - 48, -40, 58, 8, 58, cl(6, B), gh(6, 'roofg'));
     } else if (ST === 'spire') {
@@ -7904,27 +7918,36 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       roofH = sp.html; chimH = hvBox(0, sp.top - 24, 0, 4, 48, 4, cl(6, '#cfd3e0'), gh(6, 'roofg')) + hvBox(10, sp.top - 42, 0, 16, 10, 3, cl(6, C), gh(6, 'roofg'));
     } else {
       chimH = hvBox(HW / 4 + 20, ridge - 8, -30, 18, 46, 18, cl(6, A), gh(6, 'roofg'));
-      roofH = hvFace(L, HD + 24, 'translate3d(' + (HW / 4 + 7) + 'px,' + ((ridge + FLOOR_Y - HH) / 2) + 'px,0) rotateZ(' + th + 'deg) rotateX(90deg)', roofC, rg) +
-        hvFace(L, HD + 24, 'translate3d(' + (-HW / 4 - 7) + 'px,' + ((ridge + FLOOR_Y - HH) / 2) + 'px,0) rotateZ(' + (-th) + 'deg) rotateX(90deg)', roofC, rg);
+      roofH = hvFace(L, HD + 24, 'translate3d(' + (HW / 4 + 7) + 'px,' + ((ridge + FLOOR_Y - UPH - HH) / 2) + 'px,0) rotateZ(' + th + 'deg) rotateX(90deg)', roofC, rg) +
+        hvFace(L, HD + 24, 'translate3d(' + (-HW / 4 - 7) + 'px,' + ((ridge + FLOOR_Y - UPH - HH) / 2) + 'px,0) rotateZ(' + (-th) + 'deg) rotateX(90deg)', roofC, rg);
     }
+    /* the second floor: floor slab (with a hole for the stairs), stairs, walls and windows */
+    var GU = function (n, html) { return '<div class="hv-grp' + (HV && HV.anim && HV.anim.u === n ? ' drop' : '') + '">' + html + '</div>'; }, u = h.u, uw = FLOOR_Y - HH - HH / 2, stp = '', sk;
+    if (u[0]) o.push(GU(0, u[1] ? hvBox(-27, FLOOR_Y - HH + 3, 0, 186, 6, HD, cl(1, B), 'upg') : hvBox(0, FLOOR_Y - HH + 3, 0, HW, 6, HD, cl(1, B), 'upg')));
+    if (u[1]) { for (sk = 0; sk < 6; sk++) { var sh = (HH / 6) * (sk + 1); stp += hvBox(88, FLOOR_Y - sh / 2, 70 - sk * 28, 40, sh, 28, sk % 2 ? B : C); } o.push(GU(1, stp)); }
+    if (u[2]) o.push(GU(2, [hvBox(0, uw, -HD / 2 + 4, HW, HH, 8, cl(2, A), 'upg'), hvBox(-HW / 2 + 4, uw, 0, 8, HH, HD, cl(2, A), 'upg'), hvBox(HW / 2 - 4, uw, 0, 8, HH, HD, cl(2, A), 'upg'), hvBox(0, uw, HD / 2 - 4, HW, HH, 8, cl(2, A), 'front upg')].join('')));
+    if (u[3]) o.push(GU(3, [hvBox(-HW / 2 - 1, -66 - HH, -30, 3, 30, 36, '#bfe8ff', 'upg'), hvBox(HW / 2 + 1, -66 - HH, 30, 3, 30, 36, '#bfe8ff', 'upg'), hvBox(40, -66 - HH, -HD / 2 - 1, 36, 30, 3, '#bfe8ff', 'upg'), hvBox(-40, -66 - HH, HD / 2 + 1, 36, 30, 3, '#bfe8ff', 'front upg')].join('')));
     o.push(G(6, chimH), G(5, roofH));
     var fl = [[-150, 120, C], [-165, 60, B], [150, 110, B], [168, 50, C], [-130, 170, C], [130, 175, B], [-100, -150, C], [100, -150, B], [-170, -60, B], [170, -70, C]], fh = [];
     fl.forEach(function (q) { fh.push(hvBox(q[0], 10, q[1], 3, 12, 3, p[7] ? '#3f9d4a' : 'transparent', gh(7)), hvBox(q[0], 2, q[1], 12, 8, 12, cl(7, q[2]), gh(7))); });
     o.push(G(7, fh.join('')));
     /* the builder (you) stands on the lawn and hammers while a piece goes up */
-    if (!mini) o.push('<div class="hv-pet hv-builder' + (HV && HV.anim ? ' building' : '') + '" style="transform:' + hvBuilderAt(!HV ? BUILD_BASE : HV.inside ? (HV.ipos || INSIDE_BASE) : (HV.bpos || BUILD_BASE)) + '"><div class="hv-bill"><div class="hv-hero">' + heroSVG(S.boots) + '</div><i class="hv-hammer"></i></div></div>');
+    if (!mini) o.push('<div class="hv-pet hv-builder' + (HV && HV.anim ? ' building' : '') + '" style="transform:' + hvBuilderAt(!HV ? BUILD_BASE : HV.inside ? (HV.ipos || (HV.floor && upUsable(id) ? [0, FLOOR_Y - HH, 92] : INSIDE_BASE)) : (HV.bpos || BUILD_BASE)) + '"><div class="hv-bill"><div class="hv-hero">' + heroSVG(S.boots) + '</div><i class="hv-hammer"></i></div></div>');
     /* floor squares and furniture */
     if (p[1] && !mini) {
-      for (i = 0; i < COLS * ROWS; i++) { var ps = furnPos(i); o.push('<div class="hv-cell' + (HV && HV.tool ? ' tool' : '') + '" data-c="' + i + '" style="transform:translate3d(' + ps.x + 'px,' + (FLOOR_Y - 2) + 'px,' + ps.z + 'px) rotateX(90deg)"></div>'); }
+      var fl0 = HV && HV.floor && HV.inside && upUsable(id) ? 1 : 0;
+      for (i = 0; i < COLS * ROWS; i++) { if (u[1] && i % COLS === COLS - 1) continue; var ci = i + fl0 * COLS * ROWS, ps = furnPos(ci); o.push('<div class="hv-cell' + (HV && HV.tool ? ' tool' : '') + '" data-c="' + ci + '" style="transform:translate3d(' + ps.x + 'px,' + (FLOOR_Y - 2 + ps.y) + 'px,' + ps.z + 'px) rotateX(90deg)"></div>'); }
       h.f.concat(HV && HV.removing ? [HV.removing] : []).forEach(function (q) {
         if (HV && HV.pendF === q.c) return;
+        if ((q.c >= COLS * ROWS ? 1 : 0) !== fl0) return;
         var ps = furnPos(q.c), cols = { A: A, B: B, C: C }, bx = FURN[q.k].bx(cols);
         var fsel = HV && HV.tab === 'paint' && HV.paint.mode === 'furn' && HV.paint.fc === q.c;
-        o.push('<div class="hv-furn" data-c="' + q.c + '" style="transform:translate3d(' + ps.x + 'px,0,' + ps.z + 'px)"><div class="hv-grp' + (HV && HV.anim && HV.anim.f === q.c ? ' dropf' : '') + '">' + bx.map(function (b, bi) { return '<div class="hv-bp' + (fsel && HV.paint.part === bi ? ' psel' : '') + '" data-part="' + bi + '">' + hvBox(b[0], FLOOR_Y - b[1] - b[4] / 2, b[2], b[3], b[4], b[5], paintCol(q.pt && q.pt[bi], b[6]), '', PIX[HV.id + ':' + q.c + ':' + bi]) + '</div>'; }).join('') + (q.k === 'aquarium' ? aqFish(q) : '') + '</div></div>');
+        o.push('<div class="hv-furn" data-c="' + q.c + '" style="transform:translate3d(' + ps.x + 'px,' + ps.y + 'px,' + ps.z + 'px)"><div class="hv-grp' + (HV && HV.anim && HV.anim.f === q.c ? ' dropf' : '') + '">' + bx.map(function (b, bi) { return '<div class="hv-bp' + (fsel && HV.paint.part === bi ? ' psel' : '') + '" data-part="' + bi + '">' + hvBox(b[0], FLOOR_Y - b[1] - b[4] / 2, b[2], b[3], b[4], b[5], paintCol(q.pt && q.pt[bi], b[6]), '', PIX[HV.id + ':' + q.c + ':' + bi]) + '</div>'; }).join('') + (q.k === 'aquarium' ? aqFish(q) : '') + '</div></div>');
       });
       h.res.forEach(function (pt, n) {
-        var q = HV && HV.pos[n] ? HV.pos[n] : (HV.pos[n] = { x: (n - 1) * 50, z: 30 });
-        o.push('<div class="hv-pet" data-n="' + n + '" style="transform:translate3d(' + q.x + 'px,' + FLOOR_Y + 'px,' + q.z + 'px)"><div class="hv-bill">' + petSVG(pt.type, pt.stage, '', pt.body) + '</div></div>');
+        var q = HV && HV.pos[n] ? HV.pos[n] : (HV.pos[n] = { x: (n - 1) * 50, z: 30 }), pf = upUsable(id) && n % 2 ? 1 : 0, py = FLOOR_Y - pf * HH;
+        if (pf !== fl0) return;
+        o.push('<div class="hv-pet" data-n="' + n + '" data-y="' + py + '" style="transform:translate3d(' + q.x + 'px,' + py + 'px,' + q.z + 'px)"><div class="hv-bill">' + petSVG(pt.type, pt.stage, '', pt.body) + '</div></div>');
       });
     }
     return o.join('');
@@ -7954,24 +7977,52 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }).join('');
     return '<div class="hprog" aria-label="' + pct + ' percent built"><i style="width:' + pct + '%"></i></div><p class="hv-note"><b>' + pct + '%</b> built. ' + (miss.length ? 'Still missing: ' + miss.map(function (x) { return matChip(x.m, x.n + ' ' + MAT_BY[x.m].name); }).join('') : 'You have every material you need!') + ' Tap the next piece to build it.</p><div class="hv-items">' + rows + '</div>';
   }
+  function hvUpTray(id) {
+    var h = houseOf(id), n = upBuilt(id);
+    var rows = UP_PIECES.map(function (pc, i) {
+      var c = upCost(id, i), built = h.u[i], ok = canPay(c), prev = i === 0 || h.u[i - 1];
+      var chips = Object.keys(c).map(function (m) { return matChip(m, (S.mats[m] || 0) + '/' + c[m] + ' ' + MAT_BY[m].name); }).join('');
+      return '<button class="hv-card' + (built ? ' on' : '') + (built || (ok && prev) ? '' : ' dim') + '" data-hv="ubuild" data-i="' + i + '"' + (built || !prev ? ' disabled' : '') + '><b>' + (i + 1) + '. ' + pc.name + '</b><span>' + (built ? 'Built!' : chips) + '</span></button>';
+    }).join('');
+    return '<p class="hv-note"><b>Second floor: ' + n + ' of ' + UP_PIECES.length + ' built.</b> ' + (upUsable(id) ? 'Upstairs is ready! Open the Furniture tab and tap Upstairs to furnish it. Half of your pets will live up there. The windows are a bonus.' : 'Build the floor, the stairs and the walls to open a whole new floor for furniture and pets. The roof moves up for you.') + '</p><div class="hv-items">' + rows + '</div>';
+  }
+  function hvBuildUp(i) {
+    if (!HV || HV.busy) return;
+    var id = HV.id, h = houseOf(id), c = upCost(id, i);
+    if (!houseDone(id) || h.u[i] || (i > 0 && !h.u[i - 1])) return;
+    if (!canPay(c)) { say('You need more materials. Walk over the glowing orbs to collect them!', 4000); return; }
+    Object.keys(c).forEach(function (m) { S.mats[m] -= c[m]; });
+    h.u[i] = 1; save(); updateHud();
+    HV.busy = true; HV.inside = false; HV.anim = { u: i }; var bt = $('#hvin'); if (bt) bt.textContent = 'Look inside';
+    hvPaint(); hvFx(Object.keys(c).map(function (m) { return MAT_BY[m].col; })); auHouse('build');
+    HV.timer2 = setTimeout(function () {
+      if (!HV) return;
+      HV.anim = null; HV.busy = false; hvPaint();
+      if (i === 2) { flash(); say('The second floor is ready! Open Furniture and tap Upstairs to furnish it.', 5000); }
+      else say(UP_PIECES[i].name + ' built!', 3000);
+    }, 1800);
+  }
   function hvTray() {
     var id = HV.id, h = houseOf(id), done = houseDone(id), t = HV.tab, o = [];
-    var tabs = '<div class="hv-tabs">' + (!done ? '<button data-hv="tab" data-v="build" class="' + (t === 'build' ? 'on' : '') + '">Build</button>' : '') + '<button data-hv="tab" data-v="look" class="' + (t === 'look' ? 'on' : '') + '">Look</button><button data-hv="tab" data-v="furn" class="' + (t === 'furn' ? 'on' : '') + '">Furniture</button><button data-hv="tab" data-v="paint" class="' + (t === 'paint' ? 'on' : '') + '">Paint</button><button data-hv="tab" data-v="pets" class="' + (t === 'pets' ? 'on' : '') + '">Pets</button></div>';
+    var tabs = '<div class="hv-tabs">' + (!done ? '<button data-hv="tab" data-v="build" class="' + (t === 'build' ? 'on' : '') + '">Build</button>' : '') + '<button data-hv="tab" data-v="look" class="' + (t === 'look' ? 'on' : '') + '">Look</button>' + (done ? '<button data-hv="tab" data-v="up" class="' + (t === 'up' ? 'on' : '') + '">Upstairs</button>' : '') + '<button data-hv="tab" data-v="furn" class="' + (t === 'furn' ? 'on' : '') + '">Furniture</button><button data-hv="tab" data-v="paint" class="' + (t === 'paint' ? 'on' : '') + '">Paint</button><button data-hv="tab" data-v="pets" class="' + (t === 'pets' ? 'on' : '') + '">Pets</button></div>';
     if (t === 'build' && !done) {
       o.push(hvBuildTray(id));
     } else if (t === 'look') {
       o.push('<p class="hv-note">Drag to turn your house. Tap <b>Look inside</b> to see the rooms. House <b>' + housePct(id) + '%</b> built' + (done ? ' &ndash; finished!' : '. Finish it to add furniture and let pets move in.') + '</p>');
     } else if (t === 'paint') {
       o.push(hvPaintTray());
+    } else if (t === 'up' && done) {
+      o.push(hvUpTray(id));
     } else if (!done) {
       o.push('<p class="hv-note">Build all 8 pieces of your house first. Then you can ' + (t === 'furn' ? 'furnish it.' : 'let pets move in.') + '</p>');
     } else if (t === 'furn') {
+      if (upUsable(id)) o.push('<div class="hv-tabs hv-floors"><button data-hv="floor" data-v="0" class="' + (HV.floor ? '' : 'on') + '">Ground floor</button><button data-hv="floor" data-v="1" class="' + (HV.floor ? 'on' : '') + '">Upstairs</button></div>');
       o.push('<div class="hv-items">' + FURN_ORDER.filter(function (k) { return !FURN[k].sea || (FURN[k].sea === 'any' ? SEA.some(function (z) { return S.sea[z.id]; }) : S.sea[FURN[k].sea]); }).map(function (k) {
         var c = furnCost(id, k), ok = canPay(c);
         return '<button class="hv-card' + (HV.tool === k ? ' on' : '') + (ok ? '' : ' dim') + '" data-hv="item" data-k="' + k + '"><b>' + FURN[k].name + '</b><span>' + Object.keys(c).map(function (mm) { return matChip(mm, (S.mats[mm] || 0) + '/' + c[mm]); }).join('') + '</span></button>';
       }).join('') + '<button class="hv-card tidy' + (HV.tool === 'tidy' ? ' on' : '') + '" data-hv="item" data-k="tidy"><b>Tidy up</b><span>Tap furniture to remove it and get the materials back</span></button></div>');
       o.push(hvAquariumTray(h));
-      o.push('<p class="hv-note" id="hvmsg">' + (HV.tool === 'tidy' ? 'Tap a piece of furniture to take it away.' : HV.tool ? 'Now tap a floor square to place the ' + FURN[HV.tool].name.toLowerCase() + '.' : 'Pick something to place. Furniture: ' + h.f.length + ' of ' + COLS * ROWS + ' squares.') + '</p>');
+      o.push('<p class="hv-note" id="hvmsg">' + (HV.tool === 'tidy' ? 'Tap a piece of furniture to take it away.' : HV.tool ? 'Now tap a floor square to place the ' + FURN[HV.tool].name.toLowerCase() + '.' : 'Pick something to place. Furniture here: ' + h.f.filter(function (q) { return (q.c >= COLS * ROWS ? 1 : 0) === (HV.floor && upUsable(id) ? 1 : 0); }).length + ' of ' + (COLS - (h.u[1] ? 1 : 0)) * ROWS + ' squares.') + '</p>');
     } else {
       var team = S.team.filter(function (q) { return q.type !== 'unicorn' && !S.away.some(function (a) { return a.pet === q; }); }), full = h.res.length >= hvCap(id), g = hvGifts(id);
       o.push('<p class="hv-note">Pets living here: <b>' + h.res.length + ' of ' + hvCap(id) + '</b>. Each bed makes room for one more pet. Pets at home rest happily and bring you gifts.</p>');
@@ -8048,7 +8099,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var ps = furnPos(c), w = $('#hvworld'), fq = houseOf(HV.id).f.filter(function (x) { return x.c === c; })[0], bxs = fq ? FURN[fq.k].bx({ A: '#000', B: '#000', C: '#000' }) : [], top = 20, ext = 30;
     bxs.forEach(function (b) { top = Math.max(top, b[1] + b[4]); ext = Math.max(ext, Math.abs(b[0]) * 2 + b[3], Math.abs(b[2]) * 2 + b[5], b[1] + b[4]); });
     if (HV.zoomPrev == null) { HV.zoomPrev = HV.zoom; HV.tPrev = HV.t; HV.aPrev = HV.a; }
-    HV.a = ps.x < -20 ? 18 : ps.x > 20 ? -18 : 0; HV.focus = { x: ps.x, y: FLOOR_Y - top / 2, z: ps.z }; HV.zoom = Math.max(2.2, Math.min(5, 150 / ext)); HV.t = -34;
+    HV.a = ps.x < -20 ? 18 : ps.x > 20 ? -18 : 0; HV.focus = { x: ps.x, y: FLOOR_Y + ps.y - top / 2, z: ps.z }; HV.zoom = Math.max(2.2, Math.min(5, 150 / ext)); HV.t = -34;
     if (w) { w.classList.add('ease'); setTimeout(function () { var w2 = $('#hvworld'); if (w2) w2.classList.remove('ease'); }, 650); }
   }
   function hvUnfocus() {
@@ -8225,7 +8276,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var w = $('#hvworld'); if (!w || !HV) return;
     w.innerHTML = hvHouse(HV.id);
     var tr = $('#hvtray'); if (tr && !skipTray) tr.innerHTML = hvTray();
-    var host = $('#hv'); if (host) host.classList.toggle('inside', HV.inside);
+    var host = $('#hv'); if (host) { host.classList.toggle('inside', HV.inside); host.classList.toggle('fl1', !!(HV.floor && HV.inside && upUsable(HV.id))); }
     hvCamera();
   }
   function hvTilt() { return HV.t != null ? HV.t : (HV.inside ? -58 : -22); }
@@ -8297,8 +8348,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var h = houseOf(HV.id), els = document.querySelectorAll('.hv-pet[data-n]');
     els.forEach(function (el) {
       var n = +el.dataset.n, q = HV.pos[n] || (HV.pos[n] = { x: 0, z: 30 });
-      q.x = Math.max(-95, Math.min(95, q.x + (Math.random() - 0.5) * 90)); q.z = Math.max(-70, Math.min(70, q.z + (Math.random() - 0.5) * 80));
-      el.style.transform = 'translate3d(' + q.x + 'px,' + FLOOR_Y + 'px,' + q.z + 'px)';
+      q.x = Math.max(-95, Math.min(h.u[1] ? 55 : 95, q.x + (Math.random() - 0.5) * 90)); q.z = Math.max(-70, Math.min(70, q.z + (Math.random() - 0.5) * 80));
+      el.style.transform = 'translate3d(' + q.x + 'px,' + (el.dataset.y || FLOOR_Y) + 'px,' + q.z + 'px)';
     });
   }
   function hvClick(ev) {
@@ -8315,7 +8366,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     else if (what === 'tilt') { HV.t = Math.max(-85, Math.min(-4, hvTilt() - 12 * +v)); hvCamera(); }
     else if (what === 'zoom') { HV.zoom = Math.max(0.5, Math.min(5.5, HV.zoom * (+v > 0 ? 1.15 : 0.87))); hvCamera(); }
     else if (what === 'inside') { HV.inside = !HV.inside; HV.t = null; var b = $('#hvin'); if (b) b.textContent = HV.inside ? 'Look outside' : 'Look inside'; if (HV.inside && HV.tab === 'look' && houseDone(HV.id)) HV.tab = 'furn'; hvPaint(); }
-    else if (what === 'tab') { if (HV.tab === 'paint' && v !== 'paint') hvUnfocus(); HV.tab = v; HV.tool = null; if (v === 'paint') { HV.paint.pc = null; HV.paint.fc = null; HV.inside = HV.paint.mode === 'furn'; } else if (v !== 'look' && houseDone(HV.id)) HV.inside = true; var b2 = $('#hvin'); if (b2) b2.textContent = HV.inside ? 'Look outside' : 'Look inside'; hvPaint(); }
+    else if (what === 'tab') { if (HV.tab === 'paint' && v !== 'paint') hvUnfocus(); HV.tab = v; HV.tool = null; if (v === 'paint') { HV.paint.pc = null; HV.paint.fc = null; HV.inside = HV.paint.mode === 'furn'; } else if (v === 'up') HV.inside = false; else if (v !== 'look' && houseDone(HV.id)) HV.inside = true; var b2 = $('#hvin'); if (b2) b2.textContent = HV.inside ? 'Look outside' : 'Look inside'; hvPaint(); }
     else if (what === 'item') { HV.tool = HV.tool === t.dataset.k ? null : t.dataset.k; hvPaint(); }
     else if (what === 'pmode') { hvUnfocus(); HV.paint.mode = v; HV.paint.pc = null; HV.paint.fc = null; HV.inside = v === 'furn'; HV.t = null; var b3 = $('#hvin'); if (b3) b3.textContent = HV.inside ? 'Look outside' : 'Look inside'; hvPaint(); }
     else if (what === 'ppiece') { HV.paint.pc = +t.dataset.i; hvPaint(); }
@@ -8329,6 +8380,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     else if (what === 'pdraw') openStudio(HV.paint.fc, HV.paint.part);
     else if (what === 'pback') { hvUnfocus(); hvPaint(); }
     else if (what === 'build') hvBuild(+t.dataset.i);
+    else if (what === 'ubuild') hvBuildUp(+t.dataset.i);
+    else if (what === 'floor') { HV.floor = +v ? 1 : 0; HV.ipos = null; HV.inside = true; var b4 = $('#hvin'); if (b4) b4.textContent = 'Look outside'; hvPaint(); }
     else if (what === 'in') hvMoveIn(+t.dataset.id);
     else if (what === 'out') hvMoveOut(+t.dataset.id);
     else if (what === 'gifts') hvCollect();
@@ -8336,7 +8389,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     else if (what === 'aqdel') hvAquarium(t.dataset.id, false);
   }
   function hvMsg(t) { var m = $('#hvmsg'); if (m) m.textContent = t; }
-  function hvStandAt(c) { var ps = furnPos(c); return [Math.max(-100, Math.min(100, ps.x)), FLOOR_Y, Math.min(92, ps.z + 26)]; }
+  function hvStandAt(c) { var ps = furnPos(c); return [Math.max(-100, Math.min(100, ps.x)), FLOOR_Y + ps.y, Math.min(92, ps.z + 26)]; }
   function hvWalkTo(pos, then) {
     var el = $('.hv-builder');
     if (el) { el.classList.add('walking'); setTimeout(function () { el.style.transition = 'transform .6s ease-in-out'; el.style.transform = hvBuilderAt(pos); }, 30); }
@@ -8358,6 +8411,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     if (!HV.tool && at && at.k === 'aquarium' && HV.tab === 'furn') { HV.aqc = c; hvPaint(); return; }
     if (!HV.tool || !FURN[HV.tool]) return;
+    if (h.u[1] && c % COLS === COLS - 1) return hvMsg('That is the stairs. Pick another square.');
     if (at) return hvMsg('That square is taken. Pick an empty square.');
     var k = HV.tool, cost = furnCost(id, k);
     if (!canPay(cost)) return hvMsg('You need more materials for the ' + FURN[k].name.toLowerCase() + '.');
