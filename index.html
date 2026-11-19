@@ -1985,7 +1985,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.cageLv = Math.max(0, Math.min(4, d.cageLv | 0));
     S.suit = {}; SUIT.forEach(function (p) { if (d.suit && d.suit[p.id]) S.suit[p.id] = 1; });
     S.ship = {}; SHIP.forEach(function (q) { S.ship[q.id] = Math.max(0, Math.min(3, (d.ship && d.ship[q.id]) | 0)); });
-    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.rvN = Math.max(0, Math.min(999, d.rvN | 0)); S.pits = {}; Object.keys(d.pits || {}).forEach(function (k) { if (WORLDS[k] && Array.isArray(d.pits[k])) S.pits[k] = d.pits[k].filter(function (q) { return q && isFinite(q.x) && isFinite(q.y); }).slice(0, PIT_MAX + PARK_MAX).map(function (q) { return { p: q.p ? 1 : 0, x: Math.round(+q.x), y: Math.round(+q.y), f: Math.max(0, Math.min(PIT_FULL, q.f | 0)), n: String(q.n || 'My Pond').slice(0, 24) }; }); }); S.carry = d.carry && d.carry.amt > 0 ? { amt: Math.min(60, d.carry.amt | 0), pet: String(d.carry.pet || '').slice(0, 20) } : null; syncPits(); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
+    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.rvN = Math.max(0, Math.min(999, d.rvN | 0)); S.pits = {}; Object.keys(d.pits || {}).forEach(function (k) { if (WORLDS[k] && Array.isArray(d.pits[k])) S.pits[k] = d.pits[k].filter(function (q) { return q && isFinite(q.x) && isFinite(q.y); }).slice(0, PIT_MAX + PARK_MAX).map(function (q) { return { p: q.p ? 1 : 0, x: Math.round(+q.x), y: Math.round(+q.y), f: Math.max(0, Math.min(PIT_FULL, q.f | 0)), s: q.p ? Math.max(0, Math.min(2, q.s | 0)) : 0, n: String(q.n || 'My Pond').slice(0, 24) }; }); }); S.carry = d.carry && d.carry.amt > 0 ? { amt: Math.min(60, d.carry.amt | 0), pet: String(d.carry.pet || '').slice(0, 20) } : null; syncPits(); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
     S.scrap = Math.max(0, Math.min(99, d.scrap | 0)); S.tank = Math.max(0, Math.min(TANKS.length - 1, d.tank | 0)); S.o2 = Math.max(0, Math.min(TANKS[S.tank].cap, d.o2 | 0));
     S.cage = (Array.isArray(d.cage) ? d.cage : []).filter(function (p) { return p && TYPES[p.type]; }).slice(0, S.cageLv ? CAGE_CAP[S.cageLv - 1] : 0);
     S.team.concat(S.cage).forEach(function (p) { if (!p.body) p.body = bodyFor(p.type, p.id); if (!p.prog) migrateProg(p); });
@@ -3884,22 +3884,26 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         '<path d="M345 570 C345 486 362 440 390 440 C418 440 435 486 435 570 Z" fill="' + t[1] + '" opacity=".35"/>',
         '<polygon points="250,470 266,400 282,470" fill="' + t[0] + '"/><polygon points="496,450 512,380 528,450" fill="' + t[1] + '"/><polygon points="372,320 390,250 408,320" fill="#fff"/><polygon points="300,350 311,300 322,350" fill="' + t[1] + '"/><polygon points="458,340 470,292 482,340" fill="' + t[0] + '"/></g>');
     } else if (s.k === 'bush') {
-      var RB = s.dug ? rng(Math.abs(s.x * 31 + s.y)) : R;
+      var RB = s.dug ? rng(Math.abs(s.x * 31 + s.y)) : R, LF = p.leaf, BC = p.berry, sty = s.dug ? s.st | 0 : 0;
+      if (sty === 1) { LF = ['#5fbf5a', '#7ad46c']; } else if (sty === 2) { LF = ['#6a56d6', '#8a70ea']; BC = '#ffe27a'; }
+      var FL = ['#ff7eb6', '#ffd23f', '#ffffff'];
       var bushes = [[-70, -30, 50], [10, -50, 56], [84, -20, 48], [-40, 30, 46], [50, 38, 52], [-104, 24, 38]];
       bushes.forEach(function (b, k) {
         var bx = s.x + b[0], by = s.y + b[1], j;
-        o.push('<circle cx="' + bx + '" cy="' + by + '" r="' + b[2] + '" fill="' + p.leaf[k % 2] + '"/>');
+        o.push('<circle cx="' + bx + '" cy="' + by + '" r="' + b[2] + '" fill="' + LF[k % 2] + '"/>');
         for (j = 0; j < 5; j++) {
           var ba = RB() * 6.2832, bd = Math.sqrt(RB()) * b[2] * 0.78;
-          o.push('<circle cx="' + n(bx + Math.cos(ba) * bd) + '" cy="' + n(by + Math.sin(ba) * bd) + '" r="6" fill="' + p.berry + '"/>');
+          o.push('<circle cx="' + n(bx + Math.cos(ba) * bd) + '" cy="' + n(by + Math.sin(ba) * bd) + '" r="' + (sty === 1 ? 7 : 6) + '" fill="' + (sty === 1 ? FL[(k + j) % 3] : BC) + '"/>');
         }
       });
+      if (sty === 2) for (var mi = 0; mi < 9; mi++) { var ma = mi / 9 * 6.2832, mx = s.x + Math.cos(ma) * 150, my = s.y + 20 + Math.sin(ma) * 80; o.push('<ellipse cx="' + n(mx) + '" cy="' + n(my + 4) + '" rx="4" ry="7" fill="#f4ead2"/><ellipse cx="' + n(mx) + '" cy="' + n(my - 4) + '" rx="12" ry="8" fill="#ff5f7a"/><circle cx="' + n(mx - 3) + '" cy="' + n(my - 6) + '" r="2.4" fill="#fff"/>'); }
     } else if (s.k === 'sprout') {
       var sf = Math.min(1, (s.fill || 0) / PARK_BLOOM);
       o.push('<g transform="translate(' + s.x + ' ' + s.y + ')">',
         '<ellipse cx="0" cy="14" rx="150" ry="92" fill="#8a5a2b"/><ellipse cx="0" cy="8" rx="136" ry="82" fill="#a8723a"/><ellipse cx="0" cy="12" rx="104" ry="60" fill="#4a2f18"/>',
         (s.fill > 0 ? '<ellipse cx="0" cy="18" rx="' + n(30 + 70 * sf) + '" ry="' + n(14 + 34 * sf) + '" fill="url(#@@lake)" opacity=".85"/>' : ''),
-        '<path d="M0 10 Q-4 -26 2 -52" stroke="#4f9a3c" stroke-width="9" fill="none" stroke-linecap="round"/><ellipse cx="-22" cy="-44" rx="24" ry="12" fill="#6bc24d" transform="rotate(-28 -22 -44)"/><ellipse cx="26" cy="-56" rx="24" ry="12" fill="#7fd45a" transform="rotate(26 26 -56)"/></g>');
+        '<path d="M0 10 Q-4 -26 2 -52" stroke="#4f9a3c" stroke-width="9" fill="none" stroke-linecap="round"/><ellipse cx="-22" cy="-44" rx="24" ry="12" fill="#6bc24d" transform="rotate(-28 -22 -44)"/><ellipse cx="26" cy="-56" rx="24" ry="12" fill="#7fd45a" transform="rotate(26 26 -56)"/>' +
+          (s.st === 1 ? '<circle cx="2" cy="-60" r="9" fill="#ff7eb6"/><circle cx="2" cy="-60" r="4" fill="#ffd23f"/>' : s.st === 2 ? '<ellipse cx="-70" cy="20" rx="10" ry="7" fill="#ff5f7a"/><ellipse cx="72" cy="26" rx="10" ry="7" fill="#ff5f7a"/><ellipse cx="0" cy="58" rx="10" ry="7" fill="#ff5f7a"/>' : '') + '</g>');
     } else if (s.k === 'pit') {
       var pf = Math.min(1, (s.fill || 0) / PIT_DIVE), pw = 190 * (0.2 + 0.8 * pf);
       o.push('<g transform="translate(' + (s.x - 1150) + ' ' + (s.y - 1170) + ')">',
@@ -6069,11 +6073,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function pitLabel(q) { return q.f >= PIT_FULL ? q.n : q.n + ' ' + q.f + '%'; }
   function syncPits() {
     Object.keys(WORLDS).forEach(function (id) {
-      var W = WORLDS[id], want = (S && S.pits && S.pits[id]) || [], sig = want.map(function (q) { return (q.p ? 'p' : '') + q.x + ',' + q.y + ',' + q.f + ',' + q.n; }).join('|');
+      var W = WORLDS[id], want = (S && S.pits && S.pits[id]) || [], sig = want.map(function (q) { return (q.p ? 'p' + (q.s | 0) : '') + q.x + ',' + q.y + ',' + q.f + ',' + q.n; }).join('|');
       if ((W.pitSig || '') === sig) return;
       W.pitSig = sig;
       for (var i = W.spots.length - 1; i >= 0; i--) if (W.spots[i].dug) W.spots.splice(i, 1);
-      want.forEach(function (q, pi) { var bl = q.p && q.f >= PARK_BLOOM; W.spots.push({ k: q.p ? (bl ? 'bush' : 'sprout') : (q.f >= PIT_DIVE ? 'pond' : 'pit'), dug: true, park: !!q.p, pi: pi, x: q.x, y: q.y, r: bl ? 120 : 170, ly: bl ? -140 : -180, t: pitLabel(q), n: q.n, fill: q.f }); });
+      want.forEach(function (q, pi) { var bl = q.p && q.f >= PARK_BLOOM; W.spots.push({ k: q.p ? (bl ? 'bush' : 'sprout') : (q.f >= PIT_DIVE ? 'pond' : 'pit'), dug: true, park: !!q.p, st: q.s | 0, pi: pi, x: q.x, y: q.y, r: bl ? 120 : 170, ly: bl ? -140 : -180, t: pitLabel(q), n: q.n, fill: q.f }); });
       delete ART[id]; delete V3.cache[id]; delete OBS[id]; rebuildWalk(W);
       if (S && S.cur === id) LAND = W.walk || null;
     });
@@ -6126,12 +6130,23 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     wmsg(p.name + ' scoops up ' + cap + '% water from ' + s.t + '. Carry it to your pond, in any world!');
     return true;
   }
-  function digSpot(park) {
+  var STY = [
+    { n: 'Berry Grove', d: 'Green bushes full of berries. Perk: each pick gives 4 fruit instead of 3.' },
+    { n: 'Flower Meadow', d: 'Pink and yellow blooms. Perk: your pets play in the flowers every time you step in.' },
+    { n: 'Fairy Ring', d: 'Purple bushes inside a ring of mushrooms. Perk: fruit grows back twice as fast.' }
+  ];
+  function styleHTML() {
+    return '<div class="sheet-card"><h3>Plant a park</h3><p class="srow-note">Pick a style for your new park. You can plant ' + PARK_MAX + ' per world.</p>' +
+      STY.map(function (y, i) { return '<div class="srow"><div class="sinfo"><b>' + y.n + '</b><span>' + y.d + '</span></div><button class="btn small primary" data-act="parkstyle" data-s="' + i + '">Plant</button></div>'; }).join('') +
+      '<button class="btn ghost small" data-act="closesheet">Not now</button></div>';
+  }
+  function digSpot(park, st) {
     if (S.screen !== 'world' || warping) return;
     var hh = S.world.ents[0];
     if (!canDigPit(hh, park)) { wmsg('Find open ground, away from water, caves and your house, to ' + (park ? 'plant a park' : 'dig a pond') + '. A world can hold ' + (park ? PARK_MAX + ' planted parks' : PIT_MAX + ' dug ponds') + '.'); return; }
     var list = S.pits[S.cur] = S.pits[S.cur] || [], total = 0; Object.keys(S.pits).forEach(function (k) { S.pits[k].forEach(function (q) { if (!!q.p === park) total++; }); });
-    list.push({ p: park ? 1 : 0, x: Math.round(hh.x), y: Math.round(hh.y), f: 0, n: (park ? 'My Park ' : 'My Pond ') + (total + 1) });
+    st = park ? Math.max(0, Math.min(2, st | 0)) : 0;
+    list.push({ p: park ? 1 : 0, x: Math.round(hh.x), y: Math.round(hh.y), f: 0, s: st, n: (park ? STY[st].n + ' ' : 'My Pond ') + (total + 1) });
     syncPits(); S.world.cd[(park ? 'sprout' : 'pit') + (WD().spots.length - 1)] = performance.now() + 7000;
     worldBurst(hh.x, hh.y - 40, 'play'); save(); updateHud(); refreshGround();
     wmsg(park ? 'You planted a sapling! A water or ice pet can carry water from a lake or pond to grow it. 40% grows berry bushes, 100% opens the Dig warp.' : 'You dug a pit! A water or ice pet can carry water from a lake or pond to fill it. 50% lets you dive, 100% opens a warp tunnel.');
@@ -8578,10 +8593,11 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (s.k === 'bush') {
       w.cd[key] = now + 6000;
       if (s.dug && s.fill < PIT_FULL && S.carry) { pitPour(s); return; }
-      var bs = w.stock[idx] || (w.stock[idx] = { n: 6, t: now }), grow = Math.floor((now - bs.t) / 12000);
-      if (grow > 0) { bs.n = Math.min(6, bs.n + grow); bs.t += grow * 12000; }
+      var rg = s.dug && s.st === 2 ? 6000 : 12000, bs = w.stock[idx] || (w.stock[idx] = { n: 6, t: now }), grow = Math.floor((now - bs.t) / rg);
+      if (grow > 0) { bs.n = Math.min(6, bs.n + grow); bs.t += grow * rg; }
       if (bs.n >= 6) bs.t = now;
-      var room = foodCap() - S.food, take = Math.min(3, bs.n, room), note;
+      var room = foodCap() - S.food, take = Math.min(s.dug && s.st === 0 ? 4 : 3, bs.n, room), note;
+      if (s.dug && s.st === 1) worldGain('play', 'Your pets romp in the flowers!');
       if (take > 0) { bs.n -= take; S.food += take; note = 'You picked ' + take + ' fruit. Food ' + S.food + ' / ' + foodCap() + '.'; }
       else if (room <= 0) note = 'Your bag is full of food (' + foodCap() + ').';
       else note = 'This bush is empty. New fruit grows soon.';
@@ -9826,7 +9842,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     },
     diveair: function () { if (S.coins >= DIVE_TANK_COST && S.air < tankMax()) { S.coins -= DIVE_TANK_COST; S.air++; save(); updateHud(); var hh = S.world.ents[0], ws = waterAt(hh.x, hh.y); openSheet(diveHTML(ws)); } },
     pitdig: function () { digSpot(false); },
-    parkdig: function () { digSpot(true); },
+    parkdig: function () { if (S.screen !== 'world' || warping) return; if (!canDigPit(S.world.ents[0], true)) { digSpot(true, 0); return; } openSheet(styleHTML()); },
+    parkstyle: function (el) { closeSheet(); digSpot(true, +el.dataset.s); },
     dig: function () {
       if (S.screen !== 'world' || warping) return;
       var hh = S.world.ents[0], bs = bushAt(hh); if (bs && !pitOpen(bs)) { wmsg(bs.n + ' needs 100% water before you can dig under it.'); return; } if (bs && digReady()) startDig(bs);
