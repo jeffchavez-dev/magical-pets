@@ -2954,7 +2954,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     else if (k === 'ash') { p.vy = 22 + R() * 34; p.r = 1 + R() * 2.4; p.a = 0.55; if (!first) p.y = -6; }
     else if (k === 'bubbles') { p.vy = -(24 + R() * 46); p.r = 3 + R() * 8; p.a = 0.6; if (!first) p.y = H + 12; }
     else if (k === 'fireflies') { p.r = 5 + R() * 5; p.vx = (R() - 0.5) * 30; p.vy = (R() - 0.5) * 24; }
-    else if (k === 'glints') { p.r = 3 + R() * 5; p.t = R() * 2.6; }
+    else if (k === 'glints') { p.star = R() < 0.3; p.r = p.star ? 7 + R() * 8 : 2 + R() * 3; p.t = R() * 2.6; p.vx = (R() - 0.3) * 16; p.vy = -(3 + R() * 12); }
     else if (k === 'dust') { p.vx = 14 + R() * 26; p.vy = (R() - 0.5) * 8; p.r = 1 + R() * 2; p.a = 0.4; if (!first) p.x = -6; }
     else if (k === 'wind') { p.vx = 520 + R() * 380; p.vy = 20 + R() * 30; p.r = 40 + R() * 80; p.a = 0.12 + 0.18 * R(); if (!first) p.x = -120; }
     else if (k === 'clouds') { p.vx = 10 + R() * 14; p.r = 120 + R() * 140; p.a = 0.1 + R() * 0.08; if (!first) p.x = -p.r * 1.5; }
@@ -3027,12 +3027,26 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         var fs = Math.sin(wxT * 1.6 + p.ph); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.15 + 0.85 * Math.max(0, fs) * Math.max(0, fs);
         var sf = p.r * 5; g.drawImage(wxGlowSprite(p.c), p.x - sf / 2, p.y - sf / 2, sf, sf);
       } else if (k === 'glints') {
-        p.t += dt;
-        if (p.t > 2.6) { p.t = 0; p.x = Math.random() * W; p.y = Math.random() * H; p.r = 3 + Math.random() * 5; }
-        var ga = Math.sin(Math.PI * p.t / 2.6); ga *= ga; var s = p.r * (0.6 + 0.6 * ga);
-        g.globalCompositeOperation = 'lighter'; g.globalAlpha = ga * 0.9; g.fillStyle = p.c; g.beginPath();
-        g.moveTo(p.x, p.y - s); g.lineTo(p.x + s * 0.2, p.y - s * 0.2); g.lineTo(p.x + s, p.y); g.lineTo(p.x + s * 0.2, p.y + s * 0.2); g.lineTo(p.x, p.y + s);
-        g.lineTo(p.x - s * 0.2, p.y + s * 0.2); g.lineTo(p.x - s, p.y); g.lineTo(p.x - s * 0.2, p.y - s * 0.2); g.closePath(); g.fill();
+        /* Warm drifting sparkle dust (soft glowing dots) with an occasional big white four-point star flare */
+        p.t += dt; g.globalCompositeOperation = 'lighter';
+        if (!p.star) {
+          p.x += (p.vx + Math.sin(wxT * 0.8 + p.ph) * 8) * dt; p.y += p.vy * dt;
+          if (p.y < -8 || p.x > W + 8 || p.x < -8) { p.x = Math.random() * W; p.y = H + 6; }
+          var tw = 0.35 + 0.65 * Math.pow(Math.max(0, Math.sin(wxT * 2.2 + p.ph * 3)), 2), so = p.r * 8;
+          g.globalAlpha = tw * 0.95; g.drawImage(wxGlowSprite(p.c), p.x - so / 2, p.y - so / 2, so, so);
+          g.globalAlpha = tw; g.fillStyle = '#fff'; g.beginPath(); g.arc(p.x, p.y, p.r * 0.45, 0, 6.2832); g.fill();
+        } else {
+          if (p.t > 2.6) { p.t = 0; p.x = Math.random() * W; p.y = Math.random() * H; p.r = 7 + Math.random() * 8; }
+          var ga = Math.sin(Math.PI * p.t / 2.6); ga *= ga; var s = p.r * (0.5 + 0.7 * ga), sh = s * 5;
+          g.globalAlpha = ga * 0.8; g.drawImage(wxGlowSprite(p.c), p.x - sh / 2, p.y - sh / 2, sh, sh);
+          g.globalAlpha = ga * 0.95; g.fillStyle = '#fff';
+          for (var q = 0; q < 2; q++) { /* long thin cross rays: vertical longer, a shorter diagonal pair */
+            var L1 = q ? s * 1.9 : s * 3.2, w1 = q ? 0.5 : 0.8; g.save(); g.translate(p.x, p.y); g.rotate(q ? 0.785 : 0);
+            g.beginPath(); g.moveTo(0, -L1); g.lineTo(w1, 0); g.lineTo(0, L1); g.lineTo(-w1, 0); g.closePath(); g.fill();
+            g.beginPath(); g.moveTo(-L1 * 0.7, 0); g.lineTo(0, w1); g.lineTo(L1 * 0.7, 0); g.lineTo(0, -w1); g.closePath(); g.fill(); g.restore();
+          }
+          g.beginPath(); g.arc(p.x, p.y, s * 0.28, 0, 6.2832); g.fill();
+        }
       } else if (k === 'dust') {
         p.x += p.vx * dt; p.y += (p.vy + Math.sin(wxT + p.ph) * 6) * dt;
         g.fillStyle = p.c; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.2832); g.fill();
