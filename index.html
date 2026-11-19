@@ -2591,8 +2591,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var H = FAR_HUB[eid], N = NEW_WORLDS[eid], an = SHAPES[N.shape]().anchors[H.idx], sz = SIZE[eid];
     FAR_HOOKS.push({ world: eid, spot: { k: 'portal', x: Math.round(an[0] * sz), y: Math.round(an[1] * sz), r: 130, ly: 130, t: H.t, to: 'nexus', tint: farTint('nexus'), guard: H.g } });
   });
-  // after the first ten worlds, berries and ponds get rarer
-  var RES_OLD = { gale: 'p', forge: 'b', ruins: 'p', starfall: 'b', rainbow: 'bp', bonewood: '', ashen: 'p', mire: 'b', abyss: '', crag: 'p', voidw: '', nightbloom: 'b', maw: '', colossus: 'p', throne: '' };
+  /* berries and ponds are rare on purpose: Home Island keeps both, every other early world keeps only one, and the player digs ponds and plants parks to make more */
+  var RES_OLD = { home: 'bp', snow: 'p', ember: 'b', reef: 'p', garden: 'b', clouds: 'p', storm: 'b', gems: 'p', moon: 'b', crystal: 'p', gale: 'p', forge: 'b', ruins: 'p', starfall: 'b', rainbow: 'bp', bonewood: '', ashen: 'p', mire: 'b', abyss: '', crag: 'p', voidw: '', nightbloom: 'b', maw: '', colossus: 'p', throne: '' };
   Object.keys(RES_OLD).forEach(function (id) {
     var W0 = WORLDS[id], r = RES_OLD[id];
     W0.spots = W0.spots.filter(function (sp) { return !((sp.k === 'bush' && r.indexOf('b') < 0) || (sp.k === 'pond' && r.indexOf('p') < 0)); });
