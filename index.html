@@ -6925,7 +6925,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         txt = (target.id ? 'Flying to ' + WORLDS[target.id].name : 'Flying through space') + ' &middot; needs about ' + need + ' oxygen' + (bad ? ' (you have ' + Math.floor(o2) + ')' : '');
       } else txt = nw ? 'Near ' + WORLDS[nw].name + '. Tap another world to keep going.' : 'Tap a world, or anywhere in space, to fly there.';
       tHud.innerHTML = txt + (!target && !rescue && !(warnT > 0) ? ' <span class="as-keys">Arrow keys steer by hand.</span>' : ''); tHud.classList.toggle('bad', bad);
-      btnGang.hidden = !!(S.rvDone || rescue || rvPause || rvAlert || o2 < cap * 0.3 || !S.team.length);
+      btnGang.hidden = !!((S.rvDone && !EASY) || rescue || rvPause || rvAlert || o2 < cap * 0.3 || !S.team.length);
       var low = !rescue && !nw && o2 < cap * 0.3; btnBack.hidden = !low; if (low) { var nz = nearestWorld(); btnBack.dataset.w = nz; btnBack.textContent = 'Low oxygen! Fly to ' + WORLDS[nz].name; }
       if (low && !lowSaid) { lowSaid = true; warn = 'Low oxygen! Fly to the nearest world or catch O2 bubbles.'; warnT = 4; }
       if (!low && o2 > cap * 0.45) lowSaid = false;
@@ -6961,7 +6961,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     /* ---- the Glitch Gang: after a while of flying through open space, Vex and Moxie intercept the ship ---- */
     var rvPause = false, rvAlert = false, rvTotal = S.rvDone ? rvWait() : 6 + Math.random() * 6, rvT = rvTotal, rvSaid = 0, sigEl = root.querySelector('#asSig'), sigT = root.querySelector('#asSigT'), sigB = root.querySelector('#asSigB');
     /* the wait grows with every battle: 30 seconds of flying after the first one, then 40, 50 ... up to 90 */
-    function rvWait() { return Math.min(90, 20 + 10 * Math.max(1, S.rvN | 0)); }
+    function rvWait() { return EASY ? 8 : Math.min(90, 20 + 10 * Math.max(1, S.rvN | 0)); }
     /* the first time the Gang is easy to find; after that you have to fly around and watch the signal grow */
     function sigShow() {
       var on = !!(S.rvDone && !rvPause && !rvAlert && !rescue && ph === 'nav'), pc = Math.max(0, Math.min(1, 1 - rvT / rvTotal));
