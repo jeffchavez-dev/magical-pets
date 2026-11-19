@@ -7543,7 +7543,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       }
       var talk = phase === 'intro' ? (F ? RV_FH[(S.rvWins | 0) % RV_FH.length].replace('@', F.n) : RV_HI[(S.rvWins | 0) % RV_HI.length]) : log;
       h += '<div class="rv-logo">THE GLITCH GANG</div><div class="rv-cast"><div class="rv-vil v1">' + vexSVG() + '<b>Vex</b></div><div class="rv-vil v2">' + moxieSVG() + '<b>Moxie</b></div></div><div class="rv-say"><b>Vex:</b> ' + esc(talk) + '</div>';
-      if (phase === 'intro') h += '<p class="rv-sub">Moxie: Hand over your star scrap, or battle us!</p>' + fieldNote() + '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="fight">Pet battle</button><button class="btn primary alt" data-rv="ship"' + (o.ship ? '' : ' disabled') + '>' + (o.ship ? 'Ship battle' : 'Ship battle (locked)') + '</button><button class="btn primary alt" data-rv="abc">Letter battle</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Pet battle: your pets fight up close with their own battle powers (higher-level pets hit much harder). Ship battle: fly your rocket and shoot it out' + (F ? '' : ' in space') + '' + (o.ship ? '' : ' (locked: you need a rocket part first, so upgrade your rocket at the Rocket station)') + '! Letter battle: a gentle game with no damage. Shoot the ships carrying the right letters and numbers to spell words and count, and fill your Letter book (' + (S.lt || '').length + ' / 36). ' + (F ? 'Running away can fail.' : 'Running costs a little oxygen and can fail.') + '</p>';
+      if (phase === 'intro') h += '<p class="rv-sub">Moxie: Hand over your star scrap, or battle us!</p>' + fieldNote() + '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="fight">Pet battle</button><button class="btn primary alt" data-rv="ship"' + (o.ship ? '' : ' disabled') + '>' + (o.ship ? 'Ship battle' : 'Ship battle (locked)') + '</button><button class="btn primary alt" data-rv="abc">Letter battle</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Pet battle: your pets fight up close with their own battle powers (higher-level pets hit much harder). Ship battle: fly your rocket and shoot it out' + (F ? '' : ' in space') + '' + (o.ship ? '' : ' (locked: you need a rocket part first, so upgrade your rocket at the Rocket station)') + '! Letter battle: a gentle game with no damage, but you have 40 seconds for each round. Shoot the ships carrying the right letters and numbers to spell words and count, and fill your Letter book (' + (S.lt || '').length + ' / 36). ' + (F ? 'Running away can fail.' : 'Running costs a little oxygen and can fail.') + '</p>';
       else h += '<div class="rv-btns"><button class="btn primary" data-rv="close">Continue</button></div>';
       el.innerHTML = bgH() + '<div class="rv-wrap">' + h + '</div>';
     }
@@ -7656,15 +7656,15 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     function svgImg(svg) { var im = new Image(); im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.indexOf('xmlns') < 0 ? svg.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ') : svg); return im; }
     function startShip(lm) {
       phase = 'ship'; busy = true; finished = false;
-      el.innerHTML = '<div class="rv-bg"></div><div class="rv-wrap rv-shipwrap"><div class="rv-top"><span id="rvsHull"></span><span id="rvsInfo"></span><button class="btn ghost small" data-rv="sflee">Retreat</button></div><canvas id="rvcv" class="rv-cv"></canvas><p class="rv-hint">' + (lm ? 'Drag to fly. Shoot the ship carrying the glowing letter or number!' : 'Drag to fly your rocket. Your ship and your pets shoot by themselves!') + '</p></div>';
+      el.innerHTML = '<div class="rv-bg"></div><div class="rv-wrap rv-shipwrap"><div class="rv-top"><span id="rvsHull"></span><span id="rvsInfo"></span><button class="btn ghost small" data-rv="sflee">Retreat</button></div><canvas id="rvcv" class="rv-cv"></canvas><p class="rv-hint">' + (lm ? (F ? 'Drag to move your pet. ' : 'Drag to fly. ') + 'Shoot the ship carrying the glowing letter or number. Beat the clock: 40 seconds for each round!' : 'Drag to fly your rocket. Your ship and your pets shoot by themselves!') + '</p></div>';
       var cv = el.querySelector('#rvcv'), cx = cv.getContext('2d'), W = cv.width = window.innerWidth, H = cv.height = window.innerHeight;
       var Z = Math.max(1, Math.min(1.8, window.innerHeight / 620)), hullMax = 5 + (o.hull | 0), hull = hullMax, spd = 420 * (1 + 0.12 * (o.eng | 0)), fireGap = 0.26 / (1 + 0.1 * (o.eng | 0));
       var P = { x: W / 2, y: H - 80 }, tg = { x: W / 2, y: H - 80 }, shots = [], eb = [], foes = [], fxs = [], pws = [], t = 0, waveN = -1, waveT = 0, pend = [], fireT = 0, inv = 0, triple = 0, shield = 0, kills = 0, ended = false, boss = null, bossIn = 0, lastT = performance.now(), keys = {}, flashT = 0;
-      var wing = team.slice(0, 3).map(function (f) { return { img: svgImg(petSVG(f.p.type, f.p.stage, '', f.p.body)), col: RV_FXC[f.p.type] || '#fff', dmg: rvPow(f.p) }; });
-      var IMG = { ship: svgImg('<svg viewBox="-50 -52 100 116" width="100" height="116">' + rocketSVG('rv') + '</svg>'), zap: svgImg(botSVG('zap')), gob: svgImg(botSVG('gob')), clank: svgImg(botSVG('clank')), vex: svgImg(vexSVG()), mox: svgImg(moxieSVG()) };
+      var wing = team.slice(F ? 1 : 0, F ? 4 : 3).map(function (f) { return { img: svgImg(petSVG(f.p.type, f.p.stage, '', f.p.body)), col: RV_FXC[f.p.type] || '#fff', dmg: rvPow(f.p) }; });
+      var IMG = { ship: F ? svgImg(petSVG(team[0].p.type, team[0].p.stage, '', team[0].p.body)) : svgImg('<svg viewBox="-50 -52 100 116" width="100" height="116">' + rocketSVG('rv') + '</svg>'), zap: svgImg(botSVG('zap')), gob: svgImg(botSVG('gob')), clank: svgImg(botSVG('clank')), vex: svgImg(vexSVG()), mox: svgImg(moxieSVG()) };
       /* ---- Letter battle: a gentle version with no damage. Ships carry letters and numbers; shoot the one the mission asks for. ---- */
       var LM_WORDS = ['CAT', 'DOG', 'SUN', 'PET', 'HAT', 'BEE', 'PIG', 'BUG', 'STAR', 'FISH', 'BIRD', 'TREE', 'CAKE', 'MOON', 'FROG', 'BEAR'], LM_COL = ['#e0457b', '#2f7fe0', '#2fa85a', '#e08a1f', '#8a4de0', '#1fa8a8'];
-      var lmRounds = [], lmRound = 0, lmIdx = 0, lmPause = 0, lmDone = 0, lmSp = 0.4, misses = 0, pops = [], newCh = [], lt0 = (S.lt || '').length;
+      var LM_TIME = 40, lmT = LM_TIME, lmHurry = false, lmRounds = [], lmRound = 0, lmIdx = 0, lmPause = 0, lmDone = 0, lmSp = 0.4, misses = 0, pops = [], newCh = [], lt0 = (S.lt || '').length;
       function lmPlan() {
         return ['word', 'count', 'abc'].sort(function () { return Math.random() - 0.5; }).map(function (k) {
           var i, seq = [];
@@ -7676,11 +7676,22 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (lm) lmRounds = lmPlan();
       function lmStars() { var h = '', i; for (i = 0; i < 3; i++) h += '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 2l3 7 7.500.600-5.700 4.900 1.800 7.300L12 17.800 5.400 21.800l1.800-7.300L1.500 9.600 9 9z" fill="' + (i < lmDone ? '#ffd34e' : 'rgba(255,255,255,.2)') + '" stroke="#fff" stroke-width="1.500"/></svg>'; var e = el.querySelector('#rvsHull'); if (e) e.innerHTML = h; }
       function lmTitle() { var rd = lmRounds[lmRound]; if (rd) info('Round ' + (lmRound + 1) + ' of 3: ' + rd.title); }
+      function lmTimeUp() {
+        if (ended) return; ended = true; document.removeEventListener('keydown', onKey); document.removeEventListener('keyup', onKey);
+        pops.push({ x: W / 2, y: H * 0.45, txt: 'Time is up!', col: '#ff8fa0', age: 0, big: 1 }); info('Time is up!');
+        timers.push(setTimeout(function () {
+          cancelAnimationFrame(shipRaf); finished = true; var co = lmDone * 5; o.won = false; o.lt = { fresh: newCh.slice() };
+          o.res = { o2: 0, scrap: 0, coins: co, msg: 'Time is up! You finished ' + lmDone + ' of 3 rounds' + (newCh.length ? ' and added ' + newCh.length + ' to your Letter book' : '') + (co ? ', +' + co + ' coins' : '') + '. Try again!' };
+          log = 'Too slow! Moxie: You got ' + lmDone + ' of 3 rounds. Your Letter book keeps what you caught!'; phase = 'end'; ui();
+        }, REDUCE ? 200 : 1600));
+      }
       function lmStep(dt) {
         if (ended) return;
         foes.forEach(function (f) { f.mc = Math.max(0, (f.mc || 0) - dt); });
-        if (lmPause > 0) { lmPause -= dt; if (lmPause <= 0) { lmRound++; lmIdx = 0; foes.forEach(function (f) { f.life = Math.min(f.life, f.age); }); lmStars(); lmTitle(); } return; }
+        if (lmPause > 0) { lmPause -= dt; if (lmPause <= 0) { lmRound++; lmIdx = 0; lmT = LM_TIME; lmHurry = false; foes.forEach(function (f) { f.life = Math.min(f.life, f.age); }); lmStars(); lmTitle(); } return; }
         var rd = lmRounds[lmRound]; if (!rd) return;
+        lmT -= dt; if (lmT <= 10 && !lmHurry) { lmHurry = true; pops.push({ x: W / 2, y: H * 0.5, txt: 'Hurry!', col: '#ff8fa0', age: 0, big: 1 }); try { auAct('nope', 1); } catch (e) { /* sound is optional */ } }
+        if (lmT <= 0) { lmTimeUp(); return; }
         lmSp -= dt; if (lmSp > 0) return;
         var live = foes.filter(function (f) { return f.age < f.life; }); if (live.length >= 5) return;
         lmSp = 0.9;
@@ -7721,6 +7732,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
           cx.beginPath(); cx.rect(x, y0, sz, sz); cx.fill(); cx.stroke(); cx.shadowBlur = 0;
           cx.fillStyle = got ? '#fff' : 'rgba(255,255,255,' + (cur ? 0.55 : 0.18) + ')'; cx.font = '800 ' + Math.round(sz * 0.62) + 'px sans-serif'; cx.fillText(rd.seq[i], x + sz / 2, y0 + sz / 2 + 2);
         }
+        var bw = Math.min(W * 0.6, 320), bx = W / 2 - bw / 2, by = y0 + sz + 12, fr = Math.max(0, Math.min(1, lmT / LM_TIME));
+        cx.fillStyle = 'rgba(0,0,0,.45)'; cx.fillRect(bx, by, bw, 12); cx.fillStyle = fr > 0.5 ? '#5be37a' : fr > 0.25 ? '#ffd34e' : '#ff5c7a'; cx.fillRect(bx, by, bw * fr, 12);
+        cx.strokeStyle = '#fff'; cx.lineWidth = 2; cx.strokeRect(bx, by, bw, 12); cx.fillStyle = '#fff'; cx.font = '800 15px sans-serif'; cx.fillText(Math.ceil(lmT) + 's', bx + bw + 24, by + 7);
         cx.textBaseline = 'alphabetic';
       }
       var WAVES = [{ n: 6, kinds: ['zap'], pat: 'sine' }, { n: 8, kinds: ['zap', 'gob'], pat: 'sine' }, { n: 6, kinds: ['clank', 'zap'], pat: 'sine' }];
@@ -7841,7 +7855,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         eb.forEach(function (b) { cx.fillStyle = b.c; cx.shadowColor = b.c; cx.shadowBlur = 12; cx.beginPath(); cx.arc(b.x, b.y, 6 * Z, 0, 6.283); cx.fill(); cx.shadowBlur = 0; cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(b.x, b.y, 2.500 * Z, 0, 6.283); cx.fill(); });
         if (!ended || hull > 0) {
           wing.forEach(function (w, i) { var wx = P.x + (i % 2 ? 1 : -1) * (46 + Math.floor(i / 2) * 30) * Z, wy = P.y + 8 * Z + Math.sin(t * 4 + i) * 3; pic(w.img, wx, wy, 36 * Z, 36 * Z); });
-          cx.globalAlpha = inv > 0 && Math.sin(t * 40) > 0 ? 0.35 : 1; pic(IMG.ship, P.x, P.y, 62 * Z, 72 * Z); cx.globalAlpha = 1;
+          cx.globalAlpha = inv > 0 && Math.sin(t * 40) > 0 ? 0.35 : 1; pic(IMG.ship, P.x, P.y, F ? 70 * Z : 62 * Z, F ? 70 * Z : 72 * Z); cx.globalAlpha = 1;
           if (shield > 0) { cx.strokeStyle = '#7fe8ff'; cx.lineWidth = 4; cx.globalAlpha = 0.5 + 0.3 * Math.sin(t * 12); cx.beginPath(); cx.arc(P.x, P.y, 42 * Z, 0, 6.283); cx.stroke(); cx.globalAlpha = 1; }
         }
         fxs.forEach(function (q) { cx.globalAlpha = Math.max(0, 1 - q.age / q.life); cx.fillStyle = q.c; cx.beginPath(); cx.arc(q.x, q.y, q.r, 0, 6.283); cx.fill(); }); cx.globalAlpha = 1;
