@@ -8408,7 +8408,15 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function hvTilt() { return HV.t != null ? HV.t : (HV.inside ? -58 : -22); }
   function hvCamera() {
     var w = $('#hvworld'); if (!w || !HV) return;
-    w.style.setProperty('--a', HV.a + 'deg'); w.style.setProperty('--t', hvTilt() + 'deg'); var F = HV.focus || (HV.walk ? { x: HV.walk.x, y: FLOOR_Y - HV.walk.y - 24, z: HV.walk.z } : null); w.style.setProperty('--fx', (F ? F.x : 0) + 'px'); w.style.setProperty('--fy', (F ? F.y : 0) + 'px'); w.style.setProperty('--fz', (F ? F.z : 0) + 'px'); var hostF = $('#hv'); if (hostF) hostF.classList.toggle('focused', !!HV.focus); w.style.setProperty('--z', HV.zoom * (HV.inside ? 1.12 : 1));
+    var zz = HV.zoom * (HV.inside ? 1.12 : 1), key = HV.a + '|' + hvTilt() + '|' + zz;
+    if (HV.camKey !== key || !HV.walk) { w.style.setProperty('--a', HV.a + 'deg'); w.style.setProperty('--t', hvTilt() + 'deg'); w.style.setProperty('--z', zz); HV.camKey = key; }
+    var hostF = $('#hv'); if (hostF) hostF.classList.toggle('focused', !!HV.focus);
+    if (HV.walk && !HV.focus) {
+      w.style.transform = 'scale(' + zz + ') rotateX(' + hvTilt() + 'deg) rotateY(' + HV.a + 'deg) translate3d(' + (-HV.walk.x).toFixed(2) + 'px,' + (-(FLOOR_Y - HV.walk.y - 24)).toFixed(2) + 'px,' + (-HV.walk.z).toFixed(2) + 'px)';
+      return;
+    }
+    w.style.transform = '';
+    var F = HV.focus || null; w.style.setProperty('--fx', (F ? F.x : 0) + 'px'); w.style.setProperty('--fy', (F ? F.y : 0) + 'px'); w.style.setProperty('--fz', (F ? F.z : 0) + 'px');
   }
 
   /* the 3D view takes the look of the world the house stands in: its sea and sky colours, how dark it is, and its weather */
@@ -8580,15 +8588,15 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     W.pu = function () { if (HV && HV.walk) ['left', 'right', 'up', 'down'].forEach(function (k) { HV.walk.keys[k] = false; }); };
     document.addEventListener('keydown', W.kd); document.addEventListener('keyup', W.kd);
     if (host) { host.addEventListener('pointerdown', W.pd); document.addEventListener('pointerup', W.pu); document.addEventListener('pointercancel', W.pu); }
-    W.tm = setInterval(hvWalkTick, 33);
+    W.loop = function () { if (!HV || HV.walk !== W) return; hvWalkTick(); W.raf = requestAnimationFrame(W.loop); }; W.raf = requestAnimationFrame(W.loop);
     hvPaint();
     setTimeout(function () { if (HV && HV.walk) { var vh = ($('#hvview') || {}).clientHeight || 400; HV.zoom = Math.max(1.6, Math.min(3, vh / 190)); hvCamera(); } }, 120);
   }
   function hvWalkStop() {
     var W = HV && HV.walk; if (!W) return;
-    clearInterval(W.tm); document.removeEventListener('keydown', W.kd); document.removeEventListener('keyup', W.kd); document.removeEventListener('pointerup', W.pu); document.removeEventListener('pointercancel', W.pu);
+    cancelAnimationFrame(W.raf); document.removeEventListener('keydown', W.kd); document.removeEventListener('keyup', W.kd); document.removeEventListener('pointerup', W.pu); document.removeEventListener('pointercancel', W.pu);
     var host = $('#hv'); if (host) { host.classList.remove('walk'); host.removeEventListener('pointerdown', W.pd); }
-    HV.walk = null; var b = $('.hv-builder'); if (b) b.classList.remove('walking');
+    HV.walk = null; HV.camKey = null; var wo = $('#hvworld'); if (wo) wo.style.transform = ''; var b = $('.hv-builder'); if (b) b.classList.remove('walking');
   }
   function hvWalkLeave() {
     var w = S.world; hvClose();
@@ -8604,7 +8612,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function hvWalkTry(x, z) {
     var W = HV.walk, h = houseOf(HV.id), stairs = !!h.u[1], r = 14, y;
     if (Math.abs(x) > HW / 2 - r) return null;
-    if (z < -HD / 2 + (stairs && x > 66 ? r : 24)) return null;
+    if (z < -HD / 2 + r) return null;
     if (stairs && x > 66 && x < 108 && z > -86 && z < 90) {
       y = hvRamp(z); if (Math.abs(W.y - y) > 22) return null; return y;
     }
@@ -8616,13 +8624,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   function hvWalkTick() {
     var W = HV && HV.walk; if (!W) return;
-    var now = performance.now(), dt = Math.min(0.08, (now - W.last) / 1000), K = W.keys, kx = (K.right ? 1 : 0) - (K.left ? 1 : 0), ky = (K.up ? 1 : 0) - (K.down ? 1 : 0), el = $('.hv-builder'), moved = false, y;
+    var now = performance.now(), dt = Math.min(0.05, (now - W.last) / 1000), K = W.keys, kx = (K.right ? 1 : 0) - (K.left ? 1 : 0), ky = (K.up ? 1 : 0) - (K.down ? 1 : 0), el = $('.hv-builder'), moved = false, y;
     W.last = now;
     if (kx || ky) {
       var L = Math.hypot(kx, ky), a = HV.a * Math.PI / 180, mx = kx / L, my = ky / L, dx = mx * Math.cos(a) + my * Math.sin(a), dz = mx * Math.sin(a) - my * Math.cos(a), sp = 110 * dt;
       y = hvWalkTry(W.x + dx * sp, W.z); if (y !== null) { W.x += dx * sp; W.y = y; moved = true; }
       y = hvWalkTry(W.x, W.z + dz * sp); if (y !== null) { W.z += dz * sp; W.y = y; moved = true; }
     }
+    if (W.z < -76 && W.x < 62 && (W.y < 8 || W.y > HH - 8)) W.z = Math.min(-76, W.z + 90 * dt);
     var lv = W.y > HH * 0.5 ? 1 : 0;
     if (lv !== (HV.floor | 0)) { HV.floor = lv; hvPaint(true); el = $('.hv-builder'); }
     HV.ipos = [W.x, FLOOR_Y - W.y, W.z];
