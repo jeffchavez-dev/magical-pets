@@ -6843,6 +6843,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     function drawCv(dt, now) {
       cx.clearRect(0, 0, W, H);
       var spd = Math.hypot(vel.x, vel.y) * N.k, ang = Math.atan2(vel.y, vel.x), warp = moving && sp >= 2;
+      /* far-away galaxies and nebulae drift very slowly behind the stars */
+      DEEP.forEach(function (b) {
+        var TW = W + 360, TH = H + 280, sz = b.s * Math.min(W, H) * 0.7, x = ((b.u * TW - N.x * b.f * 0.5) % TW + TW) % TW - 180, y = ((b.v * TH - N.y * b.f * 0.5) % TH + TH) % TH - 140;
+        cx.globalAlpha = 0.6; cx.drawImage(b.img, x - sz / 2, y - sz / 2, sz, sz);
+        if (sz > 90) deepLabel(cx, b.n, x, y + sz * 0.42, 0.5);
+      });
+      cx.globalAlpha = 1;
       cx.lineCap = 'round';
       layers.forEach(function (L) {
         var ox = N.x * L.f * 0.5, oy = N.y * L.f * 0.5, sl = Math.min(warp ? 190 : 110, spd * 0.06 * (0.4 + L.f * 3));
@@ -7120,6 +7127,71 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       rescue = true; to = best; var c = UPOS[best], dx = c[0] - ship.x, dy = c[1] - ship.y, d2 = Math.hypot(dx, dy) || 1, stop = uRadius(best) * 1.2 + 24;
       target = { x: c[0] - dx / d2 * stop, y: c[1] - dy / d2 * stop, id: best }; o2 = 0; follow = true; hud(true);
     }
+    /* ---- far-away heavenly bodies: galaxies, nebulae, a black hole, a pulsar... seen from afar in both the map and the 3D view ---- */
+    var DEEP = [
+      { k: 'spi', n: 'Swirly Galaxy', c: ['#fff1c8', '#b388ff', '#ff7eb6'], s: 0.5, rot: -0.5, az: 0.4, el: 0.55, u: 0.18, v: 0.22, f: 0.012 },
+      { k: 'neb', n: 'Rosebud Nebula', c: ['#ff5a9a', '#ff9ac8', '#7a3cff'], s: 0.62, rot: 0, az: 1.15, el: 0.3, u: 0.72, v: 0.18, f: 0.02 },
+      { k: 'bh', n: 'Gobbler Black Hole', c: ['#ffd86b', '#ff7a2a', '#fff'], s: 0.3, rot: -0.35, az: 1.9, el: 0.45, u: 0.9, v: 0.7, f: 0.01 },
+      { k: 'neb', n: 'Emerald Cloud', c: ['#3df0b0', '#4fd8ff', '#2a7a5a'], s: 0.58, rot: 0, az: 2.6, el: 0.25, u: 0.4, v: 0.82, f: 0.018 },
+      { k: 'spi', n: 'Pinwheel Galaxy', c: ['#ffffff', '#7fd8ff', '#4f7aff'], s: 0.4, rot: 0.6, az: 3.3, el: 0.6, u: 0.55, v: 0.45, f: 0.008 },
+      { k: 'rng', n: 'Far Ringworld', c: ['#ffd9a0', '#d08a4a', '#8a5a3a'], s: 0.2, rot: -0.3, az: 3.9, el: 0.2, u: 0.08, v: 0.62, f: 0.03 },
+      { k: 'ell', n: 'Golden Galaxy', c: ['#ffe9a0', '#ffb347', '#ff7a2a'], s: 0.34, rot: 0.4, az: 4.5, el: 0.68, u: 0.3, v: 0.5, f: 0.006 },
+      { k: 'neb', n: 'Blue Whale Nebula', c: ['#4f9aff', '#9ad8ff', '#3a2aa8'], s: 0.6, rot: 0, az: 5.1, el: 0.35, u: 0.85, v: 0.38, f: 0.016 },
+      { k: 'pul', n: 'Blinky Pulsar', c: ['#e8f4ff', '#7fd8ff', '#b388ff'], s: 0.24, rot: 0.5, az: 5.7, el: 0.5, u: 0.62, v: 0.9, f: 0.014 },
+      { k: 'clu', n: 'Jewel Cluster', c: ['#ffe9a0', '#9ad8ff', '#ff9ac8'], s: 0.26, rot: 0, az: 0.9, el: 0.72, u: 0.12, v: 0.88, f: 0.022 },
+      { k: 'neb', n: 'Sunset Nebula', c: ['#ff9a4a', '#ff4a6a', '#6a2aa8'], s: 0.55, rot: 0, az: 6.0, el: 0.28, u: 0.5, v: 0.08, f: 0.02 },
+      { k: 'bin', n: 'Twin Stars', c: ['#9ad8ff', '#ffb347', '#fff'], s: 0.18, rot: 0, az: 2.2, el: 0.7, u: 0.95, v: 0.12, f: 0.025 },
+      { k: 'spi', n: 'Little Lost Galaxy', c: ['#ffffff', '#ffd86b', '#ff9a6a'], s: 0.2, rot: -0.9, az: 4.2, el: 0.42, u: 0.22, v: 0.38, f: 0.005 }
+    ];
+    function hexA(h, a) { var n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
+    function deepSprite(b, idx) {
+      var S = b.k === 'neb' ? 256 : 192, cvs = document.createElement('canvas'), g = cvs.getContext('2d'), R = rng(900 + idx * 7), cc = S / 2, i, t, a, r, x, y, gr;
+      cvs.width = cvs.height = S; g.translate(cc, cc);
+      function glow(rad, col, al) { var q = g.createRadialGradient(0, 0, 0, 0, 0, rad); q.addColorStop(0, hexA(col, al)); q.addColorStop(1, hexA(col, 0)); g.fillStyle = q; g.beginPath(); g.arc(0, 0, rad, 0, 6.2832); g.fill(); }
+      g.globalCompositeOperation = 'lighter';
+      if (b.k === 'spi') {
+        g.rotate(b.rot); g.scale(1, 0.48); glow(cc * 0.95, b.c[1], 0.2); glow(cc * 0.5, b.c[2], 0.22);
+        for (i = 0; i < 900; i++) {
+          t = Math.pow(R(), 0.7); a = (i % 2) * Math.PI + t * 5.2 + (R() - 0.5) * 0.5; r = t * cc * 0.92; x = Math.cos(a) * r + (R() - 0.5) * 7; y = Math.sin(a) * r + (R() - 0.5) * 7;
+          g.fillStyle = hexA(t < 0.45 ? b.c[1] : b.c[2], (1 - t) * 0.75 + 0.15); g.beginPath(); g.arc(x, y, 0.6 + R() * 1.7, 0, 6.2832); g.fill();
+        }
+        glow(cc * 0.3, b.c[0], 0.95); glow(cc * 0.12, '#ffffff', 1);
+      } else if (b.k === 'ell') {
+        g.rotate(b.rot); g.scale(1, 0.68); glow(cc * 0.98, b.c[2], 0.28); glow(cc * 0.65, b.c[1], 0.4); glow(cc * 0.3, b.c[0], 0.85);
+        for (i = 0; i < 160; i++) { t = R() * 6.2832; r = Math.pow(R(), 1.4) * cc * 0.8; g.fillStyle = hexA(b.c[0], 0.5); g.beginPath(); g.arc(Math.cos(t) * r, Math.sin(t) * r, 0.7 + R(), 0, 6.2832); g.fill(); }
+      } else if (b.k === 'neb') {
+        for (i = 0; i < 22; i++) { a = R() * 6.2832; r = R() * cc * 0.42; g.save(); g.translate(Math.cos(a) * r, Math.sin(a) * r * 0.8); glow(cc * (0.2 + R() * 0.3), b.c[i % 3], 0.2 + R() * 0.15); g.restore(); }
+        for (i = 0; i < 40; i++) { a = R() * 6.2832; r = R() * cc * 0.8; g.fillStyle = 'rgba(255,255,255,' + (0.3 + R() * 0.7).toFixed(2) + ')'; g.beginPath(); g.arc(Math.cos(a) * r, Math.sin(a) * r, 0.5 + R() * 1.3, 0, 6.2832); g.fill(); }
+      } else if (b.k === 'bh') {
+        g.rotate(b.rot); glow(cc * 0.95, b.c[1], 0.3);
+        g.save(); g.scale(1, 0.28); gr = g.createLinearGradient(-cc * 0.9, 0, cc * 0.9, 0); gr.addColorStop(0, hexA(b.c[1], 0)); gr.addColorStop(0.25, hexA(b.c[1], 0.85)); gr.addColorStop(0.5, hexA(b.c[2], 1)); gr.addColorStop(0.75, hexA(b.c[1], 0.85)); gr.addColorStop(1, hexA(b.c[1], 0));
+        g.strokeStyle = gr; g.lineWidth = 26; g.beginPath(); g.arc(0, 0, cc * 0.55, 0, 6.2832); g.stroke(); g.lineWidth = 8; g.strokeStyle = hexA(b.c[2], 0.8); g.beginPath(); g.arc(0, 0, cc * 0.48, 0, 6.2832); g.stroke(); g.restore();
+        g.globalCompositeOperation = 'source-over'; g.fillStyle = '#000'; g.beginPath(); g.arc(0, 0, cc * 0.2, 0, 6.2832); g.fill(); g.globalCompositeOperation = 'lighter';
+        g.strokeStyle = hexA(b.c[0], 0.85); g.lineWidth = 3.5; g.beginPath(); g.arc(0, 0, cc * 0.22, Math.PI * 1.08, Math.PI * 1.92); g.stroke();
+        g.strokeStyle = hexA(b.c[1], 0.7); g.lineWidth = 6; g.beginPath(); g.arc(0, 0, cc * 0.27, Math.PI * 1.15, Math.PI * 1.85); g.stroke();
+      } else if (b.k === 'rng') {
+        g.globalCompositeOperation = 'source-over'; g.rotate(b.rot);
+        function ringHalf(front) { g.save(); g.scale(1, 0.3); g.lineWidth = 9; g.strokeStyle = hexA(b.c[0], 0.9); g.beginPath(); g.arc(0, 0, cc * 0.8, front ? 0 : Math.PI, front ? Math.PI : 6.2832); g.stroke(); g.lineWidth = 4; g.strokeStyle = hexA(b.c[2], 0.85); g.beginPath(); g.arc(0, 0, cc * 0.66, front ? 0 : Math.PI, front ? Math.PI : 6.2832); g.stroke(); g.restore(); }
+        ringHalf(false);
+        g.save(); g.beginPath(); g.arc(0, 0, cc * 0.42, 0, 6.2832); g.clip(); g.fillStyle = b.c[1]; g.fillRect(-cc, -cc, S, S);
+        for (i = -5; i < 6; i++) { g.fillStyle = hexA(i % 2 ? b.c[0] : b.c[2], 0.5); g.fillRect(-cc, i * cc * 0.08 - cc * 0.03, S, cc * 0.05); }
+        gr = g.createRadialGradient(-cc * 0.15, -cc * 0.15, cc * 0.05, 0, 0, cc * 0.5); gr.addColorStop(0, 'rgba(255,255,255,.25)'); gr.addColorStop(0.6, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(10,4,30,.7)'); g.fillStyle = gr; g.fillRect(-cc, -cc, S, S); g.restore();
+        ringHalf(true);
+      } else if (b.k === 'clu') {
+        glow(cc * 0.8, b.c[2], 0.2); glow(cc * 0.45, b.c[0], 0.45);
+        for (i = 0; i < 170; i++) { a = R() * 6.2832; r = Math.pow(R(), 1.8) * cc * 0.85; g.fillStyle = hexA(b.c[i % 3], 0.5 + R() * 0.5); g.beginPath(); g.arc(Math.cos(a) * r, Math.sin(a) * r, 0.7 + R() * 1.6, 0, 6.2832); g.fill(); }
+      } else if (b.k === 'pul') {
+        g.rotate(b.rot); glow(cc * 0.5, b.c[2], 0.4);
+        [-1, 1].forEach(function (d) { gr = g.createLinearGradient(0, 0, 0, d * cc * 0.98); gr.addColorStop(0, hexA(b.c[1], 0.95)); gr.addColorStop(1, hexA(b.c[1], 0)); g.fillStyle = gr; g.beginPath(); g.moveTo(-5, 0); g.lineTo(0, d * cc * 0.98); g.lineTo(5, 0); g.closePath(); g.fill(); });
+        glow(cc * 0.18, '#ffffff', 1);
+      } else {
+        glow(cc * 0.9, b.c[0], 0.18); glow(cc * 0.9, b.c[1], 0.18);
+        [[-cc * 0.22, -cc * 0.05, b.c[0]], [cc * 0.2, cc * 0.06, b.c[1]]].forEach(function (q) { g.save(); g.translate(q[0], q[1]); glow(cc * 0.35, q[2], 0.85); glow(cc * 0.1, '#ffffff', 1); g.strokeStyle = hexA(q[2], 0.6); g.lineWidth = 1.5; g.beginPath(); g.moveTo(-cc * 0.5, 0); g.lineTo(cc * 0.5, 0); g.moveTo(0, -cc * 0.5); g.lineTo(0, cc * 0.5); g.stroke(); g.restore(); });
+      }
+      return cvs;
+    }
+    DEEP.forEach(function (b, i) { b.img = deepSprite(b, i); });
+    function deepLabel(g, txt, x, y, al) { g.globalAlpha = al; g.font = '600 12px Fredoka, sans-serif'; g.textAlign = 'center'; g.fillStyle = '#d6ccff'; g.lineWidth = 3; g.strokeStyle = 'rgba(10,4,40,.8)'; g.strokeText(txt, x, y); g.fillText(txt, x, y); }
     /* ---- 3D chase view: fly behind your rocket and see the worlds, the Sun and comets come toward you ---- */
     var view3 = true; try { view3 = localStorage.getItem('magical-pets-space3d') !== '0'; } catch (e3) { /* optional */ }
     var cv3 = root.querySelector('#asCv3'), c3 = cv3.getContext('2d'), camAng = -Math.PI / 2, shown3 = [], pimg = {}, shipImg = null, R3 = rng(77), st3 = [], pg3 = null, tilt3 = 0;
@@ -7148,6 +7220,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var g = c3.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#050218'); g.addColorStop(0.42, '#1a0f55'); g.addColorStop(0.43, '#0b0630'); g.addColorStop(1, '#2a1670'); c3.fillStyle = g; c3.fillRect(0, 0, W, H);
       /* stars wrap around the sky as you turn */
       c3.fillStyle = '#fff'; st3.forEach(function (q) { var a = q.az - camAng; a = Math.atan2(Math.sin(a), Math.cos(a)); if (Math.abs(a) > 1.25) return; c3.globalAlpha = q.a * (0.7 + 0.3 * Math.sin(now / 400 + q.az * 9)); c3.beginPath(); c3.arc(W / 2 + a * F * 0.8, hz - q.el * H * 0.55, q.r, 0, 6.283); c3.fill(); }); c3.globalAlpha = 1;
+      /* far-away galaxies, nebulae and more sit on the sky and turn with you; they never get closer */
+      DEEP.forEach(function (q) {
+        var a = q.az - camAng; a = Math.atan2(Math.sin(a), Math.cos(a)); if (Math.abs(a) > 1.5) return;
+        var x = W / 2 + a * W * 0.42, y = hz - q.el * hz * 1.15, sz = q.s * Math.min(W, H * 1.3) * 0.5;
+        c3.globalAlpha = 0.9 * Math.min(1, (1.5 - Math.abs(a)) * 3); c3.drawImage(q.img, x - sz / 2, y - sz / 2, sz, sz);
+        if (sz > 70 && Math.abs(a) < 0.7) deepLabel(c3, q.n, x, y + sz * 0.46, 0.6);
+      });
+      c3.globalAlpha = 1;
       /* sun: a huge glowing ball at the centre of space */
       var sp0 = proj(0, 0, SUNR * 0.4, camH, F, hz);
       /* grid of little lights on the floor of space so you can feel how fast you fly */
