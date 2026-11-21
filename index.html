@@ -1311,6 +1311,23 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .gl-pin { position: absolute; transform: translate(-50%, -100%); pointer-events: none; white-space: nowrap; font: 700 12px Fredoka, sans-serif; color: #fff; text-shadow: 0 1px 3px #000, 0 0 6px #000; text-align: center; }
 .gl-pin i { display: block; width: 12px; height: 12px; margin: 0 auto 2px; border-radius: 50%; background: var(--c, #ffd86b); border: 2px solid #fff; box-shadow: 0 0 8px var(--c, #ffd86b); }
 .gl-hint { position: relative; z-index: 3; margin: 0 0 max(14px, env(safe-area-inset-bottom, 0px)); padding: 8px 14px; border-radius: 16px; background: rgba(26,12,80,.9); border: 2px solid rgba(179,136,255,.55); font-size: .92rem; text-align: center; max-width: min(94vw, 520px); }
+.gl-isl { position: relative; z-index: 3; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 0 8px 6px; max-width: min(96vw, 560px); }
+.gl-isl .btn { min-height: 36px; padding: 0 12px; font-size: .85rem; }
+.gl-card { position: relative; z-index: 3; width: min(94vw, 520px); box-sizing: border-box; margin: 0 0 6px; padding: 10px 14px; border-radius: 16px; background: rgba(26,12,80,.94); border: 2px solid rgba(255,216,107,.6); font-size: .92rem; line-height: 1.35; display: none; }
+.gl-card.on { display: block; }
+.gl-card .btn { margin-top: 8px; width: 100%; }
+.isl { position: fixed; inset: 0; z-index: 430; display: flex; flex-direction: column; align-items: center; color: #fff; background: linear-gradient(#69c9f2, #2f86d6 55%, #0f4f9a); opacity: 0; transition: opacity .5s; overflow: hidden; touch-action: manipulation; }
+.isl.in { opacity: 1; }
+.isl-top { position: relative; z-index: 3; width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+.isl-top b { font-family: Fredoka, sans-serif; font-size: 1.2rem; flex: 1; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.isl-scene { position: relative; flex: 1; width: min(100%, 720px); min-height: 0; }
+.isl-scene svg.isl-bg { overflow: visible; position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; }
+.isl-find { position: absolute; width: 74px; height: 74px; margin: -37px 0 0 -37px; padding: 0; border: 0; background: none; cursor: pointer; animation: islBob 1.8s ease-in-out infinite; filter: drop-shadow(0 4px 4px rgba(0,0,0,.35)); }
+.isl-find svg { width: 100%; height: 100%; }
+.isl-find.got { opacity: .25; animation: none; pointer-events: none; }
+@keyframes islBob { 50% { transform: translateY(-8px); } }
+.isl-fact { position: relative; z-index: 3; width: min(94vw, 520px); margin: 0 0 max(12px, env(safe-area-inset-bottom, 0px)); padding: 12px 14px; border-radius: 18px; background: rgba(26,12,80,.92); border: 2px solid rgba(255,255,255,.4); line-height: 1.4; min-height: 3.2em; }
+@media (prefers-reduced-motion: reduce) { .isl-find { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .astro.warp .as-vig { animation: none; } }
 .gh-svg { width: 100%; height: 100%; display: block; overflow: visible; pointer-events: none; filter: drop-shadow(0 0 7px rgba(255,216,107,.95)); }
 .sprite.gh-shake .gh-svg { animation: ghShake .36s ease-in-out; transform-origin: 50% 92%; }
@@ -2030,7 +2047,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!S.team.length) return;
       dexSync();
       stashWorld();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, fairyW: S.fairyW | 0, deep: S.deep || {}, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, dig: S.dig || {}, pits: S.pits || {}, wf: S.wf || {}, carry: S.carry || null, rvDone: !!S.rvDone, rvN: S.rvN | 0, rvFairy: S.rvFairy | 0, rvWins: S.rvWins | 0, lt: S.lt || '', seeds: S.seeds | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, fairyW: S.fairyW | 0, deep: S.deep || {}, isl: S.isl || {}, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, dig: S.dig || {}, pits: S.pits || {}, wf: S.wf || {}, carry: S.carry || null, rvDone: !!S.rvDone, rvN: S.rvN | 0, rvFairy: S.rvFairy | 0, rvWins: S.rvWins | 0, lt: S.lt || '', seeds: S.seeds | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
         stones: S.stones.map(function (s) { return s.id; }), caught: S.caught, wilds: S.wilds, freed: S.freed, opened: S.opened, beaten: S.beaten, coins: S.coins, boots: S.boots, bag: S.bag, portals: S.portals, suns: S.suns, food: S.food,
         cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, w: a.w ? 1 : 0, dur: a.dur | 0, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)), uc: q.uc, px: q.px } }; }) }));
     } catch (x) { /* storage can be unavailable; the game still works */ }
@@ -2059,7 +2076,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.cageLv = Math.max(0, Math.min(4, d.cageLv | 0));
     S.suit = {}; SUIT.forEach(function (p) { if (d.suit && d.suit[p.id]) S.suit[p.id] = 1; });
     S.ship = {}; SHIP.forEach(function (q) { S.ship[q.id] = Math.max(0, Math.min(3, (d.ship && d.ship[q.id]) | 0)); });
-    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.deep = {}; if (d.deep && typeof d.deep === 'object') Object.keys(d.deep).slice(0, 40).forEach(function (k) { var q = d.deep[k]; if (q && Array.isArray(q.p)) S.deep[String(k).slice(0, 40)] = { p: q.p.slice(0, 6).map(function (n) { return n | 0; }), d: q.d ? 1 : 0 }; }); S.fairyW = Math.max(0, Math.min(99, d.fairyW | 0)); S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.rvN = Math.max(0, Math.min(999, d.rvN | 0)); S.seeds = Math.max(0, Math.min(99, d.seeds | 0)); S.lt = String(d.lt || '').toUpperCase().replace(/[^A-Z0-9]/g, '').split('').filter(function (c, i, a) { return a.indexOf(c) === i; }).join(''); S.pits = {}; Object.keys(d.pits || {}).forEach(function (k) { if (WORLDS[k] && Array.isArray(d.pits[k])) S.pits[k] = d.pits[k].filter(function (q) { return q && isFinite(q.x) && isFinite(q.y); }).slice(0, PIT_MAX + PARK_MAX).map(function (q) { return { p: q.p ? 1 : 0, x: Math.round(+q.x), y: Math.round(+q.y), f: Math.max(0, Math.min(PIT_FULL, q.f | 0)), s: q.p ? Math.max(0, Math.min(2, q.s | 0)) : 0, n: String(q.n || 'My Pond').slice(0, 24) }; }); }); S.wf = {}; if (d.wf && typeof d.wf === 'object') Object.keys(d.wf).forEach(function (k) { if (WORLDS[k]) S.wf[k] = Math.max(0, Math.min(99, d.wf[k] | 0)); }); S.carry = d.carry && d.carry.amt > 0 ? { amt: Math.min(60, d.carry.amt | 0), pet: String(d.carry.pet || '').slice(0, 20) } : null; syncPits(); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
+    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.isl = {}; if (d.isl && typeof d.isl === 'object') Object.keys(d.isl).slice(0, 120).forEach(function (k) { if (d.isl[k]) S.isl[String(k).slice(0, 40)] = 1; }); S.deep = {}; if (d.deep && typeof d.deep === 'object') Object.keys(d.deep).slice(0, 40).forEach(function (k) { var q = d.deep[k]; if (q && Array.isArray(q.p)) S.deep[String(k).slice(0, 40)] = { p: q.p.slice(0, 6).map(function (n) { return n | 0; }), d: q.d ? 1 : 0 }; }); S.fairyW = Math.max(0, Math.min(99, d.fairyW | 0)); S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.rvN = Math.max(0, Math.min(999, d.rvN | 0)); S.seeds = Math.max(0, Math.min(99, d.seeds | 0)); S.lt = String(d.lt || '').toUpperCase().replace(/[^A-Z0-9]/g, '').split('').filter(function (c, i, a) { return a.indexOf(c) === i; }).join(''); S.pits = {}; Object.keys(d.pits || {}).forEach(function (k) { if (WORLDS[k] && Array.isArray(d.pits[k])) S.pits[k] = d.pits[k].filter(function (q) { return q && isFinite(q.x) && isFinite(q.y); }).slice(0, PIT_MAX + PARK_MAX).map(function (q) { return { p: q.p ? 1 : 0, x: Math.round(+q.x), y: Math.round(+q.y), f: Math.max(0, Math.min(PIT_FULL, q.f | 0)), s: q.p ? Math.max(0, Math.min(2, q.s | 0)) : 0, n: String(q.n || 'My Pond').slice(0, 24) }; }); }); S.wf = {}; if (d.wf && typeof d.wf === 'object') Object.keys(d.wf).forEach(function (k) { if (WORLDS[k]) S.wf[k] = Math.max(0, Math.min(99, d.wf[k] | 0)); }); S.carry = d.carry && d.carry.amt > 0 ? { amt: Math.min(60, d.carry.amt | 0), pet: String(d.carry.pet || '').slice(0, 20) } : null; syncPits(); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
     S.scrap = Math.max(0, Math.min(99, d.scrap | 0)); S.tank = Math.max(0, Math.min(TANKS.length - 1, d.tank | 0)); S.o2 = Math.max(0, Math.min(TANKS[S.tank].cap, d.o2 | 0));
     S.cage = (Array.isArray(d.cage) ? d.cage : []).filter(function (p) { return p && TYPES[p.type]; }).slice(0, S.cageLv ? CAGE_CAP[S.cageLv - 1] : 0);
     S.team.concat(S.cage).forEach(function (p) { if (!p.body) p.body = bodyFor(p.type, p.id); if (!p.prog) migrateProg(p); });
@@ -4310,7 +4327,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       (rotateDismissed ? '' : '<div class="rotatehint" id="rotatehint"><span>Turn your phone sideways for the best view</span><button class="btn small" data-act="fullscreen">Full screen</button><button class="rx" data-act="dismissrotate" aria-label="Dismiss">&times;</button></div>') +
       '<button class="minimap" id="minimap" data-act="birds" aria-label="Open the big map" aria-expanded="false"><svg viewBox="0 0 100 100" aria-hidden="true"></svg><span class="mm-hint">Map</span></button>' +
       '<button class="viewbtn" id="viewbtn" data-act="birds" aria-pressed="false" hidden>Close map</button>' +
-      '<div class="sidebtns"><button class="feedbtn" id="feedbtn" data-act="feedbag">Feed pets</button><button class="portalbtn dexbtn' + (S.dexNew ? ' glow' : '') + '" id="dexbtn" data-act="dex">Petdex</button><button class="portalbtn" id="portalbtn" data-act="portalhome" hidden>Portal home</button><button class="portalbtn flybtn" id="flybtn" data-act="fly" hidden>Fly</button><button class="portalbtn powbtn" id="powbtn" data-act="powers" hidden>Powers</button><button class="portalbtn toolbtn" id="toolbtn" data-act="tools" hidden>Tools</button><button class="portalbtn spacebtn" id="spacebtn" data-act="space" hidden>Space</button><button class="portalbtn divebtn" id="divebtn" data-act="dive" hidden>Dive</button><button class="portalbtn digbtn" id="digbtn" data-act="dig" hidden>Dig</button><button class="portalbtn pitbtn" id="pitbtn" data-act="pitdig" hidden>Dig a pond</button><button class="portalbtn wfbtn" id="wfbtn" data-act="wfind" hidden>Find water</button><button class="portalbtn parkbtn" id="parkbtn" data-act="parkdig" hidden>Plant a park</button><button class="portalbtn sunbtn" id="sunbtn" data-act="usesun" hidden>Use sun</button></div>' + padHTML() + peekHTML() + '</div>' +
+      '<div class="sidebtns"><button class="feedbtn" id="feedbtn" data-act="feedbag">Feed pets</button><button class="portalbtn dexbtn' + (S.dexNew ? ' glow' : '') + '" id="dexbtn" data-act="dex">Petdex</button><button class="portalbtn globebtn" id="globebtn" data-act="globe">Globe</button><button class="portalbtn" id="portalbtn" data-act="portalhome" hidden>Portal home</button><button class="portalbtn flybtn" id="flybtn" data-act="fly" hidden>Fly</button><button class="portalbtn powbtn" id="powbtn" data-act="powers" hidden>Powers</button><button class="portalbtn toolbtn" id="toolbtn" data-act="tools" hidden>Tools</button><button class="portalbtn spacebtn" id="spacebtn" data-act="space" hidden>Space</button><button class="portalbtn divebtn" id="divebtn" data-act="dive" hidden>Dive</button><button class="portalbtn digbtn" id="digbtn" data-act="dig" hidden>Dig</button><button class="portalbtn pitbtn" id="pitbtn" data-act="pitdig" hidden>Dig a pond</button><button class="portalbtn wfbtn" id="wfbtn" data-act="wfind" hidden>Find water</button><button class="portalbtn parkbtn" id="parkbtn" data-act="parkdig" hidden>Plant a park</button><button class="portalbtn sunbtn" id="sunbtn" data-act="usesun" hidden>Use sun</button></div>' + padHTML() + peekHTML() + '</div>' +
       '</section>';
   };
 
@@ -6402,16 +6419,55 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     h.push('<button class="btn ghost small" data-act="closesheet">Not now</button></div>');
     return h.join('');
   }
-  function startDive(lake, useTank) {
+
+  function isleItemSVG() { return '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#ffe27a" opacity=".3"/><circle cx="50" cy="50" r="38" fill="none" stroke="#fff3b0" stroke-width="6"/><path d="M26 62 Q50 40 74 62 Z" fill="#f2dfae" stroke="#fff" stroke-width="3"/><path d="M50 58 V34" stroke="#8a5a3a" stroke-width="4" stroke-linecap="round"/><path d="M50 36 Q36 30 30 38 M50 36 Q64 30 70 38 M50 36 Q50 22 50 20" stroke="#4fbf6a" stroke-width="5" fill="none" stroke-linecap="round"/></svg>'; }
+  /* a dive to a sea islet: opens the normal dive with an islet passage to find */
+  function swimToIslet(q) {
+    if (S.screen !== 'world' || warping || document.querySelector('#sheet, #dive, #dig, #astro, #studio, #par, #hv, .rv, .gl')) return;
+    var sp = WD().spots.filter(function (x) { return x.k === 'pond' && !x.dug; })[0] || { k: 'pond', x: 0, y: 0 };
+    startDive({ k: 'pond', lake: true, t: 'Open sea', x: sp.x, y: sp.y }, false, q);
+  }
+  /* the islet itself: a small sunny beach with three things to find */
+  function openIslet(q) {
+    var W = WORLDS[S.cur] || {}, host = document.createElement('div'), done = !!(S.isl && S.isl[q.id]), got = [], need = 3, fx = [[28, 62], [52, 46], [74, 64]], items = [], i;
+    var TY = (W.types || ['water']).filter(function (t) { return BODY_OPTIONS[t]; });
+    if (q.kind === 'berry') for (i = 0; i < 3; i++) items.push({ t: 'berry', f: 'Sweet sea berries! +2 pet food.' });
+    else if (q.kind === 'shell') for (i = 0; i < 3; i++) items.push({ t: 'shell', f: 'A pretty shell! +8 coins.' });
+    else { items.push({ t: 'pet', f: '' }, { t: 'shell', f: 'A pretty shell! +6 coins.' }, { t: 'shell', f: 'A pretty shell! +6 coins.' }); }
+    function icon(t) {
+      return t === 'berry' ? '<svg viewBox="0 0 60 60"><path d="M30 14 Q24 4 16 8" stroke="#4fbf6a" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="22" cy="38" r="14" fill="#ff5a8a" stroke="#fff" stroke-width="3"/><circle cx="40" cy="36" r="13" fill="#e0407a" stroke="#fff" stroke-width="3"/><circle cx="18" cy="33" r="3" fill="#fff" opacity=".6"/></svg>'
+        : t === 'shell' ? '<svg viewBox="0 0 60 60"><path d="M8 40 Q8 12 30 12 Q52 12 52 40 Q52 52 30 52 Q8 52 8 40Z" fill="#ffb3d9" stroke="#fff" stroke-width="3"/><path d="M30 14 V50 M18 18 L22 50 M42 18 L38 50" stroke="#e07aa8" stroke-width="3" fill="none"/></svg>'
+        : '<svg viewBox="0 0 60 60"><ellipse cx="30" cy="38" rx="20" ry="16" fill="#9fe8f0" stroke="#fff" stroke-width="3"/><circle cx="30" cy="22" r="12" fill="#c8f6fa" stroke="#fff" stroke-width="3"/><circle cx="26" cy="21" r="2.5" fill="#2a1a55"/><circle cx="35" cy="21" r="2.5" fill="#2a1a55"/><path d="M26 27 Q30 31 34 27" stroke="#2a1a55" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>';
+    }
+    host.className = 'isl'; host.setAttribute('role', 'dialog'); host.setAttribute('aria-label', q.n);
+    host.innerHTML = '<div class="isl-top"><b>' + esc(q.n) + '</b><button class="btn small" id="islBack">Swim back</button></div><div class="isl-scene" id="islScene"><svg class="isl-bg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><ellipse cx="50" cy="92" rx="60" ry="22" fill="#2a78c8" opacity=".5"/><ellipse cx="50" cy="82" rx="46" ry="16" fill="#9fe8f0" opacity=".6"/><ellipse cx="50" cy="80" rx="40" ry="13" fill="#f2dfae"/><ellipse cx="50" cy="77" rx="32" ry="9" fill="#7bd66a"/><path d="M84 76 V52" stroke="#8a5a3a" stroke-width="2.5" stroke-linecap="round"/><path d="M84 54 Q74 49 70 56 M84 54 Q94 49 98 56 M84 54 Q84 44 84 42" stroke="#4fbf6a" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div><div class="isl-fact" id="islFact"><b>You made it to ' + esc(q.n) + '!</b> ' + (done ? 'You already took everything here. Come and look around anyway!' : 'Tap the things on the beach to collect them.') + '</div>';
+    document.body.appendChild(host);
+    var scene = host.querySelector('#islScene'), fact = host.querySelector('#islFact'), petMade = null;
+    items.forEach(function (it, idx) {
+      var b = document.createElement('button'); b.className = 'isl-find' + (done ? ' got' : ''); b.style.left = fx[idx][0] + '%'; b.style.top = fx[idx][1] + '%'; b.setAttribute('aria-label', it.t === 'berry' ? 'Berries' : it.t === 'shell' ? 'Shell' : 'A friendly pet'); b.innerHTML = icon(it.t); scene.appendChild(b);
+      b.onclick = function () {
+        if (b.classList.contains('got')) return; b.classList.add('got'); got.push(idx); var msg = it.f;
+        if (it.t === 'berry') { var room = Math.max(0, Math.min(2, foodCap() - S.food)); S.food += room; if (Math.random() < 0.5 && (S.seeds | 0) < 5) { S.seeds = (S.seeds | 0) + 1; msg += ' And a berry seed for planting a park!'; } }
+        else if (it.t === 'shell') S.coins += (q.kind === 'shell' ? 8 : 6);
+        else { var ty = TY.length ? TY[Math.floor(Math.random() * TY.length)] : 'water'; petMade = newPet(ty, 'powerful', pick(BODY_OPTIONS[ty] || BODY_OPTIONS.water)); petMade.name = S.world ? freeName(S.world) : 'Islet'; S.team.push(petMade); S.caught[ty] = true; if (S.world) addFollowerEnt(petMade); msg = 'A friendly ' + TYPES[ty].name + ' pet was waiting here and joins your team: ' + petMade.name + '!'; }
+        if (got.length === need) { S.isl = S.isl || {}; S.isl[q.id] = 1; if (q.kind === 'shell' && level() >= ASTRO_LV) { S.scrap = Math.min(99, S.scrap + 2); msg += ' All found! +2 star scrap.'; } else msg += ' You found everything on ' + q.n + '!'; }
+        fact.innerHTML = '<b>' + esc(msg) + '</b>'; save(); try { updateHud(); } catch (e6) { /* optional */ }
+      };
+    });
+    function close() { host.classList.remove('in'); setTimeout(function () { if (host.parentNode) host.parentNode.removeChild(host); }, 500); wmsg('You swam back from ' + q.n + '.'); }
+    host.querySelector('#islBack').onclick = close;
+    requestAnimationFrame(function () { requestAnimationFrame(function () { host.classList.add('in'); }); });
+  }
+  function startDive(lake, useTank, isle) {
     var mates = S.team.filter(canSwim).slice(0, 3), secs = diveBase() + DIVE_MATE * mates.length + (useTank ? TANK_SEC : 0), left = secs, pal = (WORLDS[S.cur] && WORLDS[S.cur].pal.lake) || ['#8fd8ff', '#3e9fe0'];
     if (useTank) { S.air--; save(); }
     warping = true; var dvb = $('#divebtn'); if (dvb) dvb.hidden = true;
     var W = window.innerWidth, H = window.innerHeight, small = !lake.lake, WW = small ? Math.max(820, W * 1.25) : Math.max(1500, W * 2.2), HH = small ? Math.max(720, H * 1.3) : Math.max(1100, H * 2), loot = { mats: {}, scrap: 0, sea: [], coins: 0, pts: 0, food: 0, pearl: false }, items = [], over = false, raf = 0, last = performance.now(), keys = {};
-    var tun0 = !!teleReady('pond') && pitOpen(lake), root = document.createElement('div'); root.className = 'dive'; root.id = 'dive'; root.setAttribute('role', 'group'); root.setAttribute('aria-label', 'Diving under the water');
+    var tun0 = !isle && !!teleReady('pond') && pitOpen(lake), root = document.createElement('div'); root.className = 'dive'; root.id = 'dive'; root.setAttribute('role', 'group'); root.setAttribute('aria-label', 'Diving under the water');
     root.style.background = 'linear-gradient(' + pal[0] + ', ' + pal[1] + ' 55%, #0c2a52)';
     root.innerHTML = '<div class="dv-world" id="dvWorld" style="width:' + WW + 'px;height:' + HH + 'px"><div class="dv-surface"></div><div class="dv-bed"></div></div><i class="dv-bub b1"></i><i class="dv-bub b2"></i><i class="dv-bub b3"></i>' +
       '<div class="as-top"><div class="as-title"><span>Diving &middot; <em id="dvPts">0 points</em></span><b>' + esc(lake.t) + '</b></div><div class="as-o2"><span>Breath <em id="dvT"></em></span><div class="as-bar"><i id="dvBar"></i></div></div><button class="btn ghost small" id="dvUp">Come up</button></div>' +
-      '<p class="as-hint">Tap or drag to swim. Steer around the corals and rocks! Touch things to grab them. Catch bubbles for more breath!' + (tun0 ? ' <b>A warp tunnel is hidden down here. Find it!</b>' : '') + '</p>';
+      '<p class="as-hint">Tap or drag to swim. Steer around the corals and rocks! Touch things to grab them. Catch bubbles for more breath!' + (tun0 ? ' <b>A warp tunnel is hidden down here. Find it!</b>' : '') + (isle ? ' <b>Find the glowing passage up to ' + esc(isle.n) + '!</b>' : '') + '</p>';
     document.body.appendChild(root);
     var wd = root.querySelector('#dvWorld'), bed = root.querySelector('.dv-bed');
     for (var pi = 0; pi < 22; pi++) { var pl = document.createElement('i'); pl.className = 'dv-weed'; pl.style.left = (Math.random() * 100) + '%'; pl.style.height = (30 + Math.random() * 60) + 'px'; pl.style.animationDelay = '-' + (Math.random() * 3).toFixed(1) + 's'; bed.appendChild(pl); }
@@ -6427,7 +6483,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     function blocked(x, y, m) { return obs.some(function (o) { return Math.hypot(x - o.x, y - o.y) < o.r + m; }); }
     var me = document.createElement('div'); me.className = 'dv-me'; me.innerHTML = heroSVG(S.boots); wd.appendChild(me);
     var dm = mates.map(function (p) { var el = document.createElement('div'); el.className = 'dv-pet'; el.innerHTML = petSVG(p.type, p.stage, p.name, p.body); wd.appendChild(el); return { el: el, x: WW / 2 - 40, y: 100 }; });
-    var picking = false, warpMode = false, warpMsg = '', bonkT = 0, touching = false, ending = false, P = { x: WW / 2, y: 70 }, tg = { x: WW / 2, y: 220 }, cam = { x: 0, y: 0 }, ang = 180, kbT = 0;
+    var isleGo = null, picking = false, warpMode = false, warpMsg = '', bonkT = 0, touching = false, ending = false, P = { x: WW / 2, y: 70 }, tg = { x: WW / 2, y: 220 }, cam = { x: 0, y: 0 }, ang = 180, kbT = 0;
     function add(kind, sub, x, y, size, html) {
       for (var bt = 0; bt < 60 && blocked(x, y, size / 2 + 26); bt++) { x = rx(); if (bt > 30) y = ry(); }
       var el = document.createElement('div'); el.className = 'dv-it k-' + kind; el.style.width = el.style.height = size + 'px'; el.innerHTML = html; wd.appendChild(el);
@@ -6438,7 +6494,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (level() >= HOUSE_LV) for (ni = 0; ni < (small ? 3 : 5); ni++) { var mk = Math.random() < 0.5 ? mats[0] : Math.random() < 0.6 ? mats[1] : mats[2]; add('mat', mk, rx(), ry(), 44, '<svg viewBox="0 0 60 60"><rect x="12" y="12" width="36" height="36" rx="9" fill="' + MAT_BY[mk].col + '" stroke="#fff" stroke-width="3" transform="rotate(12 30 30)"/><circle cx="23" cy="22" r="4" fill="#fff" opacity=".7"/></svg>'); }
     if (level() >= ASTRO_LV) for (ni = 0; ni < (small ? 1 : 3); ni++) add('scrap', '', rx(), ry(), 44, scrapSVG().replace(/<span.*$/, ''));
     for (ni = 0; ni < (small ? 5 : 9); ni++) { var sc = divePool[Math.floor(Math.random() * divePool.length)]; add('sea', sc.id, rx(), 200 + Math.random() * (HH - 380), sc.sz, seaSVG(sc.id, sc.col)); }
-    var tun = pitOpen(lake) && teleReady('pond');
+    var tun = !isle && pitOpen(lake) && teleReady('pond');
+    if (isle) add('isle', '', small ? WW / 2 + 160 : rx(), HH - 220 - Math.random() * 60, 110, isleItemSVG());
     if (tun) add('tunnel', '', small ? WW / 2 + (Math.random() < 0.5 ? -1 : 1) * (130 + Math.random() * 120) : rx(), small ? HH - 200 : HH - 230 - Math.random() * 60, 104, tunnelSVG());
     if (Math.random() < 0.2) add('pearl', '', rx(), HH - 190 - Math.random() * 60, 58, pearlSVG());
     for (ni = 0; ni < (small ? 2 : 4); ni++) add('air', '', rx(), ry(), 40, '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="#fff" fill-opacity=".3" stroke="#fff" stroke-width="3"/><ellipse cx="22" cy="21" rx="6" ry="4" fill="#fff" transform="rotate(-30 22 21)"/><text x="30" y="37" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="16" fill="#fff">+</text></svg>');
@@ -6513,7 +6570,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var st = document.createElement('div'); st.className = 'as-count go'; st.style.top = '34%'; st.textContent = 'Splash!'; root.appendChild(st);
       setTimeout(function () { warping = false; var hh = S.world && S.world.ents[0]; if (hh) dripOff(hh); }, 350);
       setTimeout(function () { root.classList.add('out'); }, 800);
-      setTimeout(function () { if (root.parentNode) root.parentNode.removeChild(root); }, 1400);
+      setTimeout(function () { if (root.parentNode) root.parentNode.removeChild(root); if (isleGo) { var ig = isleGo; isleGo = null; openIslet(ig); } }, 1400);
     }
     function frame(now) {
       if (over) return;
@@ -6552,6 +6609,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         if (it.kind === 'mat') { loot.mats[it.sub] = (loot.mats[it.sub] || 0) + 1; addPts(5); pop(it.x, it.y, MAT_BY[it.sub].name + ' +5'); }
         else if (it.kind === 'scrap') { loot.scrap++; addPts(8); pop(it.x, it.y, '+1 scrap +8'); }
         else if (it.kind === 'tunnel') { if (it.cool && now < it.cool) return true; var tr = teleReady('pond'); if (!tr) { it.cool = now + 1e9; return true; } pop(it.x, it.y, 'Warp tunnel!'); openPick(it, tr); return true; }
+        else if (it.kind === 'isle') { pop(it.x, it.y, isle.n + '!'); isleGo = isle; finish('isle'); }
         else if (it.kind === 'pearl') { loot.pearl = true; addPts(30); pop(it.x, it.y, 'A pearl! +30'); }
         else if (it.kind === 'air') { left = Math.min(secs, left + 5); pop(it.x, it.y, '+5 sec'); }
         else { var first = !S.sea[it.sub] && loot.sea.indexOf(it.sub) < 0; loot.sea.push(it.sub); var sq = SEA_BY[it.sub], c = first ? 10 : 2, pp2 = sq.pts + (first ? 10 : 0); loot.coins += c; loot.food += sq.food; addPts(pp2); pop(it.x, it.y, (first ? 'New friend! ' : '') + sq.name + ' +' + pp2 + (sq.food ? ' (+' + sq.food + ' food)' : '')); }
@@ -6846,6 +6904,21 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
 
   /* ----- globes: every world as a ball you can spin, like Google Earth. The flat world map is wrapped onto a sphere (an island cap with sea all round it). ----- */
+
+  /* ----- sea islets: small stops far out in the sea of each globe. Bigger worlds have more. You reach them by diving. ----- */
+  var ISL_NAMES = ['Coral Isle', 'Pearl Isle', 'Palm Nook', 'Shell Cay', 'Mist Isle', 'Kelp Isle', 'Star Isle', 'Tide Rock'], ISL_KIND = ['berry', 'shell', 'pet'];
+  function isletsOf(id) {
+    var W = WORLDS[id]; if (!W) return []; if (W._isl) return W._isl;
+    var n = Math.max(2, Math.min(6, Math.round((W.s || 1) * 1.1))), R = rng((W.seed | 0) + 555), out = [], tries = 0, off = (W.seed | 0) % ISL_NAMES.length;
+    while (out.length < n && tries++ < 500) {
+      var lon = (R() * 2 - 1) * Math.PI, lat = (R() * 2 - 1) * 1.0, cl = Math.cos(lat), v = [cl * Math.sin(lon), Math.sin(lat), cl * Math.cos(lon)];
+      if (Math.acos(v[2]) < 1.5) continue;
+      if (out.some(function (q) { return Math.acos(Math.max(-1, Math.min(1, q.v[0] * v[0] + q.v[1] * v[1] + q.v[2] * v[2]))) < 0.6; })) continue;
+      var k = out.length, rho = 0.1 + R() * 0.05;
+      out.push({ id: id + ':' + k, n: ISL_NAMES[(k + off) % ISL_NAMES.length], lon: lon, lat: lat, v: v, rho: rho, kind: ISL_KIND[(k + (W.seed | 0)) % 3], c1: Math.cos(rho * 1.8), c2: Math.cos(rho), c3: Math.cos(rho * 0.6) });
+    }
+    return (W._isl = out);
+  }
   var GL = { tex: {}, nrm: {}, K: 0.333 };
   GL.load = function (id, cb) {
     var t = GL.tex[id]; if (t && t.ready) { cb(t); return; } if (t && t.wait) { t.wait.push(cb); return; }
@@ -6867,7 +6940,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   GL.draw = function (cv, id, lon0, lat0, R) {
     var t = GL.tex[id]; if (!t || !t.ready) return;
     var N = GL.normals(R), n = N.n, ctx = cv.getContext('2d'), im = cv._im; if (!im || im.width !== n) { cv.width = cv.height = n; im = cv._im = ctx.createImageData(n, n); cv._d = new Uint32Array(im.data.buffer); }
-    var d = cv._d, px = t.px, T = t.T, K = GL.K, cL = Math.cos(lon0), sL = Math.sin(lon0), cl = Math.cos(lat0), sl = Math.sin(lat0), a = N.a, rr = N.r, i, p, x, y, z, y1, z1, wx, wy, wz, lon, lat, tx, ty, c, sh, al, r0, g0, b0, lx = -0.45, ly = 0.55, lz = 0.7;
+    var il = isletsOf(id), ni = il.length, d = cv._d, px = t.px, T = t.T, K = GL.K, cL = Math.cos(lon0), sL = Math.sin(lon0), cl = Math.cos(lat0), sl = Math.sin(lat0), a = N.a, rr = N.r, i, p, x, y, z, y1, z1, wx, wy, wz, lon, lat, tx, ty, c, sh, al, r0, g0, b0, lx = -0.45, ly = 0.55, lz = 0.7, j, dt2, ia;
     for (i = 0, p = 0; i < n * n; i++, p += 3) {
       if (rr[i] >= 1) { d[i] = 0; continue; }
       x = a[p]; y = a[p + 1]; z = a[p + 2];
@@ -6876,6 +6949,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       lon = Math.atan2(wx, wz); lat = Math.asin(wy < -1 ? -1 : wy > 1 ? 1 : wy);
       tx = 0.5 + lon * K; ty = 0.5 - lat * K; tx = tx < 0 ? 0 : tx > 0.9995 ? 0.9995 : tx; ty = ty < 0 ? 0 : ty > 0.9995 ? 0.9995 : ty;
       c = px[((ty * T) | 0) * T + ((tx * T) | 0)];
+      for (j = 0; j < ni; j++) {
+        ia = il[j]; dt2 = wx * ia.v[0] + wy * ia.v[1] + wz * ia.v[2];
+        if (dt2 > ia.c1) c = dt2 > ia.c3 ? 0xff6ad67b : dt2 > ia.c2 ? 0xffaedff2 : (c & 0xff000000) | ((((c >> 16) & 255) + 240 >> 1) << 16) | ((((c >> 8) & 255) + 232 >> 1) << 8) | (((c & 255) + 159) >> 1);
+      }
       sh = 0.32 + 0.78 * Math.max(0, x * lx + y * ly + z * lz); if (sh > 1.08) sh = 1.08;
       al = rr[i] > 0.985 ? (1 - rr[i]) / 0.015 : 1; r0 = (c & 255) * sh; g0 = ((c >> 8) & 255) * sh; b0 = ((c >> 16) & 255) * sh;
       d[i] = ((al * 255) << 24) | ((b0 > 255 ? 255 : b0) << 16) | ((g0 > 255 ? 255 : g0) << 8) | (r0 > 255 ? 255 : r0);
@@ -6883,36 +6960,42 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     ctx.putImageData(im, 0, 0);
   };
   /* where a spot on the flat map sits on the ball, seen from (lon0, lat0): returns [screenX, screenY, depth] with x and y in -1..1, or null when it is round the back */
-  GL.pin = function (id, mx, my, lon0, lat0) {
+  GL.pin = function (id, mx, my, lon0, lat0, vec) {
     var WZ = 1600 * WORLDS[id].s, lon = (mx / WZ - 0.5) / GL.K, lat = -(my / WZ - 0.5) / GL.K, cl = Math.cos(lat), wx = cl * Math.sin(lon), wy = Math.sin(lat), wz = cl * Math.cos(lon);
+    if (vec) { wx = vec[0]; wy = vec[1]; wz = vec[2]; }
     var cL = Math.cos(lon0), sL = Math.sin(lon0), cl0 = Math.cos(lat0), sl0 = Math.sin(lat0);
     var x1 = wx * cL - wz * sL, z1 = wx * sL + wz * cL, y2 = wy * cl0 - z1 * sl0, z2 = wy * sl0 + z1 * cl0;   /* inverse: Ry(-lon0) then Rx(lat0) */
     return z2 > 0.1 ? [x1, y2, z2] : null;
   };
   var GLV = null;
-  function openGlobe(id) {
-    if (GLV || !WORLDS[id]) return;
-    var W = WORLDS[id], pal = W.pal || {}, host = document.createElement('div'), sz = Math.round(Math.min(window.innerWidth * 0.94, window.innerHeight * 0.66, 560)), R = Math.min(190, Math.round(sz / 2));
+  function openGlobe(id, opts) {
+    if (GLV || !WORLDS[id]) return; opts = opts || {};
+    var W = WORLDS[id], pal = W.pal || {}, host = document.createElement('div'), sz = Math.round(Math.min(window.innerWidth * 0.94, window.innerHeight * 0.5, 560)), R = Math.min(190, Math.round(sz / 2));
     host.className = 'gl'; host.setAttribute('role', 'dialog'); host.setAttribute('aria-label', 'Globe of ' + W.name);
     var spots = (W.spots || []).filter(function (q) { return q.x !== undefined && q.t; }).slice(0, 14);
-    host.innerHTML = '<div class="gl-sky"></div><div class="gl-top"><b>' + esc(W.name) + '</b><button class="btn small" data-gl="x">Back</button></div><div class="gl-wrap"><div class="gl-ball" id="glBall" style="--s:' + sz + 'px;--glow:' + ((pal.sea && pal.sea[1]) || '#7fd8ff') + '"><canvas id="glCv"></canvas></div></div><p class="gl-hint">Drag to spin the world. The little dots mark the places you can visit.</p>';
+    host.innerHTML = '<div class="gl-sky"></div><div class="gl-top"><b>' + esc(W.name) + '</b><button class="btn small" data-gl="x">Back</button></div><div class="gl-wrap"><div class="gl-ball" id="glBall" style="--s:' + sz + 'px;--glow:' + ((pal.sea && pal.sea[1]) || '#7fd8ff') + '"><canvas id="glCv"></canvas></div></div><div class="gl-card" id="glCard"></div><div class="gl-isl" id="glIsl"></div><p class="gl-hint">Drag to spin the world. The dots mark places to visit' + (isletsOf(id).length ? ', and the small round islands out at sea can only be reached by diving.' : '.') + '</p>';
     document.body.appendChild(host);
     var ball = host.querySelector('#glBall'), cv = host.querySelector('#glCv'), pins = [];
     spots.forEach(function (q) { var e = document.createElement('div'); e.className = 'gl-pin'; e.style.setProperty('--c', q.k === 'portal' ? '#ff8fc8' : q.k === 'pond' ? '#7fd8ff' : q.k === 'bush' ? '#9be37f' : '#ffd86b'); e.innerHTML = '<i></i>' + esc(q.t); e.style.display = 'none'; ball.appendChild(e); pins.push({ e: e, q: q }); });
-    var st = { lon: 0, lat: 0, vl: 0.25, va: 0, drag: null, on: true, last: performance.now(), t: 0 };
+    var ils = isletsOf(id), isHost = host.querySelector('#glIsl'), cardEl = host.querySelector('#glCard'), pinI = [];
+    ils.forEach(function (q) { var e = document.createElement('div'); e.className = 'gl-pin'; e.style.setProperty('--c', S.isl && S.isl[q.id] ? '#9be37f' : '#ffffff'); e.innerHTML = '<i></i>' + esc(q.n); e.style.display = 'none'; ball.appendChild(e); pinI.push({ e: e, q: q }); });
+    ils.forEach(function (q, qi) { var b = document.createElement('button'); b.className = 'btn small'; b.textContent = q.n + (S.isl && S.isl[q.id] ? ' ✓' : ''); b.dataset.i = qi; isHost.appendChild(b); });
+    var st = { lon: 0, lat: 0, vl: 0.25, va: 0, drag: null, on: true, last: performance.now(), t: 0, go: null };
     GLV = { host: host, st: st };
     function paint() {
       GL.draw(cv, id, st.lon, st.lat, R);
+      pinI.forEach(function (o) { var q = GL.pin(id, 0, 0, st.lon, st.lat, o.q.v); if (!q) { o.e.style.display = 'none'; return; } o.e.style.display = ''; o.e.style.left = ((1 + q[0]) * 50).toFixed(1) + '%'; o.e.style.top = ((1 - q[1]) * 50).toFixed(1) + '%'; o.e.style.opacity = Math.min(1, (q[2] - 0.1) * 3).toFixed(2); });
       pins.forEach(function (o) { var q = GL.pin(id, o.q.x, o.q.y, st.lon, st.lat); if (!q) { o.e.style.display = 'none'; return; } o.e.style.display = ''; o.e.style.left = ((1 + q[0]) * 50).toFixed(1) + '%'; o.e.style.top = ((1 - q[1]) * 50).toFixed(1) + '%'; o.e.style.opacity = Math.min(1, (q[2] - 0.1) * 3).toFixed(2); });
     }
     function loop(now) {
       if (!st.on) return;
       var dt = Math.min(0.05, (now - st.last) / 1000); st.last = now;
-      if (!st.drag) { st.lon += st.vl * dt; st.lat += st.va * dt; st.vl += (0.2 - st.vl) * Math.min(1, dt * 0.6); st.va *= Math.max(0, 1 - dt * 3); st.lat = Math.max(-1.2, Math.min(1.2, st.lat)); }
+      if (st.go && !st.drag) { var dl = st.go.lon - st.lon; dl = Math.atan2(Math.sin(dl), Math.cos(dl)); st.lon += dl * Math.min(1, dt * 4); st.lat += (st.go.lat - st.lat) * Math.min(1, dt * 4); st.vl = 0; st.va = 0; if (Math.abs(dl) < 0.01) st.go = null; }
+      else if (!st.drag) { st.lon += st.vl * dt; st.lat += st.va * dt; st.vl += (0.2 - st.vl) * Math.min(1, dt * 0.6); st.va *= Math.max(0, 1 - dt * 3); } st.lat = Math.max(-1.2, Math.min(1.2, st.lat));
       if (st.lon > Math.PI) st.lon -= 6.2832; else if (st.lon < -Math.PI) st.lon += 6.2832;
       paint(); requestAnimationFrame(loop);
     }
-    ball.addEventListener('pointerdown', function (ev) { st.drag = { x: ev.clientX, y: ev.clientY, t: performance.now() }; st.vl = 0; st.va = 0; try { ball.setPointerCapture(ev.pointerId); } catch (e) { /* optional */ } });
+    ball.addEventListener('pointerdown', function (ev) { st.go = null; st.drag = { x: ev.clientX, y: ev.clientY, t: performance.now() }; st.vl = 0; st.va = 0; try { ball.setPointerCapture(ev.pointerId); } catch (e) { /* optional */ } });
     ball.addEventListener('pointermove', function (ev) {
       if (!st.drag) return; var dx = ev.clientX - st.drag.x, dy = ev.clientY - st.drag.y, now = performance.now(), dt = Math.max(0.008, (now - st.drag.t) / 1000), k = 2.4 / sz;
       st.lon -= dx * k; st.lat = Math.max(-1.2, Math.min(1.2, st.lat + dy * k)); st.vl = -dx * k / dt * 0.25; st.va = dy * k / dt * 0.25; st.drag = { x: ev.clientX, y: ev.clientY, t: now };
@@ -6921,6 +7004,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     ball.addEventListener('pointerup', up); ball.addEventListener('pointercancel', up);
     function close() { st.on = false; GLV = null; host.classList.remove('in'); setTimeout(function () { if (host.parentNode) host.parentNode.removeChild(host); }, 420); }
     host.querySelector('[data-gl="x"]').onclick = close;
+    isHost.addEventListener('click', function (ev) {
+      var b = ev.target.closest('button'); if (!b) return; var q = ils[+b.dataset.i]; st.go = { lon: q.lon, lat: q.lat };
+      var done = S.isl && S.isl[q.id], can = opts.world && S.screen === 'world' && !warping;
+      cardEl.innerHTML = '<b>' + esc(q.n) + '</b> &middot; ' + (q.kind === 'berry' ? 'a berry islet' : q.kind === 'pet' ? 'a friendly-pet islet' : 'a shell islet') + (done ? ' (you found everything here)' : '') + '<br>It is out in the open sea. Dive down, swim to the glowing islet passage and pop up on the beach!' + (can ? '<button class="btn primary" data-gl="swim" data-i="' + b.dataset.i + '">Dive and swim there</button>' : '<br><em>Land on this world, tap Globe and you can dive from here.</em>');
+      cardEl.classList.add('on');
+    });
+    cardEl.addEventListener('click', function (ev) { var b = ev.target.closest('[data-gl="swim"]'); if (!b) return; var q = ils[+b.dataset.i]; close(); setTimeout(function () { swimToIslet(q); }, 450); });
     GL.load(id, function () { if (!st.on) return; host.classList.add('in'); st.last = performance.now(); requestAnimationFrame(loop); });
     requestAnimationFrame(function () { host.classList.add('in'); });
   }
@@ -10719,6 +10809,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       } catch (x) { /* not allowed here */ }
     },
     view3d: function () { V3.toggle(); },
+    globe: function () { if (S.screen !== 'world' || warping) return; openGlobe(S.cur, { world: true }); },
     v3globe: function () { V3.toggleGlobe(); },
     zoomin: function () { setZoomUser(zoomUser * 1.25); },
     zoomout: function () { setZoomUser(zoomUser / 1.25); },
