@@ -1274,6 +1274,30 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .as-read b { color: #fff; font-size: 14px; }
 .astro.ph-nav .as-read { display: block; }
 #asBack { background: #ff7e8f; color: #2a1a55; border-color: #fff; }
+.as-deepcard { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(12px, env(safe-area-inset-bottom, 0px)); width: min(94vw, 430px); z-index: 12; display: none; flex-direction: column; gap: 8px; padding: 14px; border-radius: 20px; background: rgba(26,12,80,.94); border: 2px solid rgba(179,136,255,.7); box-shadow: 0 10px 40px rgba(0,0,0,.5); color: #fff; }
+.as-deepcard.on { display: flex; }
+.as-deepcard h3 { margin: 0; font-family: Fredoka, sans-serif; font-size: 1.25rem; }
+.as-deepcard .dk { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #ffd86b; font-weight: 800; }
+.as-deepcard p { margin: 0; line-height: 1.4; font-size: .95rem; }
+.as-deepcard .row { display: flex; gap: 8px; }
+.as-deepcard .row .btn { flex: 1; }
+.dx { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; background: radial-gradient(ellipse at 50% 45%, #1a0f55 0, #070320 70%); color: #fff; overflow: hidden; opacity: 0; transition: opacity .5s; touch-action: manipulation; }
+.dx.in { opacity: 1; }
+.dx-sky { position: absolute; inset: 0; background-image: radial-gradient(circle, #fff 0 1px, transparent 1.5px), radial-gradient(circle, #cfe8ff 0 1px, transparent 1.5px); background-size: 90px 70px, 140px 110px; background-position: 0 0, 40px 30px; opacity: .45; }
+.dx-top { position: relative; z-index: 3; width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: linear-gradient(rgba(5,2,25,.85), transparent); }
+.dx-top b { font-family: Fredoka, sans-serif; font-size: 1.15rem; flex: 1; }
+.dx-top span { font-size: .85rem; color: #ffd86b; font-weight: 800; }
+.dx-wrap { position: relative; flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; min-height: 0; }
+.dx-stage { position: relative; width: var(--s); height: var(--s); transition: transform 1.1s cubic-bezier(.2,.7,.2,1); transform: scale(.12); transform-origin: 50% 50%; }
+.dx-stage.in { transform: scale(1); }
+.dx-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dx-hot { position: absolute; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; border: 3px solid #fff; background: rgba(255,216,107,.35); box-shadow: 0 0 14px 4px rgba(255,216,107,.7); cursor: pointer; padding: 0; animation: dxPulse 1.4s ease-in-out infinite; }
+.dx-hot.seen { background: rgba(120,255,170,.35); border-color: #b9ffd0; box-shadow: 0 0 12px 3px rgba(120,255,170,.6); animation: none; }
+.dx-hot.sel { background: rgba(255,255,255,.4); }
+@keyframes dxPulse { 50% { transform: scale(1.22); box-shadow: 0 0 22px 8px rgba(255,216,107,.9); } }
+.dx-fact { position: relative; z-index: 3; width: min(94vw, 520px); margin: 0 0 max(12px, env(safe-area-inset-bottom, 0px)); padding: 12px 14px; border-radius: 18px; background: rgba(26,12,80,.94); border: 2px solid rgba(179,136,255,.6); line-height: 1.4; font-size: .98rem; min-height: 3.6em; }
+.dx-fact b { color: #ffd86b; font-family: Fredoka, sans-serif; }
+@media (prefers-reduced-motion: reduce) { .dx-stage { transition: none; } .dx-hot { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .astro.warp .as-vig { animation: none; } }
 .gh-svg { width: 100%; height: 100%; display: block; overflow: visible; pointer-events: none; filter: drop-shadow(0 0 7px rgba(255,216,107,.95)); }
 .sprite.gh-shake .gh-svg { animation: ghShake .36s ease-in-out; transform-origin: 50% 92%; }
@@ -1993,7 +2017,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!S.team.length) return;
       dexSync();
       stashWorld();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, fairyW: S.fairyW | 0, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, dig: S.dig || {}, pits: S.pits || {}, wf: S.wf || {}, carry: S.carry || null, rvDone: !!S.rvDone, rvN: S.rvN | 0, rvFairy: S.rvFairy | 0, rvWins: S.rvWins | 0, lt: S.lt || '', seeds: S.seeds | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, fairyW: S.fairyW | 0, deep: S.deep || {}, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, dig: S.dig || {}, pits: S.pits || {}, wf: S.wf || {}, carry: S.carry || null, rvDone: !!S.rvDone, rvN: S.rvN | 0, rvFairy: S.rvFairy | 0, rvWins: S.rvWins | 0, lt: S.lt || '', seeds: S.seeds | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
         stones: S.stones.map(function (s) { return s.id; }), caught: S.caught, wilds: S.wilds, freed: S.freed, opened: S.opened, beaten: S.beaten, coins: S.coins, boots: S.boots, bag: S.bag, portals: S.portals, suns: S.suns, food: S.food,
         cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, w: a.w ? 1 : 0, dur: a.dur | 0, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)), uc: q.uc, px: q.px } }; }) }));
     } catch (x) { /* storage can be unavailable; the game still works */ }
@@ -2022,7 +2046,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.cageLv = Math.max(0, Math.min(4, d.cageLv | 0));
     S.suit = {}; SUIT.forEach(function (p) { if (d.suit && d.suit[p.id]) S.suit[p.id] = 1; });
     S.ship = {}; SHIP.forEach(function (q) { S.ship[q.id] = Math.max(0, Math.min(3, (d.ship && d.ship[q.id]) | 0)); });
-    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.fairyW = Math.max(0, Math.min(99, d.fairyW | 0)); S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.rvN = Math.max(0, Math.min(999, d.rvN | 0)); S.seeds = Math.max(0, Math.min(99, d.seeds | 0)); S.lt = String(d.lt || '').toUpperCase().replace(/[^A-Z0-9]/g, '').split('').filter(function (c, i, a) { return a.indexOf(c) === i; }).join(''); S.pits = {}; Object.keys(d.pits || {}).forEach(function (k) { if (WORLDS[k] && Array.isArray(d.pits[k])) S.pits[k] = d.pits[k].filter(function (q) { return q && isFinite(q.x) && isFinite(q.y); }).slice(0, PIT_MAX + PARK_MAX).map(function (q) { return { p: q.p ? 1 : 0, x: Math.round(+q.x), y: Math.round(+q.y), f: Math.max(0, Math.min(PIT_FULL, q.f | 0)), s: q.p ? Math.max(0, Math.min(2, q.s | 0)) : 0, n: String(q.n || 'My Pond').slice(0, 24) }; }); }); S.wf = {}; if (d.wf && typeof d.wf === 'object') Object.keys(d.wf).forEach(function (k) { if (WORLDS[k]) S.wf[k] = Math.max(0, Math.min(99, d.wf[k] | 0)); }); S.carry = d.carry && d.carry.amt > 0 ? { amt: Math.min(60, d.carry.amt | 0), pet: String(d.carry.pet || '').slice(0, 20) } : null; syncPits(); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
+    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.deep = {}; if (d.deep && typeof d.deep === 'object') Object.keys(d.deep).slice(0, 40).forEach(function (k) { var q = d.deep[k]; if (q && Array.isArray(q.p)) S.deep[String(k).slice(0, 40)] = { p: q.p.slice(0, 6).map(function (n) { return n | 0; }), d: q.d ? 1 : 0 }; }); S.fairyW = Math.max(0, Math.min(99, d.fairyW | 0)); S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.rvN = Math.max(0, Math.min(999, d.rvN | 0)); S.seeds = Math.max(0, Math.min(99, d.seeds | 0)); S.lt = String(d.lt || '').toUpperCase().replace(/[^A-Z0-9]/g, '').split('').filter(function (c, i, a) { return a.indexOf(c) === i; }).join(''); S.pits = {}; Object.keys(d.pits || {}).forEach(function (k) { if (WORLDS[k] && Array.isArray(d.pits[k])) S.pits[k] = d.pits[k].filter(function (q) { return q && isFinite(q.x) && isFinite(q.y); }).slice(0, PIT_MAX + PARK_MAX).map(function (q) { return { p: q.p ? 1 : 0, x: Math.round(+q.x), y: Math.round(+q.y), f: Math.max(0, Math.min(PIT_FULL, q.f | 0)), s: q.p ? Math.max(0, Math.min(2, q.s | 0)) : 0, n: String(q.n || 'My Pond').slice(0, 24) }; }); }); S.wf = {}; if (d.wf && typeof d.wf === 'object') Object.keys(d.wf).forEach(function (k) { if (WORLDS[k]) S.wf[k] = Math.max(0, Math.min(99, d.wf[k] | 0)); }); S.carry = d.carry && d.carry.amt > 0 ? { amt: Math.min(60, d.carry.amt | 0), pet: String(d.carry.pet || '').slice(0, 20) } : null; syncPits(); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
     S.scrap = Math.max(0, Math.min(99, d.scrap | 0)); S.tank = Math.max(0, Math.min(TANKS.length - 1, d.tank | 0)); S.o2 = Math.max(0, Math.min(TANKS[S.tank].cap, d.o2 | 0));
     S.cage = (Array.isArray(d.cage) ? d.cage : []).filter(function (p) { return p && TYPES[p.type]; }).slice(0, S.cageLv ? CAGE_CAP[S.cageLv - 1] : 0);
     S.team.concat(S.cage).forEach(function (p) { if (!p.body) p.body = bodyFor(p.type, p.id); if (!p.prog) migrateProg(p); });
@@ -6803,8 +6827,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var root = document.createElement('div'); root.className = 'astro ph-up'; root.id = 'astro'; root.setAttribute('role', 'group'); root.setAttribute('aria-label', 'Flying through space');
     var pets = S.team.filter(canSpace).slice(0, 3);
     root.innerHTML = '<div class="as-space"><div class="as-stars"></div><div class="as-stars s2"></div></div>' + asScene(from) +
-      '<canvas class="as-cv" id="asCv"></canvas><canvas class="as-cv3" id="asCv3"></canvas><svg class="as-map" id="asMap" aria-label="Map of space. Tap a world to fly there."></svg><div class="as-vig"></div><div class="as-read" id="asRead"></div>' +
-      '<div class="as-top"><div class="as-title"><span>Space</span><b id="asTitle">Tap a world to fly there</b></div>' +
+      '<canvas class="as-cv" id="asCv"></canvas><canvas class="as-cv3" id="asCv3"></canvas><svg class="as-map" id="asMap" aria-label="Map of space. Tap a world to fly there."></svg><div class="as-vig"></div><div class="as-read" id="asRead"></div><div class="as-deepcard" id="asDeepCard"></div>' +
+      '<div class="as-top"><div class="as-title"><span>Space</span><b id="asTitle">Tap a world to fly there, or a far-off galaxy to explore it</b></div>' +
       '<div class="as-o2"><span>Oxygen <em id="asO2n"></em></span><div class="as-bar"><i id="asO2"></i></div></div></div>' +
       '<div class="as-sig" id="asSig" hidden><span id="asSigT">Glitch signal</span><div class="as-bar"><i id="asSigB"></i></div></div><div class="as-field" id="asField"></div><div class="as-count" id="asCount"></div>' +
       '<div class="as-ctl"><button class="zbtn" id="asZin" aria-label="Zoom in">+</button><button class="zbtn" id="asZout" aria-label="Zoom out">&minus;</button><button class="zbtn txt" id="asFit" aria-label="Show every world">All</button><button class="zbtn txt" id="asMe" aria-label="Follow my ship">Me</button><button class="zbtn txt" id="as3d" aria-label="Switch between the 3D view and the map">Map</button><button class="zbtn txt" id="asWl" aria-label="List of worlds to fly to">Go</button></div><div class="as-pad3" id="asPad3"><button data-k="a" aria-label="Turn left">&#9664;</button><button data-k="w" aria-label="Fly forward">&#9650;</button><button data-k="d" aria-label="Turn right">&#9654;</button><button data-k="s" aria-label="Stop">&#9632;</button></div><div class="as-wl" id="asWorlds" hidden></div>' +
@@ -6844,9 +6868,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       cx.clearRect(0, 0, W, H);
       var spd = Math.hypot(vel.x, vel.y) * N.k, ang = Math.atan2(vel.y, vel.x), warp = moving && sp >= 2;
       /* far-away galaxies and nebulae drift very slowly behind the stars */
-      DEEP.forEach(function (b) {
+      deepScr = [];
+      DEEP.forEach(function (b, bi) {
         var TW = W + 360, TH = H + 280, sz = b.s * Math.min(W, H) * 0.7, x = ((b.u * TW - N.x * b.f * 0.5) % TW + TW) % TW - 180, y = ((b.v * TH - N.y * b.f * 0.5) % TH + TH) % TH - 140;
-        cx.globalAlpha = 0.6; cx.drawImage(b.img, x - sz / 2, y - sz / 2, sz, sz);
+        cx.globalAlpha = 0.6; cx.drawImage(b.img, x - sz / 2, y - sz / 2, sz, sz); deepScr.push({ i: bi, x: x, y: y, r: Math.max(34, sz * 0.36) });
         if (sz > 90) deepLabel(cx, b.n, x, y + sz * 0.42, 0.5);
       });
       cx.globalAlpha = 1;
@@ -7144,9 +7169,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       { k: 'spi', n: 'Little Lost Galaxy', c: ['#ffffff', '#ffd86b', '#ff9a6a'], s: 0.2, rot: -0.9, az: 4.2, el: 0.42, u: 0.22, v: 0.38, f: 0.005 }
     ];
     function hexA(h, a) { var n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
-    function deepSprite(b, idx) {
-      var S = b.k === 'neb' ? 256 : 192, cvs = document.createElement('canvas'), g = cvs.getContext('2d'), R = rng(900 + idx * 7), cc = S / 2, i, t, a, r, x, y, gr;
-      cvs.width = cvs.height = S; g.translate(cc, cc);
+    function deepSprite(b, idx, sc) {
+      var S = b.k === 'neb' ? 256 : 192, cvs = document.createElement('canvas'), g = cvs.getContext('2d'), R = rng(900 + idx * 7), cc = S / 2, i, t, a, r, x, y, gr; sc = sc || 1;
+      cvs.width = cvs.height = Math.round(S * sc); g.translate(cc * sc, cc * sc); g.scale(sc, sc);
       function glow(rad, col, al) { var q = g.createRadialGradient(0, 0, 0, 0, 0, rad); q.addColorStop(0, hexA(col, al)); q.addColorStop(1, hexA(col, 0)); g.fillStyle = q; g.beginPath(); g.arc(0, 0, rad, 0, 6.2832); g.fill(); }
       g.globalCompositeOperation = 'lighter';
       if (b.k === 'spi') {
@@ -7191,6 +7216,109 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       return cvs;
     }
     DEEP.forEach(function (b, i) { b.img = deepSprite(b, i); });
+    var DINFO = {
+      'Swirly Galaxy': { t: 'Spiral galaxy', f: 'A galaxy is a giant island of stars. This one has hundreds of billions of them, all turning slowly like a pinwheel. Our own home galaxy, the Milky Way, is a spiral too!', parts: [
+        { n: 'The Bright Core', x: 0, y: 0, f: 'The middle is crowded with old, golden stars. A giant black hole hides right in the centre!' },
+        { n: 'Spiral Arms', x: 0.58, y: 0.14, f: 'Gas and dust in the arms get squeezed together and make baby stars, which glow bright blue and white.' },
+        { n: 'The Faint Edge', x: -0.2, y: 0.85, f: 'Out here the stars are far apart. One full spin around a galaxy can take hundreds of millions of years!' }] },
+      'Rosebud Nebula': { t: 'Nebula (a star nursery)', f: 'A nebula is a huge cloud of gas and dust. Gravity squeezes parts of it together until baby stars switch on and light the whole cloud!', parts: [
+        { n: 'Glowing Gas', x: 0, y: 0, f: 'The pink glow is hydrogen gas, lit up by the hot young stars nearby.' },
+        { n: 'Dust Clouds', x: -0.25, y: 0.2, f: 'Tiny specks of dust, smaller than flour, make dark swirls that hide the stars behind them.' },
+        { n: 'Baby Stars', x: 0.3, y: -0.25, f: 'Brand new stars shine here. Some are only a few hundred thousand years old, which is just a baby for a star!' }] },
+      'Gobbler Black Hole': { t: 'Black hole', f: 'A black hole pulls so strongly that not even light can escape. It is not really a hole: it is a huge amount of stuff squished into a tiny space!', parts: [
+        { n: 'The Dark Centre', x: 0, y: 0, f: 'Nothing that crosses the edge can come back, not even light. That is why it looks totally black.' },
+        { n: 'The Glowing Disc', x: 0.5, y: 0, f: 'Gas spirals in so fast that it gets super hot and glows, sometimes brighter than a whole galaxy of stars.' },
+        { n: 'Bent Light', x: 0, y: -0.25, f: 'Gravity here is so strong that it bends light. That is how you can see the glowing disc curving over the top!' }] },
+      'Emerald Cloud': { t: 'Nebula', f: 'Nebulae come in every colour. This one glows green and teal, like a giant glowing cloud floating in the dark.', parts: [
+        { n: 'Green Glow', x: 0, y: 0, f: 'Oxygen gas can glow green when starlight zaps it. It is the same green you see in the northern lights on Earth!' },
+        { n: 'Gas Rivers', x: -0.25, y: 0.2, f: 'Gas flows through nebulae in long rivers, pushed along by winds from hot stars.' },
+        { n: 'Hidden Stars', x: 0.3, y: -0.25, f: 'Newborn stars are tucked inside the thick clouds. Telescopes with special eyes can peek through the dust to find them.' }] },
+      'Pinwheel Galaxy': { t: 'Spiral galaxy', f: 'It looks like a toy pinwheel, does it not? Its bright blue arms show where lots of new stars are being born right now.', parts: [
+        { n: 'Golden Heart', x: 0, y: 0, f: 'The centre glows gold because it is full of older stars, packed close together.' },
+        { n: 'Blue Arms', x: 0.58, y: 0.14, f: 'Young hot stars glow blue. The hotter the star, the bluer it looks!' },
+        { n: 'Stream of Stars', x: -0.2, y: 0.85, f: 'When galaxies pass close, their gravity can pull long thin streams of stars out into space.' }] },
+      'Far Ringworld': { t: 'Ringed gas giant', f: 'A gas giant is a planet made mostly of gas, with no ground to stand on. This one wears a wide, shining ring.', parts: [
+        { n: 'Stormy Bands', x: 0.1, y: 0.1, f: 'Winds blow in different directions at different heights, making stripes. Some storms last for hundreds of years!' },
+        { n: 'The Rings', x: 0.78, y: 0, f: 'Rings are made of countless chunks of ice and rock, from dust specks to house-sized boulders, all circling together.' },
+        { n: 'Ring Gaps', x: -0.66, y: 0, f: 'Gaps in a ring get swept clean by tiny moons that tug on the pieces as they go round.' }] },
+      'Golden Galaxy': { t: 'Elliptical galaxy', f: 'Not every galaxy is a spiral! Elliptical galaxies are smooth, golden balls shaped like eggs. Some are far bigger than the Milky Way.', parts: [
+        { n: 'Old Golden Stars', x: 0, y: 0, f: 'It is mostly very old stars, which glow yellow and red. Hardly any new ones are being born.' },
+        { n: 'Glowing Halo', x: 0.5, y: 0.3, f: 'The light of billions of stars fades out smoothly into space, like a glowing fog.' },
+        { n: 'The Quiet Edge', x: -0.7, y: -0.35, f: 'There is not much gas left here to make new stars, so it stays calm and sleepy.' }] },
+      'Blue Whale Nebula': { t: 'Nebula', f: 'This nebula glows a deep ocean blue. People like to find shapes in nebulae, the way you find animals in clouds!', parts: [
+        { n: 'Blue Glow', x: 0, y: 0, f: 'Starlight bouncing off dust makes a blue glow, just like sunlight bouncing around our sky makes it blue.' },
+        { n: 'Whale Tail', x: -0.25, y: 0.2, f: 'Clouds of gas stretch into long wispy shapes. Can you spot a whale tail?' },
+        { n: 'Starry Bubble', x: 0.3, y: -0.25, f: 'Winds from big stars blow giant bubbles into the gas, a bit like blowing bubbles in the bath.' }] },
+      'Blinky Pulsar': { t: 'Pulsar', f: 'A pulsar is a tiny, super-dense star that spins like a lighthouse. Its beams flash past us again and again!', parts: [
+        { n: 'Neutron Star', x: 0, y: 0, f: 'This is what is left when a big star runs out of fuel. It is only a city wide, but a spoonful would weigh as much as a mountain!' },
+        { n: 'Spinning Beam', x: 0, y: -0.6, f: 'The beam sweeps around, so we see a blink each time it points at us. Some pulsars blink hundreds of times every second!' },
+        { n: 'The Other Beam', x: 0, y: 0.6, f: 'There are two beams, one from each end, like two lighthouse lamps back to back.' }] },
+      'Jewel Cluster': { t: 'Star cluster', f: 'A star cluster is a family of stars born from the same cloud, sparkling together like a bag of jewels.', parts: [
+        { n: 'Packed Centre', x: 0.05, y: 0.05, f: 'Stars are crowded close together in the middle, much closer than the stars near our Sun.' },
+        { n: 'Blue Jewels', x: 0.45, y: -0.3, f: 'The biggest young stars shine blue-white. They burn their fuel quickly and live short, bright lives.' },
+        { n: 'Golden Jewels', x: -0.5, y: 0.4, f: 'Older, cooler stars glow yellow and orange.' }] },
+      'Sunset Nebula': { t: 'Nebula', f: 'This nebula glows orange and red like a sunset that never ends.', parts: [
+        { n: 'Orange Glow', x: 0, y: 0, f: 'Hot gas and dust glow orange and red, just like a sunset!' },
+        { n: 'Dark Lanes', x: -0.25, y: 0.2, f: 'Thick clouds block the light and look like dark ribbons against the glow.' },
+        { n: 'Violet Haze', x: 0.3, y: -0.25, f: 'A faint purple haze shows where gas is being lit up by faraway stars.' }] },
+      'Twin Stars': { t: 'Binary stars', f: 'Lots of stars come in pairs! Two stars circle each other, held together by gravity, like dancing partners.', parts: [
+        { n: 'The Blue Star', x: -0.22, y: -0.05, f: 'The hotter star glows blue-white.' },
+        { n: 'The Orange Star', x: 0.2, y: 0.06, f: 'The cooler star glows orange.' },
+        { n: 'The Dance', x: 0, y: 0, f: 'They circle a point between them. Some pairs go round in a few days, and others take thousands of years.' }] },
+      'Little Lost Galaxy': { t: 'Dwarf galaxy', f: 'Small galaxies like this one are called dwarf galaxies. They have far fewer stars than big ones, and many of them circle a big galaxy like a moon.', parts: [
+        { n: 'Tiny Core', x: 0, y: 0, f: 'Even a small galaxy has millions of stars packed into its centre.' },
+        { n: 'Wandering Stars', x: 0.58, y: 0.14, f: 'The stars here drift in a loose cloud with no clear arms.' },
+        { n: 'Far From Home', x: -0.2, y: 0.85, f: 'Dwarf galaxies can get pulled apart by a big neighbour and become streams of stars.' }] }
+    };
+    DEEP.forEach(function (b) { var q = DINFO[b.n]; b.t = q.t; b.fact = q.f; b.parts = q.parts; });
+    var deepOpen = false, deepScr = [], dxEl = null, dxCard = root.querySelector('#asDeepCard');
+    function deepSave(b) { S.deep = S.deep || {}; return S.deep[b.n] || (S.deep[b.n] = { p: [], d: 0 }); }
+    function deepHit(px, py) { var i, q; for (i = deepScr.length - 1; i >= 0; i--) { q = deepScr[i]; if (Math.hypot(px - q.x, py - q.y) < q.r) return q.i; } return null; }
+    function deepCount() { return DEEP.filter(function (b) { return S.deep && S.deep[b.n] && S.deep[b.n].d; }).length; }
+    function openDeep(i) {
+      var b = DEEP[i]; if (!b || dxEl) return;
+      var sv = deepSave(b);
+      deepOpen = true; held = {};
+      dxCard.innerHTML = '<span class="dk">' + esc(b.t) + '</span><h3>' + esc(b.n) + '</h3><p>' + esc(b.fact) + '</p><p class="srow-note">Parts explored: ' + sv.p.length + ' of ' + b.parts.length + '. Sights fully explored: ' + deepCount() + ' of ' + DEEP.length + '.</p><div class="row"><button class="btn primary" id="dcGo">Fly there and explore</button><button class="btn" id="dcX">Close</button></div>';
+      dxCard.classList.add('on');
+      dxCard.querySelector('#dcX').onclick = function () { dxCard.classList.remove('on'); deepOpen = false; };
+      dxCard.querySelector('#dcGo').onclick = function () { dxCard.classList.remove('on'); exploreDeep(i); };
+    }
+    function deepPt(b, x, y) {
+      var sq = b.k === 'spi' ? 0.48 : b.k === 'ell' ? 0.68 : 1, rot = (b.k === 'neb' || b.k === 'clu' || b.k === 'bin') ? 0 : b.rot, yy = y * sq;
+      return [x * Math.cos(rot) - yy * Math.sin(rot), x * Math.sin(rot) + yy * Math.cos(rot)];
+    }
+    function exploreDeep(i) {
+      var b = DEEP[i], sv = deepSave(b), found = {}, host = root, h = [], wrap, stage, cvs, fact, top;
+      sv.p.forEach(function (n) { found[n] = 1; });
+      if (!b.big) b.big = deepSprite(b, i, b.k === 'neb' ? 2.5 : 3);
+      var sz = Math.round(Math.min(W, H * 0.7) * 0.92 * (b.k === 'spi' || b.k === 'ell' || b.k === 'neb' ? 1 : 1.55));
+      dxEl = document.createElement('div'); dxEl.className = 'dx'; dxEl.setAttribute('role', 'dialog'); dxEl.setAttribute('aria-label', 'Exploring ' + b.n);
+      b.parts.forEach(function (q, j) { var pt = deepPt(b, q.x, q.y); h.push('<button class="dx-hot' + (found[j] ? ' seen' : '') + '" data-j="' + j + '" style="left:' + (50 + pt[0] * 50).toFixed(1) + '%;top:' + (50 + pt[1] * 50).toFixed(1) + '%" aria-label="Look closer: ' + esc(q.n) + '"></button>'); });
+      dxEl.innerHTML = '<div class="dx-sky"></div><div class="dx-top"><b>' + esc(b.n) + '</b><span id="dxCnt"></span><button class="btn small" id="dxBack">Back to space</button></div><div class="dx-wrap"><div class="dx-stage" id="dxStage" style="--s:' + sz + 'px"><canvas width="' + sz + '" height="' + sz + '"></canvas>' + h.join('') + '</div></div><div class="dx-fact" id="dxFact"><b>You flew all the way here!</b> Tap the glowing dots to look closer at each part.</div>';
+      root.appendChild(dxEl);
+      stage = dxEl.querySelector('#dxStage'); cvs = stage.querySelector('canvas'); fact = dxEl.querySelector('#dxFact');
+      cvs.getContext('2d').drawImage(b.big, 0, 0, sz, sz);
+      function cnt() { dxEl.querySelector('#dxCnt').textContent = 'Parts found ' + Object.keys(found).length + ' / ' + b.parts.length; }
+      cnt();
+      requestAnimationFrame(function () { requestAnimationFrame(function () { if (!dxEl) return; dxEl.classList.add('in'); stage.classList.add('in'); }); });
+      function reset() { stage.style.transformOrigin = '50% 50%'; stage.style.transform = ''; [].forEach.call(stage.querySelectorAll('.dx-hot'), function (e) { e.classList.remove('sel'); }); }
+      function close() { if (!dxEl) return; var e = dxEl; dxEl = null; deepOpen = false; e.classList.remove('in'); setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 450); hud(true); }
+      dxEl.querySelector('#dxBack').onclick = close;
+      stage.addEventListener('click', function (ev) {
+        var hb = ev.target.closest && ev.target.closest('.dx-hot'); if (!hb) { reset(); return; }
+        var j = +hb.dataset.j, q = b.parts[j], pt = deepPt(b, q.x, q.y), ox = 50 + pt[0] * 50, oy = 50 + pt[1] * 50;
+        reset(); hb.classList.add('sel'); stage.style.transformOrigin = ox.toFixed(1) + '% ' + oy.toFixed(1) + '%'; stage.style.transform = 'scale(' + (b.k === 'bh' || b.k === 'pul' ? 1.9 : 1.7) + ')';
+        var fresh = !found[j]; found[j] = 1; hb.classList.add('seen');
+        if (sv.p.indexOf(j) < 0) sv.p.push(j);
+        var msg = '<b>' + esc(q.n) + '.</b> ' + esc(q.f);
+        if (Object.keys(found).length === b.parts.length && !sv.d) {
+          sv.d = 1; S.scrap = Math.min(99, S.scrap + 3); S.coins += 10;
+          msg += '<br><b>You explored all of ' + esc(b.n) + '!</b> +3 star scrap and +10 coins. Sights fully explored: ' + deepCount() + ' of ' + DEEP.length + '.'; try { updateHud(); } catch (e5) { /* optional */ }
+        }
+        if (fresh) save(); cnt(); fact.innerHTML = msg;
+      });
+    }
     function deepLabel(g, txt, x, y, al) { g.globalAlpha = al; g.font = '600 12px Fredoka, sans-serif'; g.textAlign = 'center'; g.fillStyle = '#d6ccff'; g.lineWidth = 3; g.strokeStyle = 'rgba(10,4,40,.8)'; g.strokeText(txt, x, y); g.fillText(txt, x, y); }
     /* ---- 3D chase view: fly behind your rocket and see the worlds, the Sun and comets come toward you ---- */
     var view3 = true; try { view3 = localStorage.getItem('magical-pets-space3d') !== '0'; } catch (e3) { /* optional */ }
@@ -7221,10 +7349,10 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       /* stars wrap around the sky as you turn */
       c3.fillStyle = '#fff'; st3.forEach(function (q) { var a = q.az - camAng; a = Math.atan2(Math.sin(a), Math.cos(a)); if (Math.abs(a) > 1.25) return; c3.globalAlpha = q.a * (0.7 + 0.3 * Math.sin(now / 400 + q.az * 9)); c3.beginPath(); c3.arc(W / 2 + a * F * 0.8, hz - q.el * H * 0.55, q.r, 0, 6.283); c3.fill(); }); c3.globalAlpha = 1;
       /* far-away galaxies, nebulae and more sit on the sky and turn with you; they never get closer */
-      DEEP.forEach(function (q) {
+      DEEP.forEach(function (q, qi) {
         var a = q.az - camAng; a = Math.atan2(Math.sin(a), Math.cos(a)); if (Math.abs(a) > 1.5) return;
         var x = W / 2 + a * W * 0.42, y = hz - q.el * hz * 1.15, sz = q.s * Math.min(W, H * 1.3) * 0.5;
-        c3.globalAlpha = 0.9 * Math.min(1, (1.5 - Math.abs(a)) * 3); c3.drawImage(q.img, x - sz / 2, y - sz / 2, sz, sz);
+        c3.globalAlpha = 0.9 * Math.min(1, (1.5 - Math.abs(a)) * 3); c3.drawImage(q.img, x - sz / 2, y - sz / 2, sz, sz); if (Math.abs(a) < 1.2) shown.push({ deep: qi, x: x, y: y, r: Math.max(34, sz * 0.36) });
         if (sz > 70 && Math.abs(a) < 0.7) deepLabel(c3, q.n, x, y + sz * 0.46, 0.6);
       });
       c3.globalAlpha = 1;
@@ -7284,8 +7412,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     cv3.addEventListener('pointermove', function (ev) { var q = pts3[ev.pointerId]; if (!q) return; if (Math.abs(ev.clientX - q.x) > 8) q.moved = true; if (q.moved && !rescue) { ship.ang += (ev.clientX - q.px) * 0.006; target = null; } q.px = ev.clientX; });
     cv3.addEventListener('pointerup', function (ev) {
       var q = pts3[ev.pointerId]; delete pts3[ev.pointerId]; if (!q || q.moved) return;
-      var best = null, bd = 1e9; shown3.forEach(function (o) { var d = Math.hypot(o.x - ev.clientX, o.y - ev.clientY); if (d < o.r + 14 && d < bd) { bd = d; best = o; } });
-      if (best) setTarget(best.id);
+      var best = null, bd = 1e9, bestD = null, dd = 1e9; shown3.forEach(function (o) { var d = Math.hypot(o.x - ev.clientX, o.y - ev.clientY); if (o.deep != null) { if (d < o.r && d < dd) { dd = d; bestD = o; } } else if (d < o.r + 14 && d < bd) { bd = d; best = o; } });
+      if (best) setTarget(best.id); else if (bestD) openDeep(bestD.deep);
     });
     cv3.addEventListener('pointercancel', function (ev) { delete pts3[ev.pointerId]; });
     root.querySelector('#as3d').addEventListener('click', function () { setView3(!view3); });
@@ -7318,7 +7446,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     function up(ev) {
       delete pts[ev.pointerId]; if (Object.keys(pts).length < 2) pinch = null;
       if (pan && ev.pointerId === pan.id) {
-        if (!pan.moved && ev.type === 'pointerup') setTarget(pan.node, N.x + (ev.clientX - W / 2) / N.k, N.y + (ev.clientY - H / 2) / N.k);
+        if (!pan.moved && ev.type === 'pointerup') { var dh = pan.node ? null : deepHit(ev.clientX, ev.clientY); if (dh != null) openDeep(dh); else setTarget(pan.node, N.x + (ev.clientX - W / 2) / N.k, N.y + (ev.clientY - H / 2) / N.k); }
         pan = null;
       }
     }
@@ -7334,7 +7462,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     btnLand.addEventListener('click', function () { if (btnLand.dataset.w) startLanding(btnLand.dataset.w, false); });
     function setSpeed(i) { sp = Math.max(0, Math.min(SPEEDS.length - 1, i)); [].forEach.call(root.querySelectorAll('#asSpeed button'), function (b, j) { b.classList.toggle('on', j === sp); }); hud(true); }
     function onKey(ev) {
-      if (ph !== 'nav') return; var k = ev.key, lk = k.toLowerCase();
+      if (ph !== 'nav' || deepOpen) return; var k = ev.key, lk = k.toLowerCase();
       if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'a', 'd', 'w', 's'].indexOf(lk) >= 0) { held[lk] = ev.type === 'keydown'; ev.preventDefault(); return; }
       if (ev.type === 'keyup') return;
       if (k === '+' || k === '=') zoomTo(N.k * 1.35); else if (k === '-' || k === '_') zoomTo(N.k / 1.35); else if (k >= '1' && k <= '4') setSpeed(+k - 1);
@@ -7366,7 +7494,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         }
         place(dt);
       } else if (ph === 'nav') {
-        if (rvPause || rvAlert) { raf = requestAnimationFrame(frame); return; }
+        if (rvPause || rvAlert || deepOpen) { raf = requestAnimationFrame(frame); return; }
         var sd = SPEEDS[sp];
         moving = false;
         if (target && target.id && UPOS[target.id]) { var tq = UPOS[target.id]; if (!target.off) target.off = { x: target.x - tq[0], y: target.y - tq[1] }; else { target.x = tq[0] + target.off.x; target.y = tq[1] + target.off.y; } }
