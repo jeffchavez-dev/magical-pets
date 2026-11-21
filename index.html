@@ -1317,6 +1317,19 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .gl-ball canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0 30px 6px var(--glow, #7fd8ff), 0 0 90px 24px rgba(127,216,255,.25); }
 .gl-pin { position: absolute; transform: translate(-50%, -100%); pointer-events: none; white-space: nowrap; font: 700 12px Fredoka, sans-serif; color: #fff; text-shadow: 0 1px 3px #000, 0 0 6px #000; text-align: center; }
 .gl-pin i { display: block; width: 12px; height: 12px; margin: 0 auto 2px; border-radius: 50%; background: var(--c, #ffd86b); border: 2px solid #fff; box-shadow: 0 0 8px var(--c, #ffd86b); }
+.gl-ctl { position: absolute; right: max(10px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%); z-index: 4; display: flex; flex-direction: column; gap: 8px; }
+.gl-ctl button { min-width: 48px; min-height: 48px; border-radius: 16px; border: 2px solid rgba(255,255,255,.5); background: rgba(27,16,70,.82); color: #fff; font: 700 1.1rem Fredoka, sans-serif; cursor: pointer; }
+.gl-ctl button:active { background: var(--gold); color: var(--night); }
+.gl-ball { overflow: visible; }
+.gl-ball.zoomed canvas { border-radius: 0; box-shadow: none; }
+.gl-ball.zoomed { overflow: hidden; border-radius: 22px; box-shadow: 0 0 0 3px rgba(255,255,255,.4); }
+.gl-ent { position: absolute; width: 11px; height: 11px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--c, #fff); border: 2px solid #fff; pointer-events: none; box-shadow: 0 0 5px rgba(0,0,0,.6); }
+.gl-ent.wild { background: transparent; border: 2px dotted var(--c, #fff); width: 14px; height: 14px; margin: -8px 0 0 -8px; }
+.gl-ent.find { background: #ffd86b; width: 9px; height: 9px; margin: -5px 0 0 -5px; }
+.gl-ent.hero { width: 20px; height: 20px; margin: -12px 0 0 -12px; background: rgba(255,207,158,.45); border: 3px solid #ffd86b; animation: dxPulse 1.4s ease-in-out infinite; }
+.gl-tapfx { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; border: 3px solid #fff; pointer-events: none; animation: glTap .7s ease-out forwards; }
+@keyframes glTap { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
+.atlasbtn.v3toggle.gl2 { top: calc(var(--hudh, 10px) + 156px); }
 .gl-hint { position: relative; z-index: 3; margin: 0 0 max(14px, env(safe-area-inset-bottom, 0px)); padding: 8px 14px; border-radius: 16px; background: rgba(26,12,80,.9); border: 2px solid rgba(179,136,255,.55); font-size: .92rem; text-align: center; max-width: min(94vw, 520px); }
 .gl-isl { position: relative; z-index: 3; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 0 8px 6px; max-width: min(96vw, 560px); }
 .gl-isl .btn { min-height: 36px; padding: 0 12px; font-size: .85rem; }
@@ -4313,7 +4326,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       '<radialGradient id="pshade" cx="36%" cy="30%" r="80%"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#0a0630" stop-opacity=".62"/></radialGradient></defs>' +
       '<circle cx="' + CX + '" cy="' + CY + '" r="' + 836 * WS + '" fill="#8fd0ff" opacity=".2"/>' +
       '<g clip-path="url(#pclip)"><g id="spin">' + worldArt(S.cur).replace(/@@/g, 'b') + labels + hazSVG(true) + '<g id="bdots"></g></g></g>' +
-      '<circle cx="' + CX + '" cy="' + CY + '" r="' + CX + '" fill="url(#pshade)" pointer-events="none"/></svg><button class="atlasbtn" data-act="atlas">All worlds</button><button class="atlasbtn v3toggle" id="v3btn" data-act="view3d" aria-pressed="false">' + (V3.on ? 'Back to map view' : 'Walk view (3D)') + '</button></div>';
+      '<circle cx="' + CX + '" cy="' + CY + '" r="' + CX + '" fill="url(#pshade)" pointer-events="none"/></svg><button class="atlasbtn" data-act="atlas">All worlds</button><button class="atlasbtn v3toggle" id="v3btn" data-act="view3d" aria-pressed="false">' + (V3.on ? 'Back to map view' : 'Walk view (3D)') + '</button><button class="atlasbtn v3toggle gl2" data-act="globe">Globe view</button></div>';
   }
 
 
@@ -6944,16 +6957,16 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     img.onerror = function () { fin(false); };
     img.src = url;
   };
-  GL.normals = function (R) {
-    if (GL.nrm[R]) return GL.nrm[R];
+  GL.normals = function (R, m) {
+    m = m || 1; var key = R + 'x' + m; if (GL.nrm[key]) return GL.nrm[key];
     var n = 2 * R, a = new Float32Array(n * n * 3), i, j, x, y, r2, k = 0, el = new Float32Array(n * n);
-    for (j = 0; j < n; j++) for (i = 0; i < n; i++) { x = (i + 0.5 - R) / R; y = (R - j - 0.5) / R; r2 = x * x + y * y; el[j * n + i] = Math.sqrt(r2); a[k++] = x; a[k++] = y; a[k++] = r2 < 1 ? Math.sqrt(1 - r2) : 0; }
-    return (GL.nrm[R] = { a: a, r: el, n: n });
+    for (j = 0; j < n; j++) for (i = 0; i < n; i++) { x = (i + 0.5 - R) / R / m; y = (R - j - 0.5) / R / m; r2 = x * x + y * y; el[j * n + i] = Math.sqrt(r2); a[k++] = x; a[k++] = y; a[k++] = r2 < 1 ? Math.sqrt(1 - r2) : 0; }
+    return (GL.nrm[key] = { a: a, r: el, n: n });
   };
   /* paint the ball seen from (lon0, lat0) into a 2R x 2R canvas */
-  GL.draw = function (cv, id, lon0, lat0, R) {
+  GL.draw = function (cv, id, lon0, lat0, R, m) {
     var t = GL.tex[id]; if (!t || !t.ready) return;
-    var N = GL.normals(R), n = N.n, ctx = cv.getContext('2d'), im = cv._im; if (!im || im.width !== n) { cv.width = cv.height = n; im = cv._im = ctx.createImageData(n, n); cv._d = new Uint32Array(im.data.buffer); }
+    var N = GL.normals(R, m), n = N.n, ctx = cv.getContext('2d'), im = cv._im; if (!im || im.width !== n) { cv.width = cv.height = n; im = cv._im = ctx.createImageData(n, n); cv._d = new Uint32Array(im.data.buffer); }
     var il = isletsOf(id), ni = il.length, d = cv._d, px = t.px, T = t.T, K = GL.K, cL = Math.cos(lon0), sL = Math.sin(lon0), cl = Math.cos(lat0), sl = Math.sin(lat0), a = N.a, rr = N.r, i, p, x, y, z, y1, z1, wx, wy, wz, lon, lat, tx, ty, c, sh, al, r0, g0, b0, lx = -0.45, ly = 0.55, lz = 0.7, j, dt2, ia;
     for (i = 0, p = 0; i < n * n; i++, p += 3) {
       if (rr[i] >= 1) { d[i] = 0; continue; }
@@ -6984,28 +6997,37 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   var GLV = null;
   function openGlobe(id, opts) {
     if (GLV || !WORLDS[id]) return; opts = opts || {};
-    var W = WORLDS[id], pal = W.pal || {}, host = document.createElement('div'), sz = Math.round(Math.min(window.innerWidth * 0.94, window.innerHeight * 0.5, 560)), R = Math.min(190, Math.round(sz / 2));
+    var W = WORLDS[id], pal = W.pal || {}, host = document.createElement('div'), sz = Math.round(Math.min(window.innerWidth * 0.94, window.innerHeight * (opts.world ? 0.58 : 0.5), 640)), R = Math.min(200, Math.round(sz / 2)), K0 = GL.K, ZS = [1, 1.7, 2.8, 4.5];
     host.className = 'gl'; host.setAttribute('role', 'dialog'); host.setAttribute('aria-label', 'Globe of ' + W.name);
     var spots = (W.spots || []).filter(function (q) { return q.x !== undefined && q.t; }).slice(0, 14);
-    host.innerHTML = '<div class="gl-sky"></div><div class="gl-top"><b>' + esc(W.name) + '</b><button class="btn small" data-gl="x">Back</button></div><div class="gl-wrap"><div class="gl-ball" id="glBall" style="--s:' + sz + 'px;--glow:' + ((pal.sea && pal.sea[1]) || '#7fd8ff') + '"><canvas id="glCv"></canvas></div></div><div class="gl-card" id="glCard"></div><div class="gl-isl" id="glIsl"></div><p class="gl-hint">Drag to spin the world. The dots mark places to visit' + (isletsOf(id).length ? ', and the small round islands out at sea can only be reached by diving.' : '.') + '</p>';
+    host.innerHTML = '<div class="gl-sky"></div><div class="gl-top"><b>' + esc(W.name) + '</b><button class="btn small" data-gl="x">Back</button></div><div class="gl-wrap"><div class="gl-ball" id="glBall" style="--s:' + sz + 'px;--glow:' + ((pal.sea && pal.sea[1]) || '#7fd8ff') + '"><canvas id="glCv"></canvas></div><div class="gl-ctl"><button data-gl="zin" aria-label="Zoom in">+</button><button data-gl="zout" aria-label="Zoom out">&minus;</button>' + (opts.world ? '<button data-gl="me" aria-label="Follow me">Me</button>' : '') + '</div></div><div class="gl-card" id="glCard"></div><div class="gl-isl" id="glIsl"></div><p class="gl-hint">Drag to spin the world, + and &minus; to zoom' + (opts.world ? ', tap the ground to walk there, and Me to find yourself (the gold ring)' : '') + '. The dots mark places to visit' + (isletsOf(id).length ? ', and the small round islands out at sea can only be reached by diving.' : '.') + '</p>';
     document.body.appendChild(host);
     var ball = host.querySelector('#glBall'), cv = host.querySelector('#glCv'), pins = [];
     spots.forEach(function (q) { var e = document.createElement('div'); e.className = 'gl-pin'; e.style.setProperty('--c', q.k === 'portal' ? '#ff8fc8' : q.k === 'pond' ? '#7fd8ff' : q.k === 'bush' ? '#9be37f' : '#ffd86b'); e.innerHTML = '<i></i>' + esc(q.t); e.style.display = 'none'; ball.appendChild(e); pins.push({ e: e, q: q }); });
     var ils = isletsOf(id), isHost = host.querySelector('#glIsl'), cardEl = host.querySelector('#glCard'), pinI = [];
     ils.forEach(function (q) { var e = document.createElement('div'); e.className = 'gl-pin'; e.style.setProperty('--c', S.isl && S.isl[q.id] ? '#9be37f' : '#ffffff'); e.innerHTML = '<i></i>' + esc(q.n); e.style.display = 'none'; ball.appendChild(e); pinI.push({ e: e, q: q }); });
     ils.forEach(function (q, qi) { var b = document.createElement('button'); b.className = 'btn small'; b.textContent = q.n + (S.isl && S.isl[q.id] ? ' ✓' : ''); b.dataset.i = qi; isHost.appendChild(b); });
-    var st = { lon: 0, lat: 0, vl: 0.25, va: 0, drag: null, on: true, last: performance.now(), t: 0, go: null };
+    var st = { lon: 0, lat: 0, vl: 0.25, va: 0, drag: null, on: true, last: performance.now(), t: 0, go: null, m: 1, zi: 0 }, WZg = 1600 * W.s, ents = [], live = !!(opts.world && S.world && S.cur === id);
+    function toLL(x, y) { return { lon: (x / WZg - 0.5) / K0, lat: -(y / WZg - 0.5) / K0 }; }
+    if (live) { var h0 = S.world.ents[0], ll0 = toLL(h0.x, h0.y); st.lon = ll0.lon; st.lat = Math.max(-1.2, Math.min(1.2, ll0.lat)); st.vl = 0; st.zi = 1; st.m = ZS[1]; ball.classList.add('zoomed'); }
+    function syncEnts() {
+      if (!live) return; var arr = S.world.ents; if (arr.length === ents.length && ents.every(function (o, i) { return o.e === arr[i]; })) return;
+      ents.forEach(function (o) { if (o.el.parentNode) o.el.parentNode.removeChild(o.el); }); ents = [];
+      arr.slice(0, 90).forEach(function (e) { var d = document.createElement('i'); d.className = 'gl-ent ' + (e.kind === 'hero' ? 'hero' : e.kind === 'find' ? 'find' : e.kind === 'wild' ? 'wild' : ''); d.style.setProperty('--c', (TYPES[e.type] && TYPES[e.type].body) || '#fff'); d.style.display = 'none'; ball.appendChild(d); ents.push({ e: e, el: d }); });
+    }
     GLV = { host: host, st: st };
+    function place(el, q, m) { var px = q[0] * m, py = q[1] * m; if (Math.abs(px) > 1.04 || Math.abs(py) > 1.04) { el.style.display = 'none'; return; } el.style.display = ''; el.style.left = ((1 + px) * 50).toFixed(1) + '%'; el.style.top = ((1 - py) * 50).toFixed(1) + '%'; }
     function paint() {
-      GL.draw(cv, id, st.lon, st.lat, R);
-      pinI.forEach(function (o) { var q = GL.pin(id, 0, 0, st.lon, st.lat, o.q.v); if (!q) { o.e.style.display = 'none'; return; } o.e.style.display = ''; o.e.style.left = ((1 + q[0]) * 50).toFixed(1) + '%'; o.e.style.top = ((1 - q[1]) * 50).toFixed(1) + '%'; o.e.style.opacity = Math.min(1, (q[2] - 0.1) * 3).toFixed(2); });
-      pins.forEach(function (o) { var q = GL.pin(id, o.q.x, o.q.y, st.lon, st.lat); if (!q) { o.e.style.display = 'none'; return; } o.e.style.display = ''; o.e.style.left = ((1 + q[0]) * 50).toFixed(1) + '%'; o.e.style.top = ((1 - q[1]) * 50).toFixed(1) + '%'; o.e.style.opacity = Math.min(1, (q[2] - 0.1) * 3).toFixed(2); });
+      GL.draw(cv, id, st.lon, st.lat, R, st.m); var m = st.m;
+      pinI.forEach(function (o) { var q = GL.pin(id, 0, 0, st.lon, st.lat, o.q.v); if (!q) { o.e.style.display = 'none'; return; } place(o.e, q, m); o.e.style.opacity = Math.min(1, (q[2] - 0.1) * 3).toFixed(2); });
+      pins.forEach(function (o) { var q = GL.pin(id, o.q.x, o.q.y, st.lon, st.lat); if (!q) { o.e.style.display = 'none'; return; } place(o.e, q, m); o.e.style.opacity = Math.min(1, (q[2] - 0.1) * 3).toFixed(2); });
+      syncEnts(); ents.forEach(function (o) { var q = GL.pin(id, o.e.x, o.e.y, st.lon, st.lat); if (!q) { o.el.style.display = 'none'; return; } place(o.el, q, m); });
     }
     function loop(now) {
       if (!st.on) return;
       var dt = Math.min(0.05, (now - st.last) / 1000); st.last = now;
       if (st.go && !st.drag) { var dl = st.go.lon - st.lon; dl = Math.atan2(Math.sin(dl), Math.cos(dl)); st.lon += dl * Math.min(1, dt * 4); st.lat += (st.go.lat - st.lat) * Math.min(1, dt * 4); st.vl = 0; st.va = 0; if (Math.abs(dl) < 0.01) st.go = null; }
-      else if (!st.drag) { st.lon += st.vl * dt; st.lat += st.va * dt; st.vl += (0.2 - st.vl) * Math.min(1, dt * 0.6); st.va *= Math.max(0, 1 - dt * 3); } st.lat = Math.max(-1.2, Math.min(1.2, st.lat));
+      else if (!st.drag) { st.lon += st.vl * dt; st.lat += st.va * dt; st.vl += ((live ? 0 : 0.2) - st.vl) * Math.min(1, dt * 0.6); st.va *= Math.max(0, 1 - dt * 3); } st.lat = Math.max(-1.2, Math.min(1.2, st.lat));
       if (st.lon > Math.PI) st.lon -= 6.2832; else if (st.lon < -Math.PI) st.lon += 6.2832;
       paint(); requestAnimationFrame(loop);
     }
@@ -7014,7 +7036,24 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!st.drag) return; var dx = ev.clientX - st.drag.x, dy = ev.clientY - st.drag.y, now = performance.now(), dt = Math.max(0.008, (now - st.drag.t) / 1000), k = 2.4 / sz;
       st.lon -= dx * k; st.lat = Math.max(-1.2, Math.min(1.2, st.lat + dy * k)); st.vl = -dx * k / dt * 0.25; st.va = dy * k / dt * 0.25; st.drag = { x: ev.clientX, y: ev.clientY, t: now };
     });
-    function up() { st.drag = null; st.vl = Math.max(-1.6, Math.min(1.6, st.vl)); st.va = Math.max(-1, Math.min(1, st.va)); }
+    function up(ev) {
+      var d0 = st.drag; st.drag = null; st.vl = Math.max(-1.6, Math.min(1.6, st.vl)); st.va = Math.max(-1, Math.min(1, st.va));
+      if (live && ev && ev.type === 'pointerup' && d0 && st.tap && Math.hypot(ev.clientX - st.tap.x, ev.clientY - st.tap.y) < 8 && performance.now() - st.tap.t < 500) {
+        var r = cv.getBoundingClientRect(), px = ((ev.clientX - r.left) / r.width * 2 - 1) / st.m, py = -((ev.clientY - r.top) / r.height * 2 - 1) / st.m, r2 = px * px + py * py;
+        if (r2 < 0.98) {
+          var z = Math.sqrt(1 - r2), cl = Math.cos(st.lat), sl = Math.sin(st.lat), cL = Math.cos(st.lon), sL = Math.sin(st.lon), y1 = py * cl + z * sl, z1 = -py * sl + z * cl, wx = px * cL + z1 * sL, wz = -px * sL + z1 * cL, lon = Math.atan2(wx, wz), lat = Math.asin(Math.max(-1, Math.min(1, y1)));
+          var tx = (0.5 + lon * K0) * WZg, ty = (0.5 - lat * K0) * WZg;
+          if (tx > 0 && tx < WZg && ty > 0 && ty < WZg && S.screen === 'world') { setLeadTarget({ x: tx, y: ty }); var fx = document.createElement('i'); fx.className = 'gl-tapfx'; fx.style.left = ((ev.clientX - r.left) / r.width * 100) + '%'; fx.style.top = ((ev.clientY - r.top) / r.height * 100) + '%'; ball.appendChild(fx); setTimeout(function () { if (fx.parentNode) fx.parentNode.removeChild(fx); }, 800); }
+        }
+      }
+      st.tap = null;
+    }
+    ball.addEventListener('pointerdown', function (ev) { st.tap = { x: ev.clientX, y: ev.clientY, t: performance.now() }; });
+    function setZoom(zi) { st.zi = Math.max(0, Math.min(ZS.length - 1, zi)); st.m = ZS[st.zi]; ball.classList.toggle('zoomed', st.m > 1.05); }
+    ball.addEventListener('wheel', function (ev) { ev.preventDefault(); setZoom(st.zi + (ev.deltaY < 0 ? 1 : -1)); }, { passive: false });
+    host.querySelector('[data-gl="zin"]').onclick = function () { setZoom(st.zi + 1); };
+    host.querySelector('[data-gl="zout"]').onclick = function () { setZoom(st.zi - 1); };
+    var meB = host.querySelector('[data-gl="me"]'); if (meB) meB.onclick = function () { var h = S.world.ents[0], l = toLL(h.x, h.y); st.go = { lon: l.lon, lat: Math.max(-1.2, Math.min(1.2, l.lat)) }; };
     ball.addEventListener('pointerup', up); ball.addEventListener('pointercancel', up);
     function close() { st.on = false; GLV = null; host.classList.remove('in'); setTimeout(function () { if (host.parentNode) host.parentNode.removeChild(host); }, 420); }
     host.querySelector('[data-gl="x"]').onclick = close;
