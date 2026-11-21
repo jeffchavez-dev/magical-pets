@@ -1297,7 +1297,14 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 .dx-hot.seen { background: rgba(120,255,170,.35); border-color: #b9ffd0; box-shadow: 0 0 12px 3px rgba(120,255,170,.6); animation: none; }
 .dx-hot.sel { background: rgba(255,255,255,.4); }
 @keyframes dxPulse { 50% { transform: scale(1.22); box-shadow: 0 0 22px 8px rgba(255,216,107,.9); } }
-.dx-fact { position: relative; z-index: 3; width: min(94vw, 520px); margin: 0 0 max(12px, env(safe-area-inset-bottom, 0px)); padding: 12px 14px; border-radius: 18px; background: rgba(26,12,80,.94); border: 2px solid rgba(179,136,255,.6); line-height: 1.4; font-size: .98rem; min-height: 3.6em; }
+.dx3cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.dx3-pad { position: absolute; left: max(12px, env(safe-area-inset-left, 0px)); bottom: 120px; z-index: 4; display: grid; grid-template-columns: repeat(3, 50px); gap: 6px; }
+.dx3-pad button { height: 50px; border-radius: 14px; border: 2px solid rgba(255,255,255,.5); background: rgba(27,16,70,.78); color: #fff; font-size: 20px; cursor: pointer; touch-action: none; }
+.dx3-pad button[data-k=w] { grid-column: 2; grid-row: 1; } .dx3-pad button[data-k=a] { grid-column: 1; grid-row: 2; } .dx3-pad button[data-k=s] { grid-column: 2; grid-row: 2; } .dx3-pad button[data-k=d] { grid-column: 3; grid-row: 2; }
+.dx3-pad button:active { background: var(--gold); color: var(--night); }
+.dx3-spd { position: absolute; right: max(12px, env(safe-area-inset-right, 0px)); bottom: 130px; z-index: 4; }
+.dx3-look { bottom: 186px; }
+.dx-fact { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 3; width: min(94vw, 520px); margin: 0 0 max(12px, env(safe-area-inset-bottom, 0px)); padding: 12px 14px; border-radius: 18px; background: rgba(26,12,80,.94); border: 2px solid rgba(179,136,255,.6); line-height: 1.4; font-size: .98rem; min-height: 3.6em; }
 .dx-fact b { color: #ffd86b; font-family: Fredoka, sans-serif; }
 @media (prefers-reduced-motion: reduce) { .dx-stage { transition: none; } .dx-hot { animation: none; } }
 .gl { position: fixed; inset: 0; z-index: 420; display: flex; flex-direction: column; align-items: center; background: radial-gradient(ellipse at 50% 45%, #1a0f55 0, #070320 72%); color: #fff; touch-action: none; user-select: none; opacity: 0; transition: opacity .4s; overflow: hidden; }
@@ -4403,6 +4410,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); el.classList.remove('popout'); }, 1700);
   }
   /* standing in a pond or lake: you swim */
+  /* no walls: you can wade out past the island into the open sea, and from there you can dive */
+  function onWater(x, y) {
+    if (LAND) { for (var i = 0; i < LAND.length; i++) if (Math.hypot(x - LAND[i][0], y - LAND[i][1]) <= LAND[i][2] * 1.02) return false; return true; }
+    return Math.hypot(x - CX, y - CY) > WALK_R * 1.04;
+  }
+  function clampHero(p) { var dx = p.x - CX, dy = p.y - CY, d = Math.hypot(dx, dy), R = WALK_R * 2.8; if (d > R) { dx *= R / d; dy *= R / d; } return { x: CX + dx, y: CY + dy }; }
+  var SEA_SPOT = null;
   function waterAt(x, y) {
     var sp = WD().spots, i, s, k, dx, dy;
     for (i = 0; i < sp.length; i++) {
@@ -4410,6 +4424,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       k = s.lake ? LAKE_K : 1; dx = (x - s.x) / (204 * k); dy = (y - s.y) / (121 * k);
       if (dx * dx + dy * dy < 1) return s;
     }
+    if (S.world && onWater(x, y)) return SEA_SPOT && SEA_SPOT.id === S.cur ? SEA_SPOT : (SEA_SPOT = { id: S.cur, k: 'pond', lake: true, sea: true, t: 'Open sea', x: CX, y: CY });
     return null;
   }
   function draw(e) {
@@ -4480,8 +4495,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   }
   /* ----- immersive walk view: a pseudo-3D chase camera behind your hero (toggle button) ----- */
   var V3_KEY = 'magical-pets-view3d', V3G_KEY = 'magical-pets-globe', V3ZMAX = 2800, V3NEAR = 70;
-  function v3gPref() { try { return localStorage.getItem(V3G_KEY) !== '0'; } catch (e) { return true; } }
-  function v3Pref() { try { return localStorage.getItem(V3_KEY) === '1'; } catch (e) { return false; } }
+  function v3gPref() { return true; }
+  function v3Pref() { try { return localStorage.getItem(V3_KEY) !== '0'; } catch (e) { return true; } }   /* the globe walk view is the default; the flat map stays as an option */
   function v3Save(on) { try { localStorage.setItem(V3_KEY, on ? '1' : '0'); } catch (e) { /* optional */ } }
   function v3Hex(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
   function splitFor(id) {
@@ -4614,7 +4629,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var sc = $('#scene'), ents = $('#ents'), lead = S.world && S.world.ents[0];
     if (!sc || !ents || !lead || V3.on) return;
     var L = document.createElement('div'); L.id = 'w3'; L.className = 'w3';
-    L.innerHTML = '<button class="w3gbtn" id="v3gbtn" data-act="v3globe" aria-pressed="' + (V3.G ? 'true' : 'false') + '">' + (V3.G ? 'Globe: on' : 'Globe: off') + '</button><div class="w3clouds" id="w3clouds"></div><canvas class="w3floor" id="w3floor" aria-hidden="true"></canvas><div class="w3obj" id="w3obj"></div><div class="w3ents" id="w3ents"></div>';
+    L.innerHTML = '<div class="w3clouds" id="w3clouds"></div><canvas class="w3floor" id="w3floor" aria-hidden="true"></canvas><div class="w3obj" id="w3obj"></div><div class="w3ents" id="w3ents"></div>';
     var wx = sc.querySelector('.wxc'); if (wx) sc.insertBefore(L, wx); else sc.appendChild(L);
     $('#w3ents').appendChild(ents);
     sc.classList.add('v3on');
@@ -4638,7 +4653,6 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   V3.syncBtn = function () {
     var b = $('#v3btn'); if (!b) return;
     b.setAttribute('aria-pressed', V3.on ? 'true' : 'false'); b.textContent = V3.on ? 'Back to map view' : 'Walk view (3D)';
-    var g = $('#v3gbtn'); if (g) { g.setAttribute('aria-pressed', V3.G ? 'true' : 'false'); g.textContent = V3.G ? 'Globe: on' : 'Globe: off'; }
   };
   V3.toggleGlobe = function () {
     V3.G = !V3.G; try { localStorage.setItem(V3G_KEY, V3.G ? '1' : '0'); } catch (e) { /* optional */ }
@@ -6430,13 +6444,13 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   /* the islet itself: a small sunny beach with three things to find */
   function openIslet(q) {
     var W = WORLDS[S.cur] || {}, host = document.createElement('div'), done = !!(S.isl && S.isl[q.id]), got = [], need = 3, fx = [[28, 62], [52, 46], [74, 64]], items = [], i;
-    var TY = (W.types || ['water']).filter(function (t) { return BODY_OPTIONS[t]; });
     if (q.kind === 'berry') for (i = 0; i < 3; i++) items.push({ t: 'berry', f: 'Sweet sea berries! +2 pet food.' });
     else if (q.kind === 'shell') for (i = 0; i < 3; i++) items.push({ t: 'shell', f: 'A pretty shell! +8 coins.' });
-    else { items.push({ t: 'pet', f: '' }, { t: 'shell', f: 'A pretty shell! +6 coins.' }, { t: 'shell', f: 'A pretty shell! +6 coins.' }); }
+    else { var mk0 = worldMats(S.cur); for (i = 0; i < 3; i++) { var mk1 = mk0[i % mk0.length]; items.push({ t: 'mat', m: mk1, f: level() >= HOUSE_LV ? 'Washed-up building stuff! +2 ' + MAT_BY[mk1].name + '.' : 'A pretty pebble! +6 coins.' }); } }
     function icon(t) {
       return t === 'berry' ? '<svg viewBox="0 0 60 60"><path d="M30 14 Q24 4 16 8" stroke="#4fbf6a" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="22" cy="38" r="14" fill="#ff5a8a" stroke="#fff" stroke-width="3"/><circle cx="40" cy="36" r="13" fill="#e0407a" stroke="#fff" stroke-width="3"/><circle cx="18" cy="33" r="3" fill="#fff" opacity=".6"/></svg>'
         : t === 'shell' ? '<svg viewBox="0 0 60 60"><path d="M8 40 Q8 12 30 12 Q52 12 52 40 Q52 52 30 52 Q8 52 8 40Z" fill="#ffb3d9" stroke="#fff" stroke-width="3"/><path d="M30 14 V50 M18 18 L22 50 M42 18 L38 50" stroke="#e07aa8" stroke-width="3" fill="none"/></svg>'
+        : t === 'mat' ? '<svg viewBox="0 0 60 60"><rect x="10" y="12" width="40" height="36" rx="9" fill="#c9a06a" stroke="#fff" stroke-width="3"/><path d="M10 26 H50 M10 38 H50" stroke="#8a6a3a" stroke-width="3"/></svg>'
         : '<svg viewBox="0 0 60 60"><ellipse cx="30" cy="38" rx="20" ry="16" fill="#9fe8f0" stroke="#fff" stroke-width="3"/><circle cx="30" cy="22" r="12" fill="#c8f6fa" stroke="#fff" stroke-width="3"/><circle cx="26" cy="21" r="2.5" fill="#2a1a55"/><circle cx="35" cy="21" r="2.5" fill="#2a1a55"/><path d="M26 27 Q30 31 34 27" stroke="#2a1a55" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>';
     }
     host.className = 'isl'; host.setAttribute('role', 'dialog'); host.setAttribute('aria-label', q.n);
@@ -6444,12 +6458,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     document.body.appendChild(host);
     var scene = host.querySelector('#islScene'), fact = host.querySelector('#islFact'), petMade = null;
     items.forEach(function (it, idx) {
-      var b = document.createElement('button'); b.className = 'isl-find' + (done ? ' got' : ''); b.style.left = fx[idx][0] + '%'; b.style.top = fx[idx][1] + '%'; b.setAttribute('aria-label', it.t === 'berry' ? 'Berries' : it.t === 'shell' ? 'Shell' : 'A friendly pet'); b.innerHTML = icon(it.t); scene.appendChild(b);
+      var b = document.createElement('button'); b.className = 'isl-find' + (done ? ' got' : ''); b.style.left = fx[idx][0] + '%'; b.style.top = fx[idx][1] + '%'; b.setAttribute('aria-label', it.t === 'berry' ? 'Berries' : it.t === 'shell' ? 'Shell' : 'Building materials'); b.innerHTML = icon(it.t); scene.appendChild(b);
       b.onclick = function () {
         if (b.classList.contains('got')) return; b.classList.add('got'); got.push(idx); var msg = it.f;
         if (it.t === 'berry') { var room = Math.max(0, Math.min(2, foodCap() - S.food)); S.food += room; if (Math.random() < 0.5 && (S.seeds | 0) < 5) { S.seeds = (S.seeds | 0) + 1; msg += ' And a berry seed for planting a park!'; } }
         else if (it.t === 'shell') S.coins += (q.kind === 'shell' ? 8 : 6);
-        else { var ty = TY.length ? TY[Math.floor(Math.random() * TY.length)] : 'water'; petMade = newPet(ty, 'powerful', pick(BODY_OPTIONS[ty] || BODY_OPTIONS.water)); petMade.name = S.world ? freeName(S.world) : 'Islet'; S.team.push(petMade); S.caught[ty] = true; if (S.world) addFollowerEnt(petMade); msg = 'A friendly ' + TYPES[ty].name + ' pet was waiting here and joins your team: ' + petMade.name + '!'; }
+        else { if (level() >= HOUSE_LV) S.mats[it.m] = Math.min(MAT_CAP, (S.mats[it.m] || 0) + 2); else S.coins += 6; }
         if (got.length === need) { S.isl = S.isl || {}; S.isl[q.id] = 1; if (q.kind === 'shell' && level() >= ASTRO_LV) { S.scrap = Math.min(99, S.scrap + 2); msg += ' All found! +2 star scrap.'; } else msg += ' You found everything on ' + q.n + '!'; }
         fact.innerHTML = '<b>' + esc(msg) + '</b>'; save(); try { updateHud(); } catch (e6) { /* optional */ }
       };
@@ -6906,7 +6920,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   /* ----- globes: every world as a ball you can spin, like Google Earth. The flat world map is wrapped onto a sphere (an island cap with sea all round it). ----- */
 
   /* ----- sea islets: small stops far out in the sea of each globe. Bigger worlds have more. You reach them by diving. ----- */
-  var ISL_NAMES = ['Coral Isle', 'Pearl Isle', 'Palm Nook', 'Shell Cay', 'Mist Isle', 'Kelp Isle', 'Star Isle', 'Tide Rock'], ISL_KIND = ['berry', 'shell', 'pet'];
+  var ISL_NAMES = ['Coral Isle', 'Pearl Isle', 'Palm Nook', 'Shell Cay', 'Mist Isle', 'Kelp Isle', 'Star Isle', 'Tide Rock'], ISL_KIND = ['berry', 'shell', 'build'];
   function isletsOf(id) {
     var W = WORLDS[id]; if (!W) return []; if (W._isl) return W._isl;
     var n = Math.max(2, Math.min(6, Math.round((W.s || 1) * 1.1))), R = rng((W.seed | 0) + 555), out = [], tries = 0, off = (W.seed | 0) % ISL_NAMES.length;
@@ -7007,7 +7021,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     isHost.addEventListener('click', function (ev) {
       var b = ev.target.closest('button'); if (!b) return; var q = ils[+b.dataset.i]; st.go = { lon: q.lon, lat: q.lat };
       var done = S.isl && S.isl[q.id], can = opts.world && S.screen === 'world' && !warping;
-      cardEl.innerHTML = '<b>' + esc(q.n) + '</b> &middot; ' + (q.kind === 'berry' ? 'a berry islet' : q.kind === 'pet' ? 'a friendly-pet islet' : 'a shell islet') + (done ? ' (you found everything here)' : '') + '<br>It is out in the open sea. Dive down, swim to the glowing islet passage and pop up on the beach!' + (can ? '<button class="btn primary" data-gl="swim" data-i="' + b.dataset.i + '">Dive and swim there</button>' : '<br><em>Land on this world, tap Globe and you can dive from here.</em>');
+      cardEl.innerHTML = '<b>' + esc(q.n) + '</b> &middot; ' + (q.kind === 'berry' ? 'a berry islet' : q.kind === 'build' ? 'a building-materials islet' : 'a shell islet') + (done ? ' (you found everything here)' : '') + '<br>It is out in the open sea. Dive down, swim to the glowing islet passage and pop up on the beach!' + (can ? '<button class="btn primary" data-gl="swim" data-i="' + b.dataset.i + '">Dive and swim there</button>' : '<br><em>Land on this world, tap Globe and you can dive from here.</em>');
       cardEl.classList.add('on');
     });
     cardEl.addEventListener('click', function (ev) { var b = ev.target.closest('[data-gl="swim"]'); if (!b) return; var q = ils[+b.dataset.i]; close(); setTimeout(function () { swimToIslet(q); }, 450); });
@@ -7383,7 +7397,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       { k: 'bin', n: 'Twin Stars', c: ['#9ad8ff', '#ffb347', '#fff'], s: 0.18, rot: 0, az: 2.2, el: 0.7, u: 0.95, v: 0.12, f: 0.025 },
       { k: 'spi', n: 'Little Lost Galaxy', c: ['#ffffff', '#ffd86b', '#ff9a6a'], s: 0.2, rot: -0.9, az: 4.2, el: 0.42, u: 0.22, v: 0.38, f: 0.005 }
     ];
-    function hexA(h, a) { var n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
+    function hexA(h, a) { if (h.length === 4) h = '#' + h[1] + h[1] + h[2] + h[2] + h[3] + h[3]; var n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
     function deepSprite(b, idx, sc) {
       var S = b.k === 'neb' ? 256 : 192, cvs = document.createElement('canvas'), g = cvs.getContext('2d'), R = rng(900 + idx * 7), cc = S / 2, i, t, a, r, x, y, gr; sc = sc || 1;
       cvs.width = cvs.height = Math.round(S * sc); g.translate(cc * sc, cc * sc); g.scale(sc, sc);
@@ -7485,7 +7499,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         { n: 'Wandering Stars', x: 0.58, y: 0.14, f: 'The stars here drift in a loose cloud with no clear arms.' },
         { n: 'Far From Home', x: -0.2, y: 0.85, f: 'Dwarf galaxies can get pulled apart by a big neighbour and become streams of stars.' }] }
     };
-    DEEP.forEach(function (b) { var q = DINFO[b.n]; b.t = q.t; b.fact = q.f; b.parts = q.parts; });
+    var DDIST = {"Swirly Galaxy": 3, "Rosebud Nebula": 2, "Gobbler Black Hole": 5, "Emerald Cloud": 2.5, "Pinwheel Galaxy": 6, "Far Ringworld": 1.5, "Golden Galaxy": 5.5, "Blue Whale Nebula": 3.5, "Blinky Pulsar": 4, "Jewel Cluster": 2, "Sunset Nebula": 2.8, "Twin Stars": 1.2, "Little Lost Galaxy": 7};
+    DEEP.forEach(function (b) { var q = DINFO[b.n]; b.t = q.t; b.fact = q.f; b.parts = q.parts; b.dist = DDIST[b.n] || 3; b.cost = Math.round(4 + b.dist * 5); });
     var deepOpen = false, deepScr = [], dxEl = null, dxCard = root.querySelector('#asDeepCard');
     function deepSave(b) { S.deep = S.deep || {}; return S.deep[b.n] || (S.deep[b.n] = { p: [], d: 0 }); }
     function deepHit(px, py) { var i, q; for (i = deepScr.length - 1; i >= 0; i--) { q = deepScr[i]; if (Math.hypot(px - q.x, py - q.y) < q.r) return q.i; } return null; }
@@ -7494,45 +7509,157 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       var b = DEEP[i]; if (!b || dxEl) return;
       var sv = deepSave(b);
       deepOpen = true; held = {};
-      dxCard.innerHTML = '<span class="dk">' + esc(b.t) + '</span><h3>' + esc(b.n) + '</h3><p>' + esc(b.fact) + '</p><p class="srow-note">Parts explored: ' + sv.p.length + ' of ' + b.parts.length + '. Sights fully explored: ' + deepCount() + ' of ' + DEEP.length + '.</p><div class="row"><button class="btn primary" id="dcGo">Fly there and explore</button><button class="btn" id="dcX">Close</button></div>';
+      var need = b.cost, can = Math.floor(o2) >= need;
+      dxCard.innerHTML = '<span class="dk">' + esc(b.t) + '</span><h3>' + esc(b.n) + '</h3><p>' + esc(b.fact) + '</p><p class="srow-note">Parts explored: ' + sv.p.length + ' of ' + b.parts.length + '. Sights fully explored: ' + deepCount() + ' of ' + DEEP.length + '.</p><p class="srow-note"><b>' + (b.dist >= 5 ? 'Very far away' : b.dist >= 3 ? 'Far away' : 'Quite far away') + '.</b> The trip needs <b>' + need + ' oxygen</b> (you have ' + Math.floor(o2) + '). The farther the sight, the more oxygen it takes.</p><div class="row"><button class="btn primary" id="dcGo"' + (can ? '' : ' disabled') + '>' + (can ? 'Fly there (' + need + ' oxygen)' : 'Not enough oxygen') + '</button><button class="btn" id="dcX">Close</button></div>';
       dxCard.classList.add('on');
       dxCard.querySelector('#dcX').onclick = function () { dxCard.classList.remove('on'); deepOpen = false; };
-      dxCard.querySelector('#dcGo').onclick = function () { dxCard.classList.remove('on'); exploreDeep(i); };
+      dxCard.querySelector('#dcGo').onclick = function () { if (Math.floor(o2) < b.cost) return; dxCard.classList.remove('on'); o2 = Math.max(0, o2 - b.cost); setO2(); hud(true); enterDeep(i); };
     }
-    function deepPt(b, x, y) {
-      var sq = b.k === 'spi' ? 0.48 : b.k === 'ell' ? 0.68 : 1, rot = (b.k === 'neb' || b.k === 'clu' || b.k === 'bin') ? 0 : b.rot, yy = y * sq;
-      return [x * Math.cos(rot) - yy * Math.sin(rot), x * Math.sin(rot) + yy * Math.cos(rot)];
-    }
-    function exploreDeep(i) {
-      var b = DEEP[i], sv = deepSave(b), found = {}, host = root, h = [], wrap, stage, cvs, fact, top;
+    /* ---- going inside: a real 3D flight through the sight. Stars, gas and rings are points in space that you steer through; fly close to each glowing marker to explore that part. ---- */
+    function enterDeep(i) {
+      var b = DEEP[i], sv = deepSave(b), found = {}, host = root, cvs, g, DW = window.innerWidth, DH = window.innerHeight, dpr2 = Math.min(2, window.devicePixelRatio || 1), R2 = rng(4000 + i * 13), alive = true, raf3 = 0, last3 = performance.now(), T = 0;
       sv.p.forEach(function (n) { found[n] = 1; });
-      if (!b.big) b.big = deepSprite(b, i, b.k === 'neb' ? 2.5 : 3);
-      var sz = Math.round(Math.min(W, H * 0.7) * 0.92 * (b.k === 'spi' || b.k === 'ell' || b.k === 'neb' ? 1 : 1.55));
-      dxEl = document.createElement('div'); dxEl.className = 'dx'; dxEl.setAttribute('role', 'dialog'); dxEl.setAttribute('aria-label', 'Exploring ' + b.n);
-      b.parts.forEach(function (q, j) { var pt = deepPt(b, q.x, q.y); h.push('<button class="dx-hot' + (found[j] ? ' seen' : '') + '" data-j="' + j + '" style="left:' + (50 + pt[0] * 50).toFixed(1) + '%;top:' + (50 + pt[1] * 50).toFixed(1) + '%" aria-label="Look closer: ' + esc(q.n) + '"></button>'); });
-      dxEl.innerHTML = '<div class="dx-sky"></div><div class="dx-top"><b>' + esc(b.n) + '</b><span id="dxCnt"></span><button class="btn small" id="dxBack">Back to space</button></div><div class="dx-wrap"><div class="dx-stage" id="dxStage" style="--s:' + sz + 'px"><canvas width="' + sz + '" height="' + sz + '"></canvas>' + h.join('') + '</div></div><div class="dx-fact" id="dxFact"><b>You flew all the way here!</b> Tap the glowing dots to look closer at each part.</div>';
-      root.appendChild(dxEl);
-      stage = dxEl.querySelector('#dxStage'); cvs = stage.querySelector('canvas'); fact = dxEl.querySelector('#dxFact');
-      cvs.getContext('2d').drawImage(b.big, 0, 0, sz, sz);
-      function cnt() { dxEl.querySelector('#dxCnt').textContent = 'Parts found ' + Object.keys(found).length + ' / ' + b.parts.length; }
+      deepOpen = true; held = {};
+      var el = document.createElement('div'); el.className = 'dx'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Inside ' + b.n); dxEl = el;
+      el.innerHTML = '<canvas class="dx3cv" id="dx3cv"></canvas><div class="dx-top"><b>' + esc(b.n) + '</b><span id="dxCnt"></span><button class="btn small" id="dxBack">Back to space</button></div><div class="dx3-pad"><button data-k="a" aria-label="Turn left">&#9664;</button><button data-k="w" aria-label="Look up">&#9650;</button><button data-k="s" aria-label="Look down">&#9660;</button><button data-k="d" aria-label="Turn right">&#9654;</button></div><button class="btn dx3-spd" id="dxSpd">Speed: Cruise</button><button class="btn dx3-spd dx3-look" id="dxLook">Face the middle</button><div class="dx-fact" id="dxFact"><b>You used ' + b.cost + ' oxygen to fly all the way here!</b> Steer by dragging or with the arrows. Fly close to each glowing marker to explore that part.</div>';
+      root.appendChild(el);
+      cvs = el.querySelector('#dx3cv'); cvs.width = Math.round(DW * dpr2); cvs.height = Math.round(DH * dpr2); g = cvs.getContext('2d'); g.setTransform(dpr2, 0, 0, dpr2, 0, 0);
+      var pal = b.c, cols = [pal[0], pal[1], pal[2], '#ffffff'], P = { x: 0, y: 0, z: 0 }, yaw = 0, pitch = 0, spd = 1, SP = [0, 1, 2.6], SPN = ['Stopped', 'Cruise', 'Fast'], F = 0.95 * Math.min(DW * 1.1, DH * 1.3), RMAX = 1150, pts = [], glows = [], pois = [], balls = [], beams = null, disc = null, bin = null, ring = null;
+      function gs() { return (R2() + R2() + R2() + R2() - 2) / 2; }   /* roughly bell-shaped, -1 to 1 */
+      function pt(x, y, z, c, sz, a) { pts.push({ x: x, y: y, z: z, c: c, s: sz, a: a === undefined ? 0.9 : a }); }
+      function gl(x, y, z, r, c, a) { glows.push({ x: x, y: y, z: z, r: r, c: c, a: a }); }
+      var k = b.k, n2, a, t, r;
+      var start = { x: 0, y: 300, z: -1000 };
+      for (n2 = 0; n2 < 500; n2++) { a = R2() * 6.2832; t = Math.acos(2 * R2() - 1); r = 3500 + R2() * 800; pt(r * Math.sin(t) * Math.cos(a), r * Math.cos(t), r * Math.sin(t) * Math.sin(a), 3, 1.1, 0.3 + R2() * 0.5); }   /* far background stars */
+      if (k === 'spi') {
+        for (n2 = 0; n2 < 2800; n2++) { var arm = n2 % 2; t = Math.pow(R2(), 0.75); r = 90 + t * 900; a = arm * Math.PI + t * 4.6 + gs() * 0.35; pt(Math.cos(a) * r + gs() * 40, gs() * 38 * (1 - t * 0.6), Math.sin(a) * r + gs() * 40, t < 0.4 ? 1 : R2() < 0.15 ? 3 : 2, 1.2 + R2() * 1.8, 0.45 + R2() * 0.5); }
+        for (n2 = 0; n2 < 600; n2++) pt(gs() * 190, gs() * 120, gs() * 190, R2() < 0.3 ? 3 : 0, 1.3 + R2() * 1.6, 0.6 + R2() * 0.4);
+        gl(0, 0, 0, 520, 0, 0.5); gl(0, 0, 0, 220, 3, 0.7);
+        for (n2 = 0; n2 < 16; n2++) { arm = n2 % 2; t = 0.2 + R2() * 0.75; r = 90 + t * 900; a = arm * Math.PI + t * 4.6; gl(Math.cos(a) * r, 0, Math.sin(a) * r, 170, 2, 0.16); }
+        var ta = 0.5, ra = 90 + ta * 900, aa = ta * 4.6, tb = 0.95, rb = 90 + tb * 900, ab = Math.PI + tb * 4.6;
+        pois = [{ x: 0, y: 0, z: 0 }, { x: Math.cos(aa) * ra, y: 0, z: Math.sin(aa) * ra }, { x: Math.cos(ab) * rb, y: 0, z: Math.sin(ab) * rb }];
+        start = { x: 750, y: 330, z: -950 };
+      } else if (k === 'ell') {
+        for (n2 = 0; n2 < 3600; n2++) { r = Math.pow(R2(), 1.3) * 3; pt(gs() * 330 * r / 1.5 + gs() * 20, gs() * 220 * r / 1.5, gs() * 330 * r / 1.5, R2() < 0.25 ? 3 : R2() < 0.6 ? 0 : 1, 1.2 + R2() * 1.8, 0.35 + R2() * 0.55); }
+        gl(0, 0, 0, 640, 2, 0.28); gl(0, 0, 0, 340, 1, 0.45); gl(0, 0, 0, 140, 0, 0.7);
+        pois = [{ x: 0, y: 0, z: 0 }, { x: 420, y: 90, z: 120 }, { x: -520, y: -120, z: -260 }]; start = { x: 600, y: 200, z: -900 };
+      } else if (k === 'neb') {
+        for (n2 = 0; n2 < 72; n2++) { a = R2() * 6.2832; t = Math.acos(2 * R2() - 1); r = R2() * 620; gl(r * Math.sin(t) * Math.cos(a), r * Math.cos(t) * 0.7, r * Math.sin(t) * Math.sin(a), 150 + R2() * 170, n2 % 3, 0.1 + R2() * 0.13); }
+        for (n2 = 0; n2 < 12; n2++) gl(-300 + n2 * 55 + gs() * 18, -240 + n2 * 38 + gs() * 18, 200 + gs() * 20, 90, (n2 % 2) ? 1 : 0, 0.22);   /* a dark-edged pillar of gas */
+        for (n2 = 0; n2 < 700; n2++) { a = R2() * 6.2832; t = Math.acos(2 * R2() - 1); r = R2() * 800; pt(r * Math.sin(t) * Math.cos(a), r * Math.cos(t), r * Math.sin(t) * Math.sin(a), R2() < 0.4 ? 3 : R2() < 0.5 ? 0 : 1, 1 + R2() * 2.2, 0.5 + R2() * 0.5); }
+        pois = [{ x: 0, y: 0, z: 0 }, { x: -250, y: -150, z: 220 }, { x: 330, y: 160, z: -200 }]; start = { x: 0, y: 150, z: -900 };
+        pois.forEach(function (q) { gl(q.x, q.y, q.z, 120, 3, 0.35); });
+      } else if (k === 'bh') {
+        disc = []; for (n2 = 0; n2 < 3200; n2++) { r = 150 + Math.pow(R2(), 1.4) * 330; disc.push({ r: r, th: R2() * 6.2832, y: gs() * 7, c: r < 230 ? 2 : r < 330 ? 0 : 1, s: 1.2 + R2() * 1.7, a: 0.55 + R2() * 0.45 }); }
+        gl(0, 0, 0, 560, 1, 0.22);
+        for (n2 = 0; n2 < 400; n2++) { a = R2() * 6.2832; t = Math.acos(2 * R2() - 1); r = 700 + R2() * 700; pt(r * Math.sin(t) * Math.cos(a), r * Math.cos(t), r * Math.sin(t) * Math.sin(a), 3, 1.2, 0.5); }
+        balls = [{ x: 0, y: 0, z: 0, r: 80, dark: true }];
+        pois = [{ x: 0, y: 0, z: 0, rr: 330 }, { x: 330, y: 0, z: 0 }, { x: 0, y: 210, z: 0, rr: 150 }]; start = { x: 0, y: 260, z: -1050 };
+      } else if (k === 'rng') {
+        ring = []; for (n2 = 0; n2 < 3600; n2++) { r = 300 + R2() * 270; if (r > 390 && r < 412) continue; ring.push({ r: r, th: R2() * 6.2832, y: gs() * 3, c: R2() < 0.5 ? 0 : R2() < 0.6 ? 1 : 2, s: 1 + R2() * 1.8, a: 0.5 + R2() * 0.45 }); }
+        balls = [{ x: 0, y: 0, z: 0, r: 210, planet: true }, { x: 650, y: 40, z: 0, r: 22, moon: 0.5 }, { x: -480, y: -30, z: 0, r: 15, moon: 1.1 }];
+        for (n2 = 0; n2 < 300; n2++) { a = R2() * 6.2832; t = Math.acos(2 * R2() - 1); r = 900 + R2() * 600; pt(r * Math.sin(t) * Math.cos(a), r * Math.cos(t), r * Math.sin(t) * Math.sin(a), 3, 1.2, 0.5); }
+        pois = [{ x: 0, y: 40, z: -300 }, { x: 470, y: 0, z: 0 }, { x: 0, y: 0, z: 401, rr: 160 }]; start = { x: 0, y: 200, z: -1100 };
+      } else if (k === 'clu') {
+        for (n2 = 0; n2 < 1100; n2++) { r = Math.pow(R2(), 1.5); a = R2() * 6.2832; t = Math.acos(2 * R2() - 1); var rr2 = r * 650; pt(rr2 * Math.sin(t) * Math.cos(a), rr2 * Math.cos(t), rr2 * Math.sin(t) * Math.sin(a), R2() < 0.3 ? 1 : R2() < 0.55 ? 0 : 2, 1.3 + R2() * 2.4, 0.5 + R2() * 0.5); }
+        for (n2 = 0; n2 < 36; n2++) { a = R2() * 6.2832; t = Math.acos(2 * R2() - 1); r = R2() * 500; gl(r * Math.sin(t) * Math.cos(a), r * Math.cos(t), r * Math.sin(t) * Math.sin(a), 40 + R2() * 40, n2 % 3, 0.5); }
+        gl(0, 0, 0, 280, 0, 0.3);
+        pois = [{ x: 0, y: 0, z: 0 }, { x: 340, y: 110, z: 60 }, { x: -320, y: -90, z: 200 }]; start = { x: 0, y: 150, z: -800 };
+      } else if (k === 'pul') {
+        beams = { tilt: 0.38 }; gl(0, 0, 0, 200, 2, 0.5);
+        for (n2 = 0; n2 < 500; n2++) { a = R2() * 6.2832; t = Math.acos(2 * R2() - 1); r = 600 + R2() * 1200; pt(r * Math.sin(t) * Math.cos(a), r * Math.cos(t), r * Math.sin(t) * Math.sin(a), 3, 1.2, 0.6); }
+        balls = [{ x: 0, y: 0, z: 0, r: 22, star: true }];
+        pois = [{ x: 0, y: 0, z: 0 }, { x: 0, y: 380, z: 0 }, { x: 0, y: -380, z: 0 }]; start = { x: 0, y: 40, z: -700 };
+      } else {
+        bin = { a: 0 }; balls = [{ x: 0, y: 0, z: 0, r: 40, star: true, c: 0 }, { x: 0, y: 0, z: 0, r: 30, star: true, c: 1 }];
+        for (n2 = 0; n2 < 800; n2++) { a = R2() * 6.2832; t = Math.acos(2 * R2() - 1); r = 400 + R2() * 1500; pt(r * Math.sin(t) * Math.cos(a), r * Math.cos(t), r * Math.sin(t) * Math.sin(a), 3, 1.2, 0.6); }
+        for (n2 = 0; n2 < 500; n2++) { a = R2() * 6.2832; r = 60 + R2() * 230; pt(Math.cos(a) * r, gs() * 30, Math.sin(a) * r, R2() < 0.5 ? 0 : 1, 1.2 + R2() * 1.4, 0.4); }
+        pois = [{ x: 0, y: 0, z: 0, who: 'a' }, { x: 0, y: 0, z: 0, who: 'b' }, { x: 0, y: 0, z: 0 }]; start = { x: 0, y: 120, z: -650 };
+      }
+      pois.forEach(function (q, j) { q.j = j; q.rr = q.rr || 200; });
+      P.x = start.x; P.y = start.y; P.z = start.z;
+      var lx = -P.x, ly = -P.y, lz = -P.z; yaw = Math.atan2(lx, lz); pitch = Math.atan2(ly, Math.hypot(lx, lz));
+      var sprites = {}; function sprite(ci) { if (sprites[ci]) return sprites[ci]; var cv2 = document.createElement('canvas'); cv2.width = cv2.height = 64; var g2 = cv2.getContext('2d'), gr = g2.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, hexA(cols[ci], 1)); gr.addColorStop(0.35, hexA(cols[ci], 0.45)); gr.addColorStop(1, hexA(cols[ci], 0)); g2.fillStyle = gr; g2.fillRect(0, 0, 64, 64); return (sprites[ci] = cv2); }
+      function proj(x, y, z) {
+        var dx = x - P.x, dy = y - P.y, dz = z - P.z, cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), x1 = dx * cy - dz * sy, z1 = dx * sy + dz * cy, y2 = dy * cp - z1 * sp, z2 = dy * sp + z1 * cp;
+        return z2 < 12 ? null : { x: DW / 2 + F * x1 / z2, y: DH / 2 - F * y2 / z2, z: z2 };
+      }
+      function cnt() { el.querySelector('#dxCnt').textContent = 'Parts found ' + Object.keys(found).length + ' / ' + b.parts.length; }
       cnt();
-      requestAnimationFrame(function () { requestAnimationFrame(function () { if (!dxEl) return; dxEl.classList.add('in'); stage.classList.add('in'); }); });
-      function reset() { stage.style.transformOrigin = '50% 50%'; stage.style.transform = ''; [].forEach.call(stage.querySelectorAll('.dx-hot'), function (e) { e.classList.remove('sel'); }); }
-      function close() { if (!dxEl) return; var e = dxEl; dxEl = null; deepOpen = false; e.classList.remove('in'); setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 450); hud(true); }
-      dxEl.querySelector('#dxBack').onclick = close;
-      stage.addEventListener('click', function (ev) {
-        var hb = ev.target.closest && ev.target.closest('.dx-hot'); if (!hb) { reset(); return; }
-        var j = +hb.dataset.j, q = b.parts[j], pt = deepPt(b, q.x, q.y), ox = 50 + pt[0] * 50, oy = 50 + pt[1] * 50;
-        reset(); hb.classList.add('sel'); stage.style.transformOrigin = ox.toFixed(1) + '% ' + oy.toFixed(1) + '%'; stage.style.transform = 'scale(' + (b.k === 'bh' || b.k === 'pul' ? 1.9 : 1.7) + ')';
-        var fresh = !found[j]; found[j] = 1; hb.classList.add('seen');
-        if (sv.p.indexOf(j) < 0) sv.p.push(j);
-        var msg = '<b>' + esc(q.n) + '.</b> ' + esc(q.f);
-        if (Object.keys(found).length === b.parts.length && !sv.d) {
-          sv.d = 1; S.scrap = Math.min(99, S.scrap + 3); S.coins += 10;
-          msg += '<br><b>You explored all of ' + esc(b.n) + '!</b> +3 star scrap and +10 coins. Sights fully explored: ' + deepCount() + ' of ' + DEEP.length + '.'; try { updateHud(); } catch (e5) { /* optional */ }
-        }
-        if (fresh) save(); cnt(); fact.innerHTML = msg;
-      });
+      var fact = el.querySelector('#dxFact'), flashT = 0, introT = 0, INTRO = REDUCE ? 0.2 : 2.4, keys3 = {}, drag3 = null;
+      function frame3(now) {
+        if (!alive) return;
+        var dt = Math.min(0.05, (now - last3) / 1000); last3 = now; T += dt; introT += dt;
+        /* steering */
+        var tr = 1.6 * dt;
+        if (keys3.arrowleft || keys3.a) yaw -= tr; if (keys3.arrowright || keys3.d) yaw += tr; if (keys3.arrowup || keys3.w) pitch += tr * 0.8; if (keys3.arrowdown || keys3.s) pitch -= tr * 0.8;
+        pitch = Math.max(-1.45, Math.min(1.45, pitch));
+        var sp0 = SP[spd] * 150 * (introT < INTRO ? 0.15 : 1), fx = Math.cos(pitch) * Math.sin(yaw), fy = Math.sin(pitch), fz = Math.cos(pitch) * Math.cos(yaw);
+        P.x += fx * sp0 * dt; P.y += fy * sp0 * dt; P.z += fz * sp0 * dt;
+        var d0 = Math.hypot(P.x, P.y, P.z); if (d0 > RMAX) { P.x *= RMAX / d0; P.y *= RMAX / d0; P.z *= RMAX / d0; }
+        if (k === 'bh' || k === 'rng' || k === 'pul' || k === 'bin') { var dm = k === 'bh' ? 150 : k === 'rng' ? 250 : 60; if (d0 < dm) { P.x *= dm / (d0 || 1); P.y *= dm / (d0 || 1); P.z *= dm / (d0 || 1); } }
+        /* things that move */
+        if (disc) disc.forEach(function (q) { q.th += dt * 1.5 * Math.pow(160 / q.r, 1.5); });
+        if (ring) ring.forEach(function (q) { q.th += dt * 0.12 * Math.pow(300 / q.r, 1.5); });
+        balls.forEach(function (q) { if (q.moon) { var rr3 = Math.hypot(q.x, q.z) || 1, a3 = Math.atan2(q.z, q.x) + dt * q.moon * 0.3; q.x = Math.cos(a3) * rr3; q.z = Math.sin(a3) * rr3; } });
+        if (bin) { bin.a += dt * 0.55; balls[0].x = Math.cos(bin.a) * 130; balls[0].z = Math.sin(bin.a) * 130; balls[1].x = -Math.cos(bin.a) * 170; balls[1].z = -Math.sin(bin.a) * 170; pois[0].x = balls[0].x; pois[0].z = balls[0].z; pois[1].x = balls[1].x; pois[1].z = balls[1].z; }
+        /* exploring: fly close to a marker */
+        pois.forEach(function (q) {
+          if (found[q.j]) return; var d1 = Math.hypot(P.x - q.x, P.y - q.y, P.z - q.z);
+          if (d1 < q.rr) {
+            found[q.j] = 1; if (sv.p.indexOf(q.j) < 0) sv.p.push(q.j); var part = b.parts[q.j], msg = '<b>' + esc(part.n) + '.</b> ' + esc(part.f); flashT = 1;
+            if (Object.keys(found).length === b.parts.length && !sv.d) { sv.d = 1; S.scrap = Math.min(99, S.scrap + 3); S.coins += 10; msg += '<br><b>You explored all of ' + esc(b.n) + '!</b> +3 star scrap and +10 coins. Sights fully explored: ' + deepCount() + ' of ' + DEEP.length + '.'; try { updateHud(); } catch (e7) { /* optional */ } }
+            fact.innerHTML = msg; cnt(); save(); try { auAct('good', 1); } catch (e8) { /* sound is optional */ }
+          }
+        });
+        /* ---- draw ---- */
+        g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.fillStyle = '#04020f'; g.fillRect(0, 0, DW, DH);
+        g.globalCompositeOperation = 'lighter';
+        glows.forEach(function (q) { var p2 = proj(q.x, q.y, q.z); if (!p2) return; var sz = q.r * F / p2.z; if (sz < 3 || p2.x < -sz || p2.x > DW + sz || p2.y < -sz || p2.y > DH + sz) return; g.globalAlpha = Math.min(1, q.a * (p2.z < 220 ? p2.z / 220 : 1)); g.drawImage(sprite(q.c), p2.x - sz, p2.y - sz, sz * 2, sz * 2); });
+        function dot(p2, c, sz, a) { var z = p2.z, rr = Math.max(0.7, sz * F / z * 0.5); if (rr > 6) rr = 6; g.globalAlpha = a * (z < 120 ? z / 120 : 1); g.fillStyle = cols[c]; if (rr > 1.7) { g.beginPath(); g.arc(p2.x, p2.y, rr, 0, 6.2832); g.fill(); } else g.fillRect(p2.x - rr, p2.y - rr, rr * 2, rr * 2); }
+        pts.forEach(function (q) { var p2 = proj(q.x, q.y, q.z); if (p2 && p2.x > -6 && p2.x < DW + 6 && p2.y > -6 && p2.y < DH + 6) dot(p2, q.c, q.s, q.a); });
+        if (disc) disc.forEach(function (q) { var p2 = proj(Math.cos(q.th) * q.r, q.y, Math.sin(q.th) * q.r); if (p2 && p2.x > -6 && p2.x < DW + 6 && p2.y > -6 && p2.y < DH + 6) dot(p2, q.c, q.s, q.a); });
+        if (ring) ring.forEach(function (q) { var p2 = proj(Math.cos(q.th) * q.r, q.y, Math.sin(q.th) * q.r); if (p2 && p2.x > -6 && p2.x < DW + 6 && p2.y > -6 && p2.y < DH + 6) dot(p2, q.c, q.s, q.a); });
+        if (beams) for (var bi = 0; bi < 2; bi++) { var ph = T * 2.2 + bi * Math.PI, ux = Math.sin(beams.tilt) * Math.cos(ph) * (bi ? -1 : 1), uy = Math.cos(beams.tilt) * (bi ? -1 : 1), uz = Math.sin(beams.tilt) * Math.sin(ph) * (bi ? -1 : 1); for (n2 = 0; n2 < 90; n2++) { var dd = 30 + n2 * 11, p2 = proj(ux * dd, uy * dd, uz * dd); if (p2 && p2.x > -6 && p2.x < DW + 6 && p2.y > -6 && p2.y < DH + 6) dot(p2, 1, 3.2, 0.55 * (1 - n2 / 100)); } }
+        /* solid things, far to near */
+        g.globalCompositeOperation = 'source-over';
+        var bl = balls.map(function (q) { var p2 = proj(q.x, q.y, q.z); return p2 ? { q: q, p: p2 } : null; }).filter(Boolean).sort(function (m, n) { return n.p.z - m.p.z; });
+        bl.forEach(function (o) {
+          var q = o.q, rr4 = q.r * F / o.p.z; if (rr4 < 1.5) return; if (rr4 > DW * 3) rr4 = DW * 3; g.globalAlpha = 1;
+          if (q.dark) { var hg = g.createRadialGradient(o.p.x, o.p.y, rr4 * 0.95, o.p.x, o.p.y, rr4 * 1.9); hg.addColorStop(0, hexA(pal[0], 0.9)); hg.addColorStop(1, hexA(pal[0], 0)); g.fillStyle = hg; g.beginPath(); g.arc(o.p.x, o.p.y, rr4 * 1.9, 0, 6.2832); g.fill(); g.fillStyle = '#000'; g.beginPath(); g.arc(o.p.x, o.p.y, rr4, 0, 6.2832); g.fill(); g.strokeStyle = hexA(pal[2], 0.9); g.lineWidth = Math.max(1.5, rr4 * 0.06); g.beginPath(); g.arc(o.p.x, o.p.y, rr4 * 1.02, 0, 6.2832); g.stroke(); }
+          else if (q.planet) { var pg = g.createLinearGradient(0, o.p.y - rr4, 0, o.p.y + rr4); pg.addColorStop(0, pal[0]); pg.addColorStop(0.3, pal[1]); pg.addColorStop(0.5, pal[0]); pg.addColorStop(0.75, pal[2]); pg.addColorStop(1, pal[1]); g.fillStyle = pg; g.beginPath(); g.arc(o.p.x, o.p.y, rr4, 0, 6.2832); g.fill(); var sg = g.createRadialGradient(o.p.x - rr4 * 0.35, o.p.y - rr4 * 0.35, rr4 * 0.1, o.p.x, o.p.y, rr4); sg.addColorStop(0, 'rgba(255,255,255,.25)'); sg.addColorStop(0.6, 'rgba(0,0,0,0)'); sg.addColorStop(1, 'rgba(10,4,30,.75)'); g.fillStyle = sg; g.beginPath(); g.arc(o.p.x, o.p.y, rr4, 0, 6.2832); g.fill(); }
+          else if (q.star) { g.globalCompositeOperation = 'lighter'; var cc2 = q.c === undefined ? 2 : q.c, sg2 = g.createRadialGradient(o.p.x, o.p.y, 0, o.p.x, o.p.y, rr4 * 4); sg2.addColorStop(0, hexA(cols[cc2], 1)); sg2.addColorStop(0.25, hexA(cols[cc2], 0.5)); sg2.addColorStop(1, hexA(cols[cc2], 0)); g.fillStyle = sg2; g.beginPath(); g.arc(o.p.x, o.p.y, rr4 * 4, 0, 6.2832); g.fill(); g.globalCompositeOperation = 'source-over'; g.fillStyle = '#fff'; g.beginPath(); g.arc(o.p.x, o.p.y, rr4, 0, 6.2832); g.fill(); }
+          else { g.fillStyle = '#b9b2d0'; g.beginPath(); g.arc(o.p.x, o.p.y, rr4, 0, 6.2832); g.fill(); }
+        });
+        /* markers for the parts you have not explored yet */
+        g.globalCompositeOperation = 'source-over'; var nearest = null;
+        pois.forEach(function (q) {
+          if (found[q.j]) return; var p2 = proj(q.x, q.y, q.z), dd2 = Math.hypot(P.x - q.x, P.y - q.y, P.z - q.z); if (!nearest || dd2 < nearest.d) nearest = { q: q, p: p2, d: dd2 };
+          if (!p2) return; var rr5 = Math.max(16, Math.min(70, q.rr * 0.5 * F / p2.z)), pul = 0.5 + 0.5 * Math.sin(T * 4 + q.j);
+          g.globalAlpha = 0.5 + 0.4 * pul; g.strokeStyle = '#ffd86b'; g.lineWidth = 3; g.setLineDash([8, 6]); g.lineDashOffset = -T * 30; g.beginPath(); g.arc(p2.x, p2.y, rr5, 0, 6.2832); g.stroke(); g.setLineDash([]);
+          g.globalAlpha = 0.9; g.fillStyle = '#ffd86b'; g.beginPath(); g.arc(p2.x, p2.y, 5, 0, 6.2832); g.fill();
+          if (dd2 < 900) deepLabel(g, b.parts[q.j].n, p2.x, p2.y - rr5 - 8, 0.95);
+        });
+        if (nearest) { var np = nearest.p; if (!np || np.x < 30 || np.x > DW - 30 || np.y < 70 || np.y > DH - 130) { var tx = nearest.q.x - P.x, ty = nearest.q.y - P.y, tz = nearest.q.z - P.z, cy5 = Math.cos(yaw), sy5 = Math.sin(yaw), cp5 = Math.cos(pitch), sp5 = Math.sin(pitch), x1 = tx * cy5 - tz * sy5, z1 = tx * sy5 + tz * cy5, y2 = ty * cp5 - z1 * sp5, z2 = ty * sp5 + z1 * cp5, ang = Math.atan2(-y2, x1 * (z2 < 0 ? -1 : 1)), ex = DW / 2 + Math.cos(ang) * (DW / 2 - 44), ey = DH / 2 + Math.sin(ang) * (DH / 2 - 120); g.globalAlpha = 0.95; g.save(); g.translate(ex, ey); g.rotate(ang); g.fillStyle = '#ffd86b'; g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.moveTo(16, 0); g.lineTo(-10, -12); g.lineTo(-10, 12); g.closePath(); g.fill(); g.stroke(); g.restore(); } }
+        /* hyperspace streaks while you arrive, and a flash when you find a part */
+        if (introT < INTRO) { var ia = 1 - introT / INTRO; g.globalCompositeOperation = 'lighter'; g.strokeStyle = '#cfe8ff'; g.lineWidth = 1.6; for (n2 = 0; n2 < 70; n2++) { var an = (n2 * 2.399) % 6.2832, r0 = 40 + ((n2 * 37 + T * 900) % 600) * (0.4 + 0.6 * ia); g.globalAlpha = ia * 0.7; g.beginPath(); g.moveTo(DW / 2 + Math.cos(an) * r0, DH / 2 + Math.sin(an) * r0 * 0.75); g.lineTo(DW / 2 + Math.cos(an) * (r0 + 90 * ia), DH / 2 + Math.sin(an) * (r0 + 90 * ia) * 0.75); g.stroke(); } }
+        if (flashT > 0) { flashT -= dt * 2.5; g.globalCompositeOperation = 'lighter'; g.globalAlpha = Math.max(0, flashT) * 0.3; g.fillStyle = '#ffe9a0'; g.fillRect(0, 0, DW, DH); }
+        g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+        raf3 = requestAnimationFrame(frame3);
+      }
+      function onK(ev) { var kk = ev.key.toLowerCase(); if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'a', 'd', 'w', 's'].indexOf(kk) >= 0) { keys3[kk] = ev.type === 'keydown'; ev.preventDefault(); } else if (kk === ' ' && ev.type === 'keydown') { ev.preventDefault(); cycle(); } }
+      function cycle() { spd = (spd + 1) % 3; el.querySelector('#dxSpd').textContent = 'Speed: ' + SPN[spd]; }
+      document.addEventListener('keydown', onK); document.addEventListener('keyup', onK);
+      cvs.addEventListener('pointerdown', function (ev) { drag3 = { x: ev.clientX, y: ev.clientY }; try { cvs.setPointerCapture(ev.pointerId); } catch (e9) { /* optional */ } });
+      cvs.addEventListener('pointermove', function (ev) { if (!drag3) return; yaw += (ev.clientX - drag3.x) * 0.006; pitch = Math.max(-1.45, Math.min(1.45, pitch - (ev.clientY - drag3.y) * 0.005)); drag3 = { x: ev.clientX, y: ev.clientY }; });
+      function up3() { drag3 = null; } cvs.addEventListener('pointerup', up3); cvs.addEventListener('pointercancel', up3);
+      [].forEach.call(el.querySelectorAll('.dx3-pad button'), function (bt) { var kk = bt.dataset.k; bt.addEventListener('pointerdown', function (ev) { keys3[kk] = true; ev.preventDefault(); }); ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (t) { bt.addEventListener(t, function () { keys3[kk] = false; }); }); });
+      el.querySelector('#dxSpd').addEventListener('click', cycle);
+      el.querySelector('#dxLook').addEventListener('click', function () { yaw = Math.atan2(-P.x, -P.z); pitch = Math.atan2(-P.y, Math.hypot(P.x, P.z)); });
+      function close() { if (!alive) return; alive = false; cancelAnimationFrame(raf3); document.removeEventListener('keydown', onK); document.removeEventListener('keyup', onK); dxEl = null; deepOpen = false; el.classList.remove('in'); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 450); hud(true); }
+      el.querySelector('#dxBack').onclick = close;
+      requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('in'); }); });
+      raf3 = requestAnimationFrame(function (n3) { last3 = n3; frame3(n3); });
     }
     function deepLabel(g, txt, x, y, al) { g.globalAlpha = al; g.font = '600 12px Fredoka, sans-serif'; g.textAlign = 'center'; g.fillStyle = '#d6ccff'; g.lineWidth = 3; g.strokeStyle = 'rgba(10,4,40,.8)'; g.strokeText(txt, x, y); g.fillText(txt, x, y); }
     /* ---- 3D chase view: fly behind your rocket and see the worlds, the Sun and comets come toward you ---- */
@@ -7631,6 +7758,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (best) setTarget(best.id); else if (bestD) openDeep(bestD.deep);
     });
     cv3.addEventListener('pointercancel', function (ev) { delete pts3[ev.pointerId]; });
+
     root.querySelector('#as3d').addEventListener('click', function () { setView3(!view3); });
     root.querySelector('#asWl').addEventListener('click', function () {
       var wl = root.querySelector('#asWorlds'); if (!wl.hidden) { wl.hidden = true; return; }
@@ -9598,9 +9726,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return out;
   }
   function setLeadTarget(p) {
-    var l = S.world.ents[0], q = clampPt(p, WALK_R), now = performance.now();
+    var l = S.world.ents[0], q = clampHero(p), now = performance.now();
     if (flyOn()) { l.way = null; l.navT = 0; l.tx = q.x; l.ty = q.y; return; }
-    if (LAND) {
+    if (LAND && !onWater(q.x, q.y) && !onWater(l.x, l.y)) {
       if (!l.navT || now - l.navT > 90 || !l.way) { l.way = avoidHaz(l, q, navPath(l, q)); l.navT = now; }
       else if (l.way && l.way.length) l.way[l.way.length - 1] = { x: q.x, y: q.y };
     }
@@ -9652,7 +9780,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (kx || ky) {
         lead.way = null;
         var n = Math.hypot(kx, ky);
-        var kq = clampPt({ x: lead.x + kx / n * 210 * sp * dt * (FLY ? 2.6 : 1), y: lead.y + ky / n * 210 * sp * dt * (FLY ? 2.6 : 1) }, WALK_R);
+        var kq = clampHero({ x: lead.x + kx / n * 210 * sp * dt * (FLY ? 2.6 : 1), y: lead.y + ky / n * 210 * sp * dt * (FLY ? 2.6 : 1) });
         lead.x = kq.x; lead.y = kq.y; lead.tx = lead.x; lead.ty = lead.y; lead.moving = true;
       } else moveToward(lead, lead.tx, lead.ty, 210 * sp * dt * (FLY ? 2.6 : 1), 2);
     }
@@ -9713,7 +9841,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       else if (e.kind === 'follower') { if (!FLY) collideEnt(e, 11); }
       else if (e.kind === 'wild') collideEnt(e, 11);
     });
-    if (LAND) ents.forEach(function (e) { if (e.kind === 'find' || (drag && drag.ent === e) || (FLY && (e.kind === 'hero' || e.kind === 'follower'))) return; var q = clampPt(e, e.kind === 'wild' ? WALK_R * 0.97 : WALK_R); e.x = q.x; e.y = q.y; });
+    if (LAND) ents.forEach(function (e) { if (e.kind === 'find' || e.kind === 'hero' || e.kind === 'follower' || (drag && drag.ent === e)) return; var q = clampPt(e, e.kind === 'wild' ? WALK_R * 0.97 : WALK_R); e.x = q.x; e.y = q.y; });
     if (!drag) {
       var k = Math.min(1, 5 * dt), pc = padVec('cam');
       var cvx = (S.birds ? 0 : pc.x) + ((keys.l ? 1 : 0) - (keys.j ? 1 : 0)), cvy = (S.birds ? 0 : pc.y) + ((keys.k ? 1 : 0) - (keys.i ? 1 : 0));
@@ -10810,7 +10938,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     },
     view3d: function () { V3.toggle(); },
     globe: function () { if (S.screen !== 'world' || warping) return; openGlobe(S.cur, { world: true }); },
-    v3globe: function () { V3.toggleGlobe(); },
+    v3globe: function () { /* the globe look is always on */ },
     zoomin: function () { setZoomUser(zoomUser * 1.25); },
     zoomout: function () { setZoomUser(zoomUser / 1.25); },
     dismissrotate: function () { rotateDismissed = true; var h = $('#rotatehint'); if (h) h.remove(); },
