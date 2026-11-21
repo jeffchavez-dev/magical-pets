@@ -266,6 +266,8 @@ body.in-world { padding: 0; overflow: hidden; height: 100%; overscroll-behavior:
 .w3hz i { position: absolute; inset: 8%; border-radius: 50%; border: 8px dashed var(--hc); animation: hzspin 14s linear infinite; }
 .atlasbtn.v3toggle { top: calc(var(--hudh, 10px) + 104px); }
 .atlasbtn.v3toggle[aria-pressed="true"] { background: var(--gold); color: var(--night); }
+.w3gbtn { position: absolute; right: max(10px, env(safe-area-inset-right, 0px)); top: calc(var(--hudh, 10px) + 104px); z-index: 60; min-height: 40px; padding: 0 14px; border-radius: 999px; background: rgba(27,16,70,.82); color: #fff; border: 2px solid rgba(255,255,255,.5); font: 700 .85rem Fredoka, sans-serif; cursor: pointer; }
+.w3gbtn[aria-pressed="true"] { background: var(--gold); color: var(--night); }
 .world { position: absolute; left: 0; top: 0; width: 1600px; height: 1600px; transform-origin: 0 0; will-change: transform; }
 .world-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .slabel { font-family: var(--font-display); font-weight: 600; font-size: 30px; fill: #fff; paint-order: stroke; stroke: rgba(20,40,40,.55); stroke-width: 7px; stroke-linejoin: round; }
@@ -4460,7 +4462,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     worldEl.style.transform = 'translate3d(' + (vw / 2 - cam.x * zoom).toFixed(1) + 'px,' + (vh / 2 - cam.y * zoom).toFixed(1) + 'px,0) scale(' + zoom.toFixed(3) + ')';
   }
   /* ----- immersive walk view: a pseudo-3D chase camera behind your hero (toggle button) ----- */
-  var V3_KEY = 'magical-pets-view3d', V3ZMAX = 2800, V3NEAR = 70;
+  var V3_KEY = 'magical-pets-view3d', V3G_KEY = 'magical-pets-globe', V3ZMAX = 2800, V3NEAR = 70;
+  function v3gPref() { try { return localStorage.getItem(V3G_KEY) !== '0'; } catch (e) { return true; } }
   function v3Pref() { try { return localStorage.getItem(V3_KEY) === '1'; } catch (e) { return false; } }
   function v3Save(on) { try { localStorage.setItem(V3_KEY, on ? '1' : '0'); } catch (e) { /* optional */ } }
   function v3Hex(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
@@ -4514,15 +4517,15 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
   }
   V3.th = -Math.PI / 2; V3.fx = 0; V3.fy = -1; V3.rx = 1; V3.ry = 0; V3.cx = 0; V3.cy = 0;
-  V3.F = 400; V3.H = 150; V3.D = 300; V3.hzY = 150; V3.vw = 400; V3.vh = 400; V3.list = []; V3.hz = []; V3.manual = false;
+  V3.G = v3gPref(); V3.RR = 3200; V3.RE = 1e12; V3.rho2 = 1e18; V3.F = 400; V3.H = 150; V3.D = 300; V3.hzY = 150; V3.vw = 400; V3.vh = 400; V3.list = []; V3.hz = []; V3.manual = false;
   V3.skyCols = function () {
     var d = dangerOf(S.cur);
     return [['#4fa9f5', '#d6efff'], ['#7a6ad8', '#f0d9ff'], ['#4d2f8c', '#c98ad8'], ['#2a1458', '#8a4aa0']][d] || ['#4fa9f5', '#d6efff'];
   };
   V3.size = function () {
     var L = $('#w3'), cv = $('#w3floor'); if (!L || !cv) return;
-    V3.vw = vw; V3.vh = vh; V3.hzY = Math.round(vh * 0.4);
-    V3.F = Math.max(0.77 * vh, 0.45 * vw);
+    V3.vw = vw; V3.vh = vh; V3.F = Math.max(0.77 * vh, 0.45 * vw); V3.RE = V3.G ? V3.RR : 1e12;
+    V3.hzY = Math.round(vh * 0.4 - (V3.G ? V3.F * 300 / (2 * V3.RR) : 0));   /* on a globe the horizon dips below the flat line; this keeps your hero where it was */
     var s = Math.min(0.6, 720 / vw);
     V3.is = s;
     cv.width = Math.max(160, Math.round(vw * s)); cv.height = Math.max(40, Math.round((vh - V3.hzY) * s));
@@ -4532,7 +4535,8 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     V3.fogRGB = fc; V3.fog32 = (255 << 24) | (fc[2] << 16) | (fc[1] << 8) | fc[0];
     var pal = WD().pal, gc = v3Hex(pal.grass[1] && pal.grass[1].charAt(0) === '#' && pal.grass[1].length === 7 ? pal.grass[1] : '#5cbd6a');
     V3.base32 = (255 << 24) | (gc[2] << 16) | (gc[1] << 8) | gc[0];
-    L.style.background = 'linear-gradient(' + sk[0] + ',' + sk[1] + ' ' + V3.hzY + 'px,' + (pal.grass[1] || '#5cbd6a') + ' ' + V3.hzY + 'px)';
+    var hc0 = V3.hzY + (V3.G ? Math.round(V3.F * Math.sqrt(2 * V3.H / V3.RR)) : 0);
+    L.style.background = V3.G ? 'linear-gradient(' + sk[0] + ',' + sk[1] + ' ' + hc0 + 'px,' + sk[1] + ')' : 'linear-gradient(' + sk[0] + ',' + sk[1] + ' ' + V3.hzY + 'px,' + (pal.grass[1] || '#5cbd6a') + ' ' + V3.hzY + 'px)';
     var cl = $('#w3clouds'); if (cl) { cl.style.height = V3.hzY + 'px'; cl.style.opacity = dangerOf(S.cur) > 1 ? '.28' : '.9'; }
   };
   V3.raster = function (c) {
@@ -4593,7 +4597,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var sc = $('#scene'), ents = $('#ents'), lead = S.world && S.world.ents[0];
     if (!sc || !ents || !lead || V3.on) return;
     var L = document.createElement('div'); L.id = 'w3'; L.className = 'w3';
-    L.innerHTML = '<div class="w3clouds" id="w3clouds"></div><canvas class="w3floor" id="w3floor" aria-hidden="true"></canvas><div class="w3obj" id="w3obj"></div><div class="w3ents" id="w3ents"></div>';
+    L.innerHTML = '<button class="w3gbtn" id="v3gbtn" data-act="v3globe" aria-pressed="' + (V3.G ? 'true' : 'false') + '">' + (V3.G ? 'Globe: on' : 'Globe: off') + '</button><div class="w3clouds" id="w3clouds"></div><canvas class="w3floor" id="w3floor" aria-hidden="true"></canvas><div class="w3obj" id="w3obj"></div><div class="w3ents" id="w3ents"></div>';
     var wx = sc.querySelector('.wxc'); if (wx) sc.insertBefore(L, wx); else sc.appendChild(L);
     $('#w3ents').appendChild(ents);
     sc.classList.add('v3on');
@@ -4617,6 +4621,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   V3.syncBtn = function () {
     var b = $('#v3btn'); if (!b) return;
     b.setAttribute('aria-pressed', V3.on ? 'true' : 'false'); b.textContent = V3.on ? 'Back to map view' : 'Walk view (3D)';
+    var g = $('#v3gbtn'); if (g) { g.setAttribute('aria-pressed', V3.G ? 'true' : 'false'); g.textContent = V3.G ? 'Globe: on' : 'Globe: off'; }
+  };
+  V3.toggleGlobe = function () {
+    V3.G = !V3.G; try { localStorage.setItem(V3G_KEY, V3.G ? '1' : '0'); } catch (e) { /* optional */ }
+    if (V3.on) { V3.size(); V3.syncBtn(); }
+    say(V3.G ? 'Globe on: the world curves away like a little planet.' : 'Globe off: the world is flat.', 3200);
   };
   V3.toggle = function () {
     if (S.birds) toggleBirds();
@@ -4648,13 +4658,16 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     return { x: lead.x + V3.fx * fw + V3.rx * lat, y: lead.y + V3.fy * fw + V3.ry * lat };
   };
   V3.s2w = function (px, py) {
-    var dy = py - V3.hzY, z = dy < 8 ? V3ZMAX * 0.7 : Math.min(V3ZMAX * 0.7, V3.F * V3.H / dy), x = (px - V3.vw / 2) / V3.F * z;
+    var dy = py - V3.hzY, u = (px - V3.vw / 2) / V3.F, z, x;
+    if (V3.G) { var v = dy / V3.F, A = (1 + u * u) / (2 * V3.RR), dc = v * v - 4 * A * V3.H; z = dy < 8 ? 600 : dc <= 0 ? Math.sqrt(2 * V3.RR * V3.H / (1 + u * u)) : (v - Math.sqrt(dc)) / (2 * A); z = Math.min(z, V3ZMAX * 0.7); }
+    else z = dy < 8 ? V3ZMAX * 0.7 : Math.min(V3ZMAX * 0.7, V3.F * V3.H / dy);
+    x = u * z;
     return { x: V3.cx + V3.fx * z + V3.rx * x, y: V3.cy + V3.fy * z + V3.ry * x };
   };
   V3.place = function (e) {
     var el = e.el, dx = e.x - V3.cx, dy = e.y - V3.cy, z = dx * V3.fx + dy * V3.fy;
-    if (z < V3NEAR || z > V3ZMAX) { if (el.style.display !== 'none') el.style.display = 'none'; return; }
-    var x = dx * V3.rx + dy * V3.ry, sc = Math.min(3, V3.F / z), sx = V3.vw / 2 + x * sc, gy = V3.hzY + V3.H * sc, w = e.size;
+    if (z < V3NEAR || z > V3ZMAX || (V3.G && dx * dx + dy * dy > V3.rho2)) { if (el.style.display !== 'none') el.style.display = 'none'; return; }
+    var x = dx * V3.rx + dy * V3.ry, sc = Math.min(3, V3.F / z), sx = V3.vw / 2 + x * sc, gy = V3.hzY + V3.H * sc + sc * (z * z + x * x) / (2 * V3.RE), w = e.size;
     var air = (e.kind === 'hero' || e.kind === 'follower') && flyOn();
     if (air) gy -= 46 * sc;
     if (Math.abs(x) * sc > V3.vw * 0.75) { if (el.style.display !== 'none') el.style.display = 'none'; return; }
@@ -4669,6 +4682,25 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var ready = !!(c && c.ready), tex = ready ? c.px : null, T = ready ? c.T : 0, k = ready ? T / WORLD : 0, lim = T - 1;
     var fx = V3.fx, fy = V3.fy, rx = V3.rx, ry = V3.ry, cx = V3.cx, cy = V3.cy, fog32 = V3.fog32, base = V3.base32, fr = V3.fogRGB;
     var r, i, z, a, ai, row, step, wx, wy, sx, sy, u, v, col, cr, cg, cb;
+    if (V3.G) {
+      var RR = V3.RR, rho = Math.sqrt(2 * RR * Hh), vv, uu, A, dc, zz, kk, aa, q9;
+      for (r = 0; r < ch; r++) {
+        vv = (r + 0.5) / Fi; row = r * cw;
+        for (i = 0; i < cw; i++) {
+          uu = (i + 0.5 - hc) / Fi; q9 = 1 + uu * uu; A = q9 / (2 * RR); dc = vv * vv - 4 * A * Hh;
+          if (dc <= 0) { d32[row + i] = 0; continue; }                      /* beyond the horizon: sky */
+          zz = (vv - Math.sqrt(dc)) / (2 * A); kk = zz * Math.sqrt(q9) / rho;   /* kk: how close to the horizon, 0 to 1 */
+          if (!ready) { d32[row + i] = base; continue; }
+          u = ((cx + fx * zz + rx * uu * zz) * k) | 0; v = ((cy + fy * zz + ry * uu * zz) * k) | 0; u = u < 0 ? 0 : u > lim ? lim : u; v = v < 0 ? 0 : v > lim ? lim : v; col = tex[v * T + u];
+          if (kk > 0.5) {
+            aa = Math.min(1, (kk - 0.5) * 2); aa = (aa * aa * 256) | 0; cr = col & 255; cg = (col >> 8) & 255; cb = (col >> 16) & 255;
+            cr += ((fr[0] - cr) * aa) >> 8; cg += ((fr[1] - cg) * aa) >> 8; cb += ((fr[2] - cb) * aa) >> 8; col = (255 << 24) | (cb << 16) | (cg << 8) | cr;
+          }
+          d32[row + i] = col;
+        }
+      }
+      cv.getContext('2d').putImageData(V3.im, 0, 0); return;
+    }
     for (r = 0; r < ch; r++) {
       z = Fi * Hh / (r + 0.5); row = r * cw;
       a = z > V3ZMAX ? 1 : z > 900 ? (z - 900) / (V3ZMAX - 900) : 0;
@@ -4693,27 +4725,28 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   V3.render = function () {
     if (!V3.on) return;
     if (V3.vw !== vw || V3.vh !== vh) V3.size();
+    V3.rho2 = V3.G ? 2 * V3.RR * V3.H * 0.9 : 1e18;   /* things beyond the horizon of the little planet are out of sight */
     V3.floor();
     var F = V3.F, hw = V3.vw / 2, i, o, dx, dy, z, x, sc, sx, gy, q;
     for (i = 0; i < V3.list.length; i++) {
       o = V3.list[i]; dx = o.ax - V3.cx; dy = o.ay - V3.cy; z = dx * V3.fx + dy * V3.fy;
-      if (z < V3NEAR || z > V3ZMAX) { if (o.vis) { o.el.style.display = 'none'; o.vis = false; } continue; }
+      if (z < V3NEAR || z > V3ZMAX || (V3.G && dx * dx + dy * dy > V3.rho2)) { if (o.vis) { o.el.style.display = 'none'; o.vis = false; } continue; }
       x = dx * V3.rx + dy * V3.ry; sc = F / z;
       if (Math.abs(x) * sc > hw + o.vw * sc) { if (o.vis) { o.el.style.display = 'none'; o.vis = false; } continue; }
       if (!o.vis) { o.el.style.display = ''; o.vis = true; }
       if (o.lb) { q = z < 420; if (q !== o.near) { o.near = q; o.lb.style.display = q ? 'none' : ''; } }
-      sx = hw + x * sc; gy = V3.hzY + V3.H * sc;
+      sx = hw + x * sc; gy = V3.hzY + V3.H * sc + sc * (z * z + x * x) / (2 * V3.RE);
       o.el.style.transform = 'translate3d(' + (sx - (o.ax - o.vx) * sc).toFixed(1) + 'px,' + (gy - (o.ay - o.vy) * sc).toFixed(1) + 'px,0) scale(' + sc.toFixed(4) + ')';
       o.el.style.zIndex = Math.max(2, 30000 - Math.round(z * 6));
       o.el.style.opacity = (z < V3.D - 10 && Math.abs(x) * sc < o.vw * sc * 0.5 + 70 * V3.F / V3.D) ? '.28' : z > 1700 ? Math.max(0, 1 - (z - 1700) / (V3ZMAX - 1700)).toFixed(2) : '';
     }
     for (i = 0; i < V3.hz.length; i++) {
       q = V3.hz[i]; dx = q.h.x - V3.cx; dy = q.h.y - V3.cy; z = dx * V3.fx + dy * V3.fy;
-      if (z < 30 || z > V3ZMAX) { if (q.vis) { q.el.style.display = 'none'; q.vis = false; } continue; }
+      if (z < 30 || z > V3ZMAX || (V3.G && dx * dx + dy * dy > V3.rho2)) { if (q.vis) { q.el.style.display = 'none'; q.vis = false; } continue; }
       x = dx * V3.rx + dy * V3.ry; sc = F / z;
       if (Math.abs(x) - q.h.r > hw / sc) { if (q.vis) { q.el.style.display = 'none'; q.vis = false; } continue; }
       if (!q.vis) { q.el.style.display = ''; q.vis = true; }
-      sx = hw + x * sc; gy = V3.hzY + V3.H * sc;
+      sx = hw + x * sc; gy = V3.hzY + V3.H * sc + sc * (z * z + x * x) / (2 * V3.RE);
       q.el.style.transform = 'translate3d(' + (sx - q.h.r * sc).toFixed(1) + 'px,' + (gy - q.h.r * sc * (V3.H / z)).toFixed(1) + 'px,0) scale(' + sc.toFixed(4) + ',' + (sc * V3.H / z).toFixed(4) + ')';
       q.el.style.opacity = q.h.seen ? (z > 1700 ? Math.max(0, 1 - (z - 1700) / (V3ZMAX - 1700)).toFixed(2) : '') : '0.1';
       q.el.style.zIndex = 1;
@@ -10686,6 +10719,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       } catch (x) { /* not allowed here */ }
     },
     view3d: function () { V3.toggle(); },
+    v3globe: function () { V3.toggleGlobe(); },
     zoomin: function () { setZoomUser(zoomUser * 1.25); },
     zoomout: function () { setZoomUser(zoomUser / 1.25); },
     dismissrotate: function () { rotateDismissed = true; var h = $('#rotatehint'); if (h) h.remove(); },
