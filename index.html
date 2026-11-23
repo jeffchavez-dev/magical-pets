@@ -251,6 +251,7 @@ body.in-world { padding: 0; overflow: hidden; height: 100%; overscroll-behavior:
 /* ----- immersive walk view ----- */
 .w3 { position: absolute; inset: 0; overflow: hidden; z-index: 1; touch-action: none; }
 .w3floor { position: absolute; left: 0; width: 100%; display: block; }
+.dive .dv3 { position: absolute; left: 0; top: 0; display: block; touch-action: none; }
 .w3gl { position: absolute; left: 0; top: 0; display: block; pointer-events: none; }
 .w3.t3 .w3item > svg { visibility: hidden; }
 .w3clouds { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; background-repeat: repeat-x; background-size: 1400px 100%;
@@ -6651,7 +6652,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     host.querySelector('#islBack').onclick = close;
     requestAnimationFrame(function () { requestAnimationFrame(function () { host.classList.add('in'); }); });
   }
-  function startDive(lake, useTank, isle) {
+  function startDive2D(lake, useTank, isle) {
     var mates = S.team.filter(canSwim).slice(0, 3), secs = diveBase() + DIVE_MATE * mates.length + (useTank ? TANK_SEC : 0), left = secs, pal = (WORLDS[S.cur] && WORLDS[S.cur].pal.lake) || ['#8fd8ff', '#3e9fe0'];
     if (useTank) { S.air--; save(); }
     warping = true; var dvb = $('#divebtn'); if (dvb) dvb.hidden = true;
@@ -6816,6 +6817,283 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     requestAnimationFrame(function () { root.classList.add('in'); });
     raf = requestAnimationFrame(function (n) { last = n; frame(n); });
+  }
+
+  /* ----- 3D diving (three.js): swim through a real underwater world, third person. Same rules as the 2D dive: breath, loot, sea friends, warp tunnel, islet passage. ----- */
+  var SVG_HIDE_G = '<style>.eyes-happy,.mouth-open,.eyes-sad,.mouth-sad,.brows-sad,.tear,.eyes-angry,.brows-angry,.mouth-angry,.steam{display:none}</style>';
+  /* a flat picture (from an SVG string) that always faces the camera */
+  function svgSprite(svg, w, h, size, ar) {
+    var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    var tex = new THREE.CanvasTexture(cv), im = new Image(), d = document.createElement('div');
+    d.innerHTML = svg.replace(/^(\s*<svg[^>]*>)/, '$1' + SVG_HIDE_G); var el = d.firstElementChild;
+    if (el) { el.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); el.setAttribute('width', w); el.setAttribute('height', h); }
+    im.onload = function () { cv.getContext('2d').drawImage(im, 0, 0, w, h); tex.needsUpdate = true; };
+    im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(el ? new XMLSerializer().serializeToString(el) : svg);
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false })); sp.scale.set(size * (ar || 1), size, 1); return sp;
+  }
+  function startDive3D(lake, useTank, isle) {
+    var rr;
+    try { rr = new THREE.WebGLRenderer({ antialias: true }); } catch (e0) { return false; }
+    var mates = S.team.filter(canSwim).slice(0, 3), secs = diveBase() + DIVE_MATE * mates.length + (useTank ? TANK_SEC : 0), left = secs, pal = (WORLDS[S.cur] && WORLDS[S.cur].pal.lake) || ['#8fd8ff', '#3e9fe0'];
+    if (useTank) { S.air--; save(); }
+    warping = true; var dvb = $('#divebtn'); if (dvb) dvb.hidden = true;
+    var W = window.innerWidth, H = window.innerHeight, small = !lake.lake, WW = small ? 820 : 1400, WZ = small ? 760 : 1100, HH = small ? 640 : 900, loot = { mats: {}, scrap: 0, sea: [], coins: 0, pts: 0, food: 0, pearl: false }, items = [], over = false, raf = 0, last = performance.now(), keys = {};
+    var tun0 = !isle && !!teleReady('pond') && pitOpen(lake), root = document.createElement('div'); root.className = 'dive'; root.id = 'dive'; root.setAttribute('role', 'group'); root.setAttribute('aria-label', 'Diving under the water');
+    root.style.background = 'linear-gradient(' + pal[0] + ', ' + pal[1] + ' 55%, #0c2a52)';
+    root.innerHTML = '<div class="as-top"><div class="as-title"><span>Diving &middot; <em id="dvPts">0 points</em></span><b>' + esc(lake.t) + '</b></div><div class="as-o2"><span>Breath <em id="dvT"></em></span><div class="as-bar"><i id="dvBar"></i></div></div><button class="btn ghost small" id="dvUp">Come up</button></div>' +
+      '<p class="as-hint">Hold your finger (or the mouse) on the screen to swim that way: left or right to turn, up or down to dive. Keys: W/S swim, A/D turn, Space up, Shift down. Touch things to grab them. Catch bubbles for more breath!' + (tun0 ? ' <b>A warp tunnel is hidden down here. Find it!</b>' : '') + (isle ? ' <b>Find the glowing passage up to ' + esc(isle.n) + '!</b>' : '') + '</p>';
+    var cvs = rr.domElement; cvs.className = 'dv3'; root.insertBefore(cvs, root.firstChild); document.body.appendChild(root);
+    rr.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); rr.setSize(W, H, false); cvs.style.width = W + 'px'; cvs.style.height = H + 'px';
+    var TH = THREE, scene = new TH.Scene(), cam3 = new TH.PerspectiveCamera(62, W / H, 6, 4000), lightC = new TH.Color(pal[0]), darkC = new TH.Color('#0c2a52'), fogC = new TH.Color(pal[1]);
+    scene.background = fogC; scene.fog = new TH.FogExp2(fogC.getHex(), small ? 0.0021 : 0.0016);
+    scene.add(new TH.HemisphereLight(0xcdeeff, 0x2a4a7a, 0.78)); var sun = new TH.DirectionalLight(0xffffff, 0.42); sun.position.set(-200, 900, 300); scene.add(sun);
+    var M = function (c, o) { return new TH.MeshLambertMaterial(Object.assign({ color: c, flatShading: true }, o || {})); }, MC = function (c, o) { return M(c, Object.assign({ emissive: c, emissiveIntensity: 0.3 }, o || {})); }, B = function (c, o) { return new TH.MeshBasicMaterial(Object.assign({ color: c }, o || {})); };
+    var GS = new TH.IcosahedronGeometry(1, 1), GC = new TH.ConeGeometry(1, 1, 6), GCY = new TH.CylinderGeometry(1, 1, 1, 7), GB = new TH.BoxGeometry(1, 1, 1);
+    GC.translate(0, 0.5, 0); GCY.translate(0, 0.5, 0);
+    function mesh(g, mat, sx, sy, sz, x, y, z, parent) { var m = new TH.Mesh(g, mat); m.scale.set(sx, sy, sz); m.position.set(x, y, z); (parent || scene).add(m); return m; }
+    function bedY(x, z) { return 14 * Math.sin(x * 0.011) * Math.cos(z * 0.013) + 8 * Math.sin(x * 0.031 + z * 0.027); }
+    /* the sandy bed */
+    var bg = new TH.PlaneGeometry(WW + 900, WZ + 900, 56, 56); bg.rotateX(-Math.PI / 2); var bp = bg.attributes.position, bi;
+    for (bi = 0; bi < bp.count; bi++) bp.setY(bi, bedY(bp.getX(bi), bp.getZ(bi))); bg.computeVertexNormals();
+    var bed = new TH.Mesh(bg, M('#c4a468')); bed.position.set(WW / 2, 0, WZ / 2); scene.add(bed);
+    /* the water's surface seen from below, and shafts of light */
+    var surf = new TH.Mesh(new TH.PlaneGeometry(WW + 2400, WZ + 2400), B(0xffffff, { transparent: true, opacity: 0.4, side: TH.DoubleSide, fog: false })); surf.rotation.x = Math.PI / 2; surf.position.set(WW / 2, HH + 4, WZ / 2); scene.add(surf);
+    var shafts = [], si; for (si = 0; si < 9; si++) { var sf = new TH.Mesh(new TH.PlaneGeometry(70 + Math.random() * 60, HH * 1.15), B(0xffffff, { transparent: true, opacity: 0.1, blending: TH.AdditiveBlending, depthWrite: false, side: TH.DoubleSide, fog: false })); sf.position.set(Math.random() * WW, HH * 0.5, Math.random() * WZ); sf.rotation.y = Math.random() * 3; sf.rotation.z = 0.16; sf.userData.ph = Math.random() * 6; scene.add(sf); shafts.push(sf); }
+    /* seaweed, little rocks and drifting specks */
+    var weeds = [], wi, wcols = ['#2fb36a', '#3fd07a', '#23996a'];
+    for (wi = 0; wi < (small ? 50 : 90); wi++) { var wx = 30 + Math.random() * (WW - 60), wz = 30 + Math.random() * (WZ - 60), wh = 50 + Math.random() * 110, wm = mesh(GC, M(wcols[wi % 3]), 6 + Math.random() * 5, wh, 6 + Math.random() * 5, wx, bedY(wx, wz), wz); wm.userData.ph = Math.random() * 6; weeds.push(wm); }
+    for (wi = 0; wi < 26; wi++) { var rx0 = 20 + Math.random() * (WW - 40), rz0 = 20 + Math.random() * (WZ - 40), rs = 8 + Math.random() * 18; mesh(GS, M(wi % 3 ? '#8d90b8' : '#a3a5d6'), rs, rs * 0.7, rs, rx0, bedY(rx0, rz0) + rs * 0.3, rz0); }
+    var sn = new TH.BufferGeometry(), sna = [], sk; for (sk = 0; sk < 260; sk++) sna.push(Math.random() * WW, Math.random() * HH, Math.random() * WZ); sn.setAttribute('position', new TH.Float32BufferAttribute(sna, 3));
+    scene.add(new TH.Points(sn, new TH.PointsMaterial({ color: 0xffffff, size: 3.4, transparent: true, opacity: 0.55, depthWrite: false })));
+    /* reef formations: each is a 3D model plus a few solid balls the swimmer cannot pass through */
+    var obs = [], TYPES_R = ['rock', 'tree', 'fan', 'mound', 'tree', 'rock', 'mound', 'fan'], nR = small ? 4 : 10, ri, spots = [];
+    function reef(type, fx, fz, col) {
+      var g = new TH.Group(), y0 = bedY(fx, fz), i, w, h;
+      g.position.set(fx, y0, fz); scene.add(g);
+      function ball(x, y, z, r) { obs.push({ x: fx + x, y: y0 + y, z: fz + z, r: r }); }
+      if (type === 'rock') {
+        w = 120 + Math.random() * 60; h = 220 + Math.random() * 160; var n = 4;
+        for (i = 0; i < n; i++) { var t = i / (n - 1), r = w * (0.46 - 0.27 * t) * (0.92 + Math.random() * 0.16), y = r * 0.6 + t * (h - r * 1.2); mesh(GS, M(i > 2 ? '#a3a5d6' : '#7d7fb0'), r, r * 1.05, r, (Math.random() - 0.5) * 12, y, (Math.random() - 0.5) * 12, g); ball(0, y, 0, r * 0.95); }
+      } else if (type === 'tree') {
+        w = 120 + Math.random() * 60; h = 220 + Math.random() * 160; var tw = w * 0.17;
+        mesh(GC, MC(col), tw * 1.5, h, tw * 1.5, 0, 0, 0, g);
+        for (var yy = tw; yy < h; yy += 40) ball(0, yy, 0, tw * (1.25 - 0.6 * yy / h) + 4);
+        [0.3, 0.5, 0.7].forEach(function (f, j) {
+          var ay = h * f, an = j * 2.1 + Math.random(), len = w * (0.4 - j * 0.04), ex = Math.cos(an) * len, ez = Math.sin(an) * len, ey = ay + len * 0.55, dx = ex, dy = ey - ay, dz = ez, L2 = Math.hypot(dx, dy, dz);
+          var br = mesh(GC, MC(col), tw * 0.6, L2, tw * 0.6, 0, ay, 0, g); br.lookAt(new TH.Vector3(0, 0, 0)); br.quaternion.setFromUnitVectors(new TH.Vector3(0, 1, 0), new TH.Vector3(dx, dy, dz).normalize());
+          mesh(GS, MC(col), tw * 0.95, tw * 0.95, tw * 0.95, ex, ey, ez, g); ball(ex, ey, ez, tw * 0.95 + 6);
+        });
+        mesh(GS, MC(col), tw * 1.1, tw * 1.1, tw * 1.1, 0, h, 0, g); ball(0, h, 0, tw * 1.1);
+      } else if (type === 'fan') {
+        w = 130 + Math.random() * 50; h = 230 + Math.random() * 100; var fr = w * 0.5, fy = h - fr;
+        mesh(GCY, M('#9a4f7f'), 7, fy, 7, 0, 0, 0, g);
+        var fan = new TH.Mesh(new TH.CircleGeometry(fr, 22), MC(col, { side: TH.DoubleSide })); fan.position.y = fy; fan.rotation.y = Math.random() * 3; g.add(fan);
+        var rib = new TH.Mesh(new TH.CircleGeometry(fr * 0.62, 18), M('#ffffff', { side: TH.DoubleSide, transparent: true, opacity: 0.32 })); rib.position.copy(fan.position); rib.rotation.y = fan.rotation.y; rib.position.x += 0.4; g.add(rib);
+        ball(0, fy, 0, fr * 0.8); for (var sy = 20; sy < fy - 10; sy += 34) ball(0, sy, 0, 13);
+      } else {
+        w = 160 + Math.random() * 60; h = 110 + Math.random() * 50;
+        mesh(GS, MC(col), w * 0.5, h, w * 0.5, 0, h * 0.25, 0, g);
+        for (i = 0; i < 6; i++) { var a = i / 6 * 6.283; mesh(GS, MC(col), 22, 18, 22, Math.cos(a) * w * 0.3, h * 0.55 + (i % 2) * 14, Math.sin(a) * w * 0.3, g); }
+        ball(0, h * 0.4, 0, w * 0.46); ball(w * 0.25, h * 0.35, 0, w * 0.3); ball(-w * 0.25, h * 0.35, 0, w * 0.3);
+      }
+    }
+    for (ri = 0; ri < nR; ri++) {
+      var fxx = 0, fzz = 0, tr2;
+      for (tr2 = 0; tr2 < 60; tr2++) { fxx = 140 + Math.random() * (WW - 280); fzz = 140 + Math.random() * (WZ - 280); if (spots.every(function (q) { return Math.hypot(q[0] - fxx, q[1] - fzz) > 230; })) break; }
+      spots.push([fxx, fzz]); reef(TYPES_R[ri % TYPES_R.length], fxx, fzz, REEF_COL[Math.floor(Math.random() * REEF_COL.length)]);
+    }
+    function blocked(x, y, z, m) { return obs.some(function (o) { return Math.hypot(x - o.x, y - o.y, z - o.z) < o.r + m; }); }
+    /* the diver and its swimming friends */
+    var me = svgSprite(heroSVG(S.boots), 160, 192, 96, 72 / 88); scene.add(me);
+    var dm = mates.map(function (p) { var sp = svgSprite(petSVG(p.type, p.stage, p.name, p.body), 160, 160, 62, 1); scene.add(sp); return { sp: sp, x: 0, y: 0, z: 0 }; });
+    var P = { x: WW / 2, y: HH - 70, z: WZ / 2 }, yaw = Math.random() * 6.283, pitch = -0.25, spd = 0, bonkT = 0, touching = false, ending = false, picking = false, warpMode = false, warpMsg = '', isleGo = null, ptr = null, camP = new TH.Vector3(P.x, P.y + 60, P.z + 240), tt = 0;
+    function rx() { return 80 + Math.random() * (WW - 160); } function rz() { return 80 + Math.random() * (WZ - 160); } function ry() { return 120 + Math.random() * (HH - 300); }
+    function add(kind, sub, size, svg, y0, aspect) {
+      var x, y, z, bt; x = rx(); y = y0 !== undefined ? y0 : ry(); z = rz();
+      for (bt = 0; bt < 80 && blocked(x, y, z, size / 2 + 30); bt++) { x = rx(); z = rz(); if (bt > 40) y = y0 !== undefined ? y0 : ry(); }
+      var sp = svgSprite(svg, 128, 128, size * 1.5, 1); sp.position.set(x, y, z); scene.add(sp);
+      var a = Math.random() * 6.283, it = { sp: sp, kind: kind, sub: sub, x: x, y: y, z: z, sz: size, vx: kind === 'sea' ? Math.cos(a) * (35 + Math.random() * 40) : 0, vz: kind === 'sea' ? Math.sin(a) * (35 + Math.random() * 40) : 0, ph: Math.random() * 6 };
+      if (kind === 'tunnel') { var ring = mesh(new TH.TorusGeometry(56, 6, 8, 28), B(0x7fe8ff), 1, 1, 1, x, y, z); it.ring = ring; }
+      if (kind === 'isle') { var shaft = mesh(new TH.CylinderGeometry(44, 44, HH - y, 18, 1, true), B(0xfff3b0, { transparent: true, opacity: 0.22, blending: TH.AdditiveBlending, depthWrite: false, side: TH.DoubleSide, fog: false }), 1, 1, 1, x, y + (HH - y) / 2, z); it.shaft = shaft; }
+      items.push(it); return it;
+    }
+    var mats = worldMats(S.cur), ni, divePool = waterPool(lake);
+    if (level() >= HOUSE_LV) for (ni = 0; ni < (small ? 3 : 5); ni++) { var mk = Math.random() < 0.5 ? mats[0] : Math.random() < 0.6 ? mats[1] : mats[2]; add('mat', mk, 44, '<svg viewBox="0 0 60 60"><rect x="12" y="12" width="36" height="36" rx="9" fill="' + MAT_BY[mk].col + '" stroke="#fff" stroke-width="3" transform="rotate(12 30 30)"/><circle cx="23" cy="22" r="4" fill="#fff" opacity=".7"/></svg>'); }
+    if (level() >= ASTRO_LV) for (ni = 0; ni < (small ? 1 : 3); ni++) add('scrap', '', 44, scrapSVG().replace(/<span.*$/, ''));
+    for (ni = 0; ni < (small ? 5 : 9); ni++) { var sc = divePool[Math.floor(Math.random() * divePool.length)]; add('sea', sc.id, sc.sz, seaSVG(sc.id, sc.col), 90 + Math.random() * (HH - 300)); }
+    var tun = !isle && pitOpen(lake) && teleReady('pond');
+    if (isle) add('isle', '', 110, isleItemSVG(), 70 + Math.random() * 50);
+    if (tun) add('tunnel', '', 104, tunnelSVG(), 70 + Math.random() * 50);
+    if (Math.random() < 0.2) add('pearl', '', 58, pearlSVG(), 50 + Math.random() * 40);
+    for (ni = 0; ni < (small ? 2 : 4); ni++) add('air', '', 40, '<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="#fff" fill-opacity=".3" stroke="#fff" stroke-width="3"/><ellipse cx="22" cy="21" rx="6" ry="4" fill="#fff" transform="rotate(-30 22 21)"/><text x="30" y="37" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="16" fill="#fff">+</text></svg>');
+    /* rising bubbles */
+    var bubs = [], bbi; for (bbi = 0; bbi < 36; bbi++) { var bb = mesh(GS, B(0xffffff, { transparent: true, opacity: 0.45 }), 3 + Math.random() * 4, 3 + Math.random() * 4, 3 + Math.random() * 4, Math.random() * WW, Math.random() * HH, Math.random() * WZ); bb.userData.v = 30 + Math.random() * 40; bubs.push(bb); }
+    function addPts(n) { loot.pts += n; var e = root.querySelector('#dvPts'); if (e) e.textContent = loot.pts + ' points'; }
+    var tmpV = new TH.Vector3();
+    function pop(x, y, z, txt) {
+      tmpV.set(x, y, z).project(cam3); if (tmpV.z > 1) return;
+      var p = document.createElement('div'); p.className = 'as-pop good'; p.textContent = txt; p.style.left = ((tmpV.x + 1) / 2 * W).toFixed(0) + 'px'; p.style.top = ((1 - tmpV.y) / 2 * H).toFixed(0) + 'px'; root.appendChild(p); setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, 900);
+    }
+    function setPtr(ev) { var r = root.getBoundingClientRect(); ptr = { x: ((ev.clientX - r.left) / r.width - 0.5) * 2, y: ((ev.clientY - r.top) / r.height - 0.5) * 2 }; }
+    root.addEventListener('pointerdown', function (ev) { if (ev.target.closest('button')) return; setPtr(ev); });
+    root.addEventListener('pointermove', function (ev) { if (ptr && ev.buttons) { if (!ev.target.closest('button')) setPtr(ev); } });
+    root.addEventListener('pointerup', function () { ptr = null; }); root.addEventListener('pointercancel', function () { ptr = null; });
+    function onKey(ev) {
+      var k = ev.key.toLowerCase(), dn = ev.type === 'keydown', map = { arrowup: 'w', w: 'w', arrowdown: 's', s: 's', arrowleft: 'a', a: 'a', arrowright: 'd', d: 'd', ' ': 'u', e: 'u', shift: 'dn', q: 'dn', c: 'dn' };
+      if (!(k in map)) return; keys[map[k]] = dn; ev.preventDefault();
+    }
+    document.addEventListener('keydown', onKey); document.addEventListener('keyup', onKey);
+    function onResize() { W = window.innerWidth; H = window.innerHeight; rr.setSize(W, H, false); cvs.style.width = W + 'px'; cvs.style.height = H + 'px'; cam3.aspect = W / H; cam3.updateProjectionMatrix(); }
+    window.addEventListener('resize', onResize);
+    function dispose() { document.removeEventListener('keydown', onKey); document.removeEventListener('keyup', onKey); window.removeEventListener('resize', onResize); try { rr.dispose(); if (rr.forceContextLoss) rr.forceContextLoss(); } catch (e) { /* optional */ } }
+    function killRoot() { dispose(); if (root.parentNode) root.parentNode.removeChild(root); }
+    root.querySelector('#dvUp').addEventListener('click', function () { finish('up'); });
+    function finish(why) {
+      if (ending) return; ending = true;
+      document.removeEventListener('keydown', onKey); document.removeEventListener('keyup', onKey);
+      var hint = root.querySelector('.as-hint'); if (hint) hint.textContent = why === 'out' ? 'Out of breath! Up you go!' : 'Up we go!';
+      Object.keys(loot.mats).forEach(function (k) { S.mats[k] = Math.min(MAT_CAP, (S.mats[k] || 0) + loot.mats[k]); });
+      S.scrap = Math.min(99, S.scrap + loot.scrap); S.coins += loot.coins;
+      var wasMaster = seaDone();
+      loot.sea.forEach(function (id) { S.sea[id] = Math.min(99, (S.sea[id] || 0) + 1); });
+      var foodGot = Math.max(0, Math.min(loot.food, foodCap() - S.food)); S.food += foodGot;
+      var record = loot.pts > (S.diveBest || 0) && loot.pts > 0; if (record) S.diveBest = loot.pts;
+      var pearlPet = null;
+      if (loot.pearl && S.world) { pearlPet = newPet('water', 'powerful', pick(BODY_OPTIONS.water)); pearlPet.name = freeName(S.world); S.team.push(pearlPet); S.caught.water = true; addFollowerEnt(pearlPet); }
+      save(); updateHud();
+      var parts = Object.keys(loot.mats).map(function (k) { return loot.mats[k] + ' ' + MAT_BY[k].name; });
+      if (foodGot) parts.push(foodGot + ' pet food'); if (loot.scrap) parts.push(loot.scrap + ' star scrap'); if (loot.sea.length) parts.push(loot.sea.length + ' sea friend' + (loot.sea.length > 1 ? 's' : '') + ' (+' + loot.coins + ' coins)');
+      (why === 'warp' ? function (m) { warpMsg = m; } : wmsg)((why === 'out' ? 'Whoosh! You ran out of breath and floated back up. ' : 'You came up for air. ') + (parts.length ? 'You found ' + parts.join(', ') + '.' : 'You found nothing this time. Try again!') + ' Dive score: ' + loot.pts + ' points' + (record ? ' (new best!)' : '') + '.' + (pearlPet ? ' A pearl! ' + pearlPet.name + ' the water pet joined your team!' : '') + (!wasMaster && seaDone() ? ' You met all 7 sea friends: SEA MASTER! +5 seconds of breath and room for 7 air tanks.' : ''));
+    }
+    /* the warp tunnel: pick a world, then the water itself twists into a whirlpool and carries you down into that world's pond */
+    function openPick(it, tr) {
+      picking = true;
+      var pk = document.createElement('div'); pk.className = 'dv-pick';
+      pk.innerHTML = '<div class="dv-pickcard"><h3>Warp tunnel!</h3><p>' + esc(tr.p.name) + ' can carry you through the water to another world. Where to?</p><div class="dv-pickl">' + tr.dests.map(function (id) { return '<button class="btn small primary" data-w="' + id + '">' + esc(WORLDS[id].name) + '<small>' + (dangerOf(id) ? 'Danger: ' + DANGER_WORD[dangerOf(id)] : 'Calm') + '</small></button>'; }).join('') + '</div><button class="btn ghost small" data-w="">Keep diving</button></div>';
+      root.appendChild(pk);
+      pk.addEventListener('click', function (ev) {
+        var b = ev.target.closest('button'); if (!b) return; ev.stopPropagation();
+        if (pk.parentNode) pk.parentNode.removeChild(pk);
+        if (!b.dataset.w) { picking = false; it.cool = performance.now() + 3000; return; }
+        startWarp(b.dataset.w, tr.p);
+      });
+    }
+    function startWarp(to, pet) {
+      pet.pcd = Date.now() + POWERS[pet.type].cd * 1000 / (pet.stage >= 4 ? 2 : 1); S.tele = 'pond';
+      picking = false; warpMode = true; finish('warp');
+      var W2 = WORLDS[to], pal = (W2.pal && W2.pal.lake) || ['#8fd8ff', '#3e9fe0'], vx = document.createElement('div'), h = '<div class="vx-glow"></div><div class="vx-spin"></div><div class="vx-spin s2"></div>', i, an, rr2, dur = REDUCE ? 700 : 2800;
+      vx.className = 'dv-vx'; vx.style.setProperty('--c1', pal[0]); vx.style.setProperty('--c2', pal[1]); vx.style.setProperty('--d', dur + 'ms');
+      for (i = 0; i < 4; i++) h += '<i class="vx-ring" style="animation-delay:' + (i * 0.35).toFixed(2) + 's"></i>';
+      for (i = 0; i < 54; i++) { an = Math.random() * 6.2832; rr2 = 0.55 + Math.random() * 0.4; h += '<i class="vx-bub" style="--sx:' + (Math.cos(an) * W * rr2).toFixed(0) + 'px;--sy:' + (Math.sin(an) * H * rr2).toFixed(0) + 'px;--s:' + (6 + Math.random() * 16).toFixed(0) + 'px;animation-delay:' + (Math.random() * 1.1).toFixed(2) + 's;animation-duration:' + (0.9 + Math.random() * 0.9).toFixed(2) + 's"></i>'; }
+      vx.innerHTML = h + '<div class="vx-txt">Warping to ' + esc(W2.name) + '!</div>';
+      root.appendChild(vx); auWarp(dur / 1000);
+      setTimeout(function () {
+        over = true; cancelAnimationFrame(raf);
+        stashWorld(); S.cur = to; S.arrive = null; S.world = null; S.birds = false;
+        S.team.forEach(function (p) { if (p.stage < 3) addProg(p, mostNeeded(p), 1); });
+        S.travelMsg = 'Whoosh! You warped through the water into ' + W2.name + ' and popped up in its pond! ' + (warpMsg || ''); save(); warping = false; render();
+      }, dur * 0.55);
+      setTimeout(function () {
+        var i2, e, sx = W / 2, sy = H * 0.58;
+        var fl = document.createElement('div'); fl.className = 'dv-flash'; root.appendChild(fl);
+        for (i2 = 0; i2 < 4; i2++) { e = document.createElement('i'); e.className = 'dv-ring'; e.style.left = sx + 'px'; e.style.top = sy + 'px'; e.style.animationDelay = (i2 * 0.14) + 's'; root.appendChild(e); }
+        for (i2 = 0; i2 < 34; i2++) { e = document.createElement('i'); e.className = 'dv-drop'; e.style.left = sx + 'px'; e.style.top = sy + 'px'; e.style.setProperty('--dx', ((Math.random() - 0.5) * 420).toFixed(0) + 'px'); e.style.setProperty('--up', (-(80 + Math.random() * 220)).toFixed(0) + 'px'); e.style.animationDelay = (Math.random() * 0.15).toFixed(2) + 's'; root.appendChild(e); }
+        vx.classList.add('out'); auArrive();
+        setTimeout(function () { root.classList.add('out'); var hh = S.world && S.world.ents[0]; if (hh) dripOff(hh); }, 500);
+        setTimeout(function () { killRoot(); }, 1300);
+      }, dur);
+    }
+    function splash() {
+      var sx = W / 2, sy = H * 0.3, i, e;
+      var fl = document.createElement('div'); fl.className = 'dv-flash'; root.appendChild(fl);
+      for (i = 0; i < 3; i++) { e = document.createElement('i'); e.className = 'dv-ring'; e.style.left = sx + 'px'; e.style.top = (sy + 20) + 'px'; e.style.animationDelay = (i * 0.15) + 's'; root.appendChild(e); }
+      for (i = 0; i < 22; i++) { e = document.createElement('i'); e.className = 'dv-drop'; e.style.left = sx + 'px'; e.style.top = sy + 'px'; e.style.setProperty('--dx', ((Math.random() - 0.5) * 300).toFixed(0) + 'px'); e.style.setProperty('--up', (-(60 + Math.random() * 150)).toFixed(0) + 'px'); e.style.animationDelay = (Math.random() * 0.12).toFixed(2) + 's'; root.appendChild(e); }
+      var st = document.createElement('div'); st.className = 'as-count go'; st.style.top = '34%'; st.textContent = 'Splash!'; root.appendChild(st);
+      setTimeout(function () { warping = false; var hh = S.world && S.world.ents[0]; if (hh) dripOff(hh); }, 350);
+      setTimeout(function () { root.classList.add('out'); }, 800);
+      setTimeout(function () { killRoot(); if (isleGo) { var ig = isleGo; isleGo = null; openIslet(ig); } }, 1400);
+    }
+    function frame(now) {
+      if (over) return;
+      var dt = Math.min(0.05, (now - last) / 1000), i; last = now; tt += dt;
+      if (picking) { raf = requestAnimationFrame(frame); return; }
+      if (!ending) left -= dt;
+      var kx = (keys.d ? 1 : 0) - (keys.a ? 1 : 0), fwk = (keys.w ? 1 : 0) - (keys.s ? 1 : 0), kv = (keys.u ? 1 : 0) - (keys.dn ? 1 : 0), pdx = ptr ? ptr.x : 0, pdy = ptr ? ptr.y : 0;
+      if (ending) { pitch += (1.15 - pitch) * Math.min(1, dt * 4); spd += (280 - spd) * Math.min(1, dt * 3); }
+      else {
+        yaw += (kx * 2 + pdx * 2.4) * dt;
+        if (ptr || kv) pitch += ((ptr ? -pdy * 0.95 : kv * 0.9) - pitch) * Math.min(1, dt * 3.2); else pitch += (0 - pitch) * Math.min(1, dt * 0.8);
+        var want = ptr || fwk > 0 ? 250 : fwk < 0 ? -110 : kv ? 110 : 0;
+        spd += (want - spd) * Math.min(1, dt * (want ? 3.2 : 2.2));
+      }
+      pitch = Math.max(-1.2, Math.min(1.2, pitch));
+      var cp = Math.cos(pitch), fx = Math.sin(yaw) * cp, fy = Math.sin(pitch), fz = -Math.cos(yaw) * cp;
+      P.x += fx * spd * dt; P.y += fy * spd * dt; P.z += fz * spd * dt; bonkT -= dt;
+      if (!ending) {
+        var hit = false;
+        obs.forEach(function (o) {
+          var m = o.r + 28, dx = P.x - o.x, dy = P.y - o.y, dz = P.z - o.z, d = Math.hypot(dx, dy, dz);
+          if (d < m) { hit = true; if (d < 0.01) { dx = 0; dy = 1; dz = 0; d = 1; } P.x = o.x + dx / d * m; P.y = o.y + dy / d * m; P.z = o.z + dz / d * m; spd *= 0.5; }
+        });
+        P.x = Math.max(40, Math.min(WW - 40, P.x)); P.z = Math.max(40, Math.min(WZ - 40, P.z)); P.y = Math.max(bedY(P.x, P.z) + 48, Math.min(HH - 40, P.y));
+        if (hit && !touching && bonkT <= 0) { bonkT = 0.9; left -= 1; pop(P.x, P.y + 40, P.z, 'Bonk! -1 sec'); }
+        touching = hit;
+      }
+      var bob = Math.sin(now / 300) * 3, rgx = Math.cos(yaw), rgz = Math.sin(yaw);
+      me.position.set(P.x, P.y + bob, P.z); me.material.rotation += ((-(kx + pdx) * 0.28) - me.material.rotation) * Math.min(1, dt * 6);
+      dm.forEach(function (c, k) {
+        var tx = P.x - fx * (80 + k * 46) + rgx * (k % 2 ? 40 : -40), ty = P.y - fy * (80 + k * 46) + 10, tz = P.z - fz * (80 + k * 46) + rgz * (k % 2 ? 40 : -40), a = Math.min(1, dt * (3.5 - k * 0.6));
+        c.x += (tx - c.x) * a; c.y += (ty - c.y) * a; c.z += (tz - c.z) * a; c.sp.position.set(c.x, c.y + Math.sin(now / 320 + k) * 4, c.z);
+      });
+      items = items.filter(function (it) {
+        if (it.kind === 'sea') {
+          it.x += it.vx * dt; it.z += it.vz * dt;
+          if (it.x < 50 || it.x > WW - 50 || it.z < 50 || it.z > WZ - 50 || blocked(it.x + Math.sign(it.vx) * it.sz * 0.4, it.y, it.z + Math.sign(it.vz) * it.sz * 0.4, it.sz * 0.3)) { it.vx = -it.vx; it.vz = -it.vz; it.x += it.vx * dt * 2; it.z += it.vz * dt * 2; }
+          it.sp.scale.x = Math.abs(it.sp.scale.x) * ((it.vx * rgx + it.vz * rgz) < 0 ? -1 : 1);
+        }
+        var iy = it.y + Math.sin(now / 600 + it.ph) * 6; it.sp.position.set(it.x, iy, it.z);
+        if (it.ring) { it.ring.rotation.y += dt * 1.6; it.ring.rotation.x = 1.2 + Math.sin(now / 700) * 0.2; }
+        if (it.shaft) it.shaft.material.opacity = 0.18 + 0.08 * Math.sin(now / 400);
+        if (ending || Math.hypot(it.x - P.x, iy - P.y, it.z - P.z) > it.sz * 0.5 + 40) return true;
+        if (it.kind === 'mat') { loot.mats[it.sub] = (loot.mats[it.sub] || 0) + 1; addPts(5); pop(it.x, iy, it.z, MAT_BY[it.sub].name + ' +5'); }
+        else if (it.kind === 'scrap') { loot.scrap++; addPts(8); pop(it.x, iy, it.z, '+1 scrap +8'); }
+        else if (it.kind === 'tunnel') { if (it.cool && now < it.cool) return true; var tr = teleReady('pond'); if (!tr) { it.cool = now + 1e9; return true; } pop(it.x, iy, it.z, 'Warp tunnel!'); openPick(it, tr); return true; }
+        else if (it.kind === 'isle') { pop(it.x, iy, it.z, isle.n + '!'); isleGo = isle; finish('isle'); }
+        else if (it.kind === 'pearl') { loot.pearl = true; addPts(30); pop(it.x, iy, it.z, 'A pearl! +30'); }
+        else if (it.kind === 'air') { left = Math.min(secs, left + 5); pop(it.x, iy, it.z, '+5 sec'); }
+        else { var first = !S.sea[it.sub] && loot.sea.indexOf(it.sub) < 0; loot.sea.push(it.sub); var sq = SEA_BY[it.sub], c = first ? 10 : 2, pp2 = sq.pts + (first ? 10 : 0); loot.coins += c; loot.food += sq.food; addPts(pp2); pop(it.x, iy, it.z, (first ? 'New friend! ' : '') + sq.name + ' +' + pp2 + (sq.food ? ' (+' + sq.food + ' food)' : '')); }
+        scene.remove(it.sp); if (it.ring) scene.remove(it.ring); if (it.shaft) scene.remove(it.shaft); return false;
+      });
+      /* the world moves: seaweed sways, light shafts drift, bubbles rise, the water gets darker the deeper you go */
+      weeds.forEach(function (w) { w.rotation.z = Math.sin(tt * 1.6 + w.userData.ph) * 0.18; w.rotation.x = Math.cos(tt * 1.3 + w.userData.ph) * 0.1; });
+      shafts.forEach(function (s) { s.rotation.z = 0.16 + Math.sin(tt * 0.4 + s.userData.ph) * 0.05; });
+      bubs.forEach(function (b) { b.position.y += b.userData.v * dt; if (b.position.y > HH) b.position.y = 0; });
+      fogC.copy(darkC).lerp(lightC, Math.max(0, Math.min(1, P.y / HH)) * 0.85); scene.background = fogC; scene.fog.color.copy(fogC);
+      var cd = 230, cy, k2 = Math.min(1, dt * 5), cxp, czp, tryC;
+      for (tryC = 0; tryC < 6; tryC++) {   /* if a coral is in the way, the camera moves in closer */
+        cxp = P.x - fx * cd; czp = P.z - fz * cd; cy = Math.max(bedY(cxp, czp) + 30, Math.min(HH - 12, P.y - fy * cd + 70 * cd / 230));
+        if (!blocked(cxp, cy, czp, 24)) break; cd *= 0.72;
+      }
+      camP.x += (cxp - camP.x) * k2; camP.y += (cy - camP.y) * k2; camP.z += (czp - camP.z) * k2;
+      cam3.position.copy(camP); cam3.lookAt(P.x + fx * 110, P.y + fy * 110 + 14, P.z + fz * 110);
+      rr.render(scene, cam3);
+      var bar = root.querySelector('#dvBar'), tx2 = root.querySelector('#dvT'); bar.style.width = Math.max(2, Math.round(left / secs * 100)) + '%'; tx2.textContent = Math.max(0, Math.ceil(left)) + 's';
+      root.classList.toggle('low', left < 5);
+      if (left <= 0 && !ending) finish('out');
+      if (ending && !warpMode && P.y >= HH - 52) { over = true; splash(); return; }
+      raf = requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(function () { root.classList.add('in'); });
+    raf = requestAnimationFrame(function (n) { last = n; frame(n); });
+    return true;
+  }
+  function startDive(lake, useTank, isle) {
+    if (T3.ok) {
+      var air0 = S.air, ok = false;
+      try { ok = startDive3D(lake, useTank, isle); } catch (e) { ok = false; var d0 = $('#dive'); if (d0 && d0.parentNode) d0.parentNode.removeChild(d0); warping = false; S.air = air0; }
+      if (ok) return;
+    }
+    return startDive2D(lake, useTank, isle);
   }
 
   /* ----- Dig! Under every berry patch is a little tunnel world. With a grown Earth pet, a glowing root tunnel warps you to a berry patch in another world. ----- */
