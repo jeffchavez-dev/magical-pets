@@ -2871,7 +2871,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
   function ggTick(w, now) {
     var d = dangerOf(S.cur);
     if (d < 2 || w.ggBusy) return;
-    if (!w.ggAt) { w.ggAt = now + (d > 2 ? 28000 : 45000) + Math.random() * 20000; return; }
+    if (!w.ggAt) { w.ggAt = now + (GLITCH_TEST ? 3000 + Math.random() * 2000 : (d > 2 ? 28000 : 45000) + Math.random() * 20000); return; }
     if (now < w.ggAt) return;
     if (HV || warping || flyOn() || !S.team.length || document.querySelector('#sheet, #dive, #dig, #astro, #studio, #par, #hv, .rv')) { w.ggAt = now + 6000; return; }
     var F = bfOf(S.cur); if (!F) return;
@@ -2882,7 +2882,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       rivalEncounter({ o2: 0, cap: 0, eng: shipLv('eng'), hull: shipLv('hull'), ship: EASY || shipLv('hull') + shipLv('eng') + shipLv('rec') + shipLv('scan') > 0, hunt: false, field: F, done: function (r) {
         S.scrap = Math.max(0, Math.min(99, S.scrap + (r.scrap || 0))); S.coins += r.coins || 0; if (r.balls) S.sleeping += r.balls;
         if (r.fairy) { S.team.push(r.fairy); S.rvFairy = (S.rvFairy | 0) + 1; S.caught.fairy = true; if (S.world) addFollowerEnt(r.fairy); }
-        S.rvDone = true; S.rvN = (S.rvN | 0) + 1; save(); updateHud(); w.ggBusy = false; w.ggAt = performance.now() + (r.fairy || r.scrap > 0 ? 150000 : 90000);
+        S.rvDone = true; S.rvN = (S.rvN | 0) + 1; save(); updateHud(); w.ggBusy = false; w.ggAt = performance.now() + (GLITCH_TEST ? 8000 : r.fairy || r.scrap > 0 ? 150000 : 90000);
         say(r.msg || '', 7000);
       } });
     }, 1800);
@@ -6815,6 +6815,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 
   /* ----- Astronaut mode: build a space suit, fill an oxygen tank, then fly to any world you have opened ----- */
   /* family mode: open the game with ?easy=1 on the end of the address to skip the space requirements (level, suit, rocket part, oxygen) */
+  var GLITCH_TEST = true; /* testing: the Glitch Gang turns up after only a few seconds. Set to false for the real waits. */
   var EASY = /[?&]easy(=1|&|$)/.test(location.search), ASTRO_LV = EASY ? 1 : 6, ASTRO_WAIT = 150000, BUBBLE_O2 = 10, O2_COIN = 3, O2_UNIT = 70;
   var SPACE_SCALE = 4;   /* how many times farther apart the worlds are when you fly (the map shows them close together) */
   var SPEEDS_BASE = [{ n: 'Slow', v: 200, m: 0.7 }, { n: 'Cruise', v: 400, m: 1 }, { n: 'Fast', v: 840, m: 1.5 }, { n: 'Turbo', v: 1600, m: 2 }];
@@ -7348,9 +7349,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       });
     }
     /* ---- the Glitch Gang: after a while of flying through open space, Vex and Moxie intercept the ship ---- */
-    var rvPause = false, rvAlert = false, rvTotal = S.rvDone ? rvWait() : 6 + Math.random() * 6, rvT = rvTotal, rvSaid = 0, sigEl = root.querySelector('#asSig'), sigT = root.querySelector('#asSigT'), sigB = root.querySelector('#asSigB');
+    var rvPause = false, rvAlert = false, rvTotal = S.rvDone ? rvWait() : (GLITCH_TEST ? 4 : 6 + Math.random() * 6), rvT = rvTotal, rvSaid = 0, sigEl = root.querySelector('#asSig'), sigT = root.querySelector('#asSigT'), sigB = root.querySelector('#asSigB');
     /* the wait grows with every battle: 30 seconds of flying after the first one, then 40, 50 ... up to 90 */
-    function rvWait() { return EASY ? 8 : Math.min(90, 20 + 10 * Math.max(1, S.rvN | 0)); }
+    function rvWait() { return GLITCH_TEST ? 6 : EASY ? 8 : Math.min(90, 20 + 10 * Math.max(1, S.rvN | 0)); }
     /* the first time the Gang is easy to find; after that you have to fly around and watch the signal grow */
     function sigShow() {
       var on = !!(S.rvDone && !rvPause && !rvAlert && !rescue && ph === 'nav'), pc = Math.max(0, Math.min(1, 1 - rvT / rvTotal));
