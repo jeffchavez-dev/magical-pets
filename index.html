@@ -251,6 +251,8 @@ body.in-world { padding: 0; overflow: hidden; height: 100%; overscroll-behavior:
 /* ----- immersive walk view ----- */
 .w3 { position: absolute; inset: 0; overflow: hidden; z-index: 1; touch-action: none; }
 .w3floor { position: absolute; left: 0; width: 100%; display: block; }
+.hv3 { position: absolute; left: 0; top: 0; display: block; pointer-events: none; }
+.hv.walk3d .hv-world { visibility: hidden; }
 .dive .dv3 { position: absolute; left: 0; top: 0; display: block; touch-action: none; }
 .w3gl { position: absolute; left: 0; top: 0; display: block; pointer-events: none; }
 .w3.t3 .w3item > svg { visibility: hidden; }
@@ -10199,11 +10201,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     document.addEventListener('keydown', W.kd); document.addEventListener('keyup', W.kd);
     if (host) { host.addEventListener('pointerdown', W.pd); document.addEventListener('pointerup', W.pu); document.addEventListener('pointercancel', W.pu); }
     W.loop = function () { if (!HV || HV.walk !== W) return; hvWalkTick(); W.raf = requestAnimationFrame(W.loop); }; W.raf = requestAnimationFrame(W.loop);
-    hvPaint();
+    hvPaint(); HV3.start();
     setTimeout(function () { if (HV && HV.walk) { var vh = ($('#hvview') || {}).clientHeight || 400; HV.zoom = Math.max(1.6, Math.min(3, vh / 190)); hvCamera(); } }, 120);
   }
   function hvWalkStop() {
     var W = HV && HV.walk; if (!W) return;
+    HV3.stop();
     cancelAnimationFrame(W.raf); document.removeEventListener('keydown', W.kd); document.removeEventListener('keyup', W.kd); document.removeEventListener('pointerup', W.pu); document.removeEventListener('pointercancel', W.pu);
     var host = $('#hv'); if (host) { host.classList.remove('walk'); host.removeEventListener('pointerdown', W.pd); }
     HV.walk = null; HV.camKey = null; var wo = $('#hvworld'); if (wo) wo.style.transform = ''; var b = $('.hv-builder'); if (b) b.classList.remove('walking');
@@ -10212,6 +10215,101 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     var w = S.world; hvClose();
     if (w) { w.houseCd = performance.now() + 6000; var pl = w.ents.filter(function (q) { return q.plot; })[0], hero = w.ents[0]; if (pl && hero) { var np = clampPt({ x: pl.x, y: pl.y + 130 }, WALK_R); hero.x = hero.tx = np.x; hero.y = hero.ty = np.y; } }
   }
+  /* ----- walking inside your house in real 3D (three.js). The same house, furniture, paint, stairs and pets as the My house view,
+     seen from a camera behind you. Walls between you and the camera vanish, like a doll's house. Drag to turn the camera. ----- */
+  var HV3 = { on: false };
+  HV3.start = function () {
+    if (!T3.ok || HV3.on || !HV) return;
+    var view = $('#hvview'), host = $('#hv'); if (!view || !host) return;
+    try {
+      var r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); r.setClearColor(0x000000, 0);
+      var cv = r.domElement; cv.className = 'hv3'; cv.setAttribute('aria-hidden', 'true'); view.appendChild(cv);
+      HV3.r = r; HV3.cv = cv; HV3.view = view; HV3.cam = new THREE.PerspectiveCamera(48, 1, 4, 4000); HV3.w = 0; HV3.h = 0; HV3.on = true; HV3.cp = null;
+      HV3.build(); host.classList.add('walk3d');
+    } catch (e) { HV3.stop(); }
+  };
+  HV3.stop = function () {
+    var host = $('#hv'); if (host) host.classList.remove('walk3d');
+    if (HV3.r) { try { HV3.r.dispose(); if (HV3.r.forceContextLoss) HV3.r.forceContextLoss(); } catch (e) { /* optional */ } }
+    if (HV3.cv && HV3.cv.parentNode) HV3.cv.parentNode.removeChild(HV3.cv);
+    HV3.r = null; HV3.cv = null; HV3.scene = null; HV3.on = false;
+  };
+  HV3.build = function () {
+    var TH = THREE, id = HV.id, h = houseOf(id), u = h.u, pa = h.pa || {}, m = worldMats(id).map(function (k) { return MAT_BY[k].col; }), A = m[0], B = m[1], C = m[2];
+    var PL = (WORLDS[id] && WORLDS[id].pal) || {}, SEA = PL.sea || ['#2c86d8', '#4fb3ec'], GR = (PL.grass || [])[1] || '#7ccf6a', LF = PL.leaf || ['#2f9a55', '#35a85d'], mats = {}, gB = new TH.BoxGeometry(1, 1, 1), gP = new TH.PlaneGeometry(1, 1), i;
+    function pc(n, def) { return String(paintCol(pa[n], def)).split('|')[0]; }
+    var sc = new TH.Scene(), G0 = new TH.Group(), G1 = new TH.Group(), GA = new TH.Group(); sc.add(GA, G0, G1);
+    function mat(c, o) {
+      var k = c + (o ? JSON.stringify(o) : ''); if (mats[k]) return mats[k];
+      var mm = /^rgba/.test(c) ? c.match(/[\d.]+/g) : null, opt = Object.assign({}, o || {});
+      if (mm) { c = 'rgb(' + mm[0] + ',' + mm[1] + ',' + mm[2] + ')'; opt.transparent = true; opt.opacity = +mm[3]; opt.depthWrite = false; }
+      return (mats[k] = new TH.MeshLambertMaterial(Object.assign({ color: c }, opt)));
+    }
+    function box(g, w, hh, d, x, y, z, c, o) { var mm = new TH.Mesh(gB, mat(c, o)); mm.scale.set(w, hh, d); mm.position.set(x, y, z); g.add(mm); return mm; }
+    function pl(g, w, hh, x, y, z, rx, ry, c, o) { var mm = new TH.Mesh(gP, mat(c, o)); mm.scale.set(w, hh, 1); mm.position.set(x, y, z); mm.rotation.set(rx, ry, 0); g.add(mm); return mm; }
+    var GL = { emissive: '#bfe8ff', emissiveIntensity: 0.55 };
+    /* outside: the sea, a beach, a lawn, a path, trees and the garden */
+    pl(GA, 3600, 3600, 0, -21, 0, -Math.PI / 2, 0, SEA[1]); pl(GA, 500, 470, 0, -20.5, 0, -Math.PI / 2, 0, PL.beach || '#f2dfae'); pl(GA, 430, 400, 0, -20, 0, -Math.PI / 2, 0, GR); pl(GA, 44, 130, 0, -19.6, 165, -Math.PI / 2, 0, PL.path || '#f0e2b6');
+    [[-185, -150], [190, -160], [-100, -185], [70, -188], [-200, -10], [205, -20], [-190, 120], [200, 130]].forEach(function (q, n) { var big = n % 2 ? 1 : 0.85; box(GA, 10, 36, 10, q[0], -2, q[1], '#8a5a2b'); box(GA, 44 * big, 40 * big, 44 * big, q[0], 34 * big, q[1], LF[n % 2]); box(GA, 26 * big, 26 * big, 26 * big, q[0], 62 * big + 6, q[1], LF[(n + 1) % 2]); });
+    [[-150, 120, C], [-165, 60, B], [150, 110, B], [168, 50, C], [-130, 170, C], [130, 175, B], [-100, -150, C], [100, -150, B], [-170, -60, B], [170, -70, C]].forEach(function (q) { box(GA, 3, 12, 3, q[0], -14, q[1], '#3f9d4a'); box(GA, 12, 8, 12, q[0], -7, q[1], q[2]); });
+    box(GA, HW + 16, 14, HD + 16, 0, -13, 0, pc(0, A));
+    /* the room */
+    pl(G0, HW, HD, 0, 0, 0, -Math.PI / 2, 0, pc(1, B));
+    var wc = pc(2, A), HWI = HW / 2 - 8, HDI = HD / 2 - 8;
+    pl(G0, HWI * 2, HH, 0, HH / 2, -HDI, 0, 0, wc); pl(G0, HDI * 2, HH, -HWI, HH / 2, 0, 0, Math.PI / 2, wc); pl(G0, HDI * 2, HH, HWI, HH / 2, 0, 0, -Math.PI / 2, wc);
+    pl(G0, HWI - 18, HH, -(HWI + 18) / 2, HH / 2, HDI, 0, Math.PI, wc); pl(G0, HWI - 18, HH, (HWI + 18) / 2, HH / 2, HDI, 0, Math.PI, wc); pl(G0, 36, HH - 64, 0, 64 + (HH - 64) / 2, HDI, 0, Math.PI, wc);
+    [[0, -HDI + 0.3, 0, HWI * 2], [-HWI + 0.3, 0, Math.PI / 2, HDI * 2], [HWI - 0.3, 0, -Math.PI / 2, HDI * 2]].forEach(function (q) { pl(G0, q[3], 10, q[0], 5, q[1] === 0 ? 0 : q[1], 0, q[2], B); });
+    pl(G0, 5, 64, -20, 32, HDI - 0.3, 0, Math.PI, C); pl(G0, 5, 64, 20, 32, HDI - 0.3, 0, Math.PI, C); pl(G0, 45, 5, 0, 66, HDI - 0.3, 0, Math.PI, C);
+    function win2(g, x, y, z, ry) {
+      pl(g, 36, 30, x, y, z, 0, ry, pc(4, '#bfe8ff'), GL); var side = Math.abs(Math.sin(ry)) > 0.5;
+      box(g, side ? 3 : 40, 3, side ? 40 : 3, x, y + 16, z, C); box(g, side ? 3 : 40, 3, side ? 40 : 3, x, y - 16, z, C); box(g, side ? 3 : 3, 30, side ? 3 : 3, x, y, z, C);
+    }
+    win2(G0, -HWI + 0.4, 60, -30, Math.PI / 2); win2(G0, HWI - 0.4, 60, 30, -Math.PI / 2); win2(G0, 40, 60, -HDI + 0.4, 0);
+    if (!u[0]) pl(G0, HW, HD, 0, HH, 0, Math.PI / 2, 0, pc(5, B));
+    /* stairs and the second floor */
+    if (u[1]) for (i = 0; i < 6; i++) { var sh = (HH / 6) * (i + 1); box(G0, 40, sh, 28, 88, sh / 2, 70 - i * 28, i % 2 ? B : C); }
+    if (u[0]) box(G1, u[1] ? 186 : HW, 6, HD, u[1] ? -27 : 0, HH - 3, 0, pc(1, B));
+    if (u[2]) {
+      pl(G1, HWI * 2, HH, 0, HH * 1.5, -HDI, 0, 0, wc); pl(G1, HDI * 2, HH, -HWI, HH * 1.5, 0, 0, Math.PI / 2, wc); pl(G1, HDI * 2, HH, HWI, HH * 1.5, 0, 0, -Math.PI / 2, wc); pl(G1, HWI * 2, HH, 0, HH * 1.5, HDI, 0, Math.PI, wc);
+      pl(G1, HW, HD, 0, HH * 2, 0, Math.PI / 2, 0, pc(5, B));
+    }
+    if (u[3]) { win2(G1, -HWI + 0.4, 60 + HH, -30, Math.PI / 2); win2(G1, HWI - 0.4, 60 + HH, 30, -Math.PI / 2); win2(G1, 40, 60 + HH, -HDI + 0.4, 0); win2(G1, -40, 60 + HH, HDI - 0.4, Math.PI); }
+    /* furniture, with the paint your child chose */
+    h.f.forEach(function (q) {
+      if (!FURN[q.k]) return;
+      var ps = furnPos(q.c), up = q.c >= COLS * ROWS, g = new TH.Group(), bx = FURN[q.k].bx({ A: A, B: B, C: C });
+      g.position.set(ps.x, up ? HH : 0, ps.z); (up ? G1 : G0).add(g);
+      bx.forEach(function (b, bi) { var col = String(paintCol(q.pt && q.pt[bi], b[6])).split('|')[0]; box(g, b[3], b[4], b[5], b[0], b[1] + b[4] / 2, b[2], col, col === '#ffe27a' ? { emissive: '#ffe27a', emissiveIntensity: 0.7 } : null); });
+    });
+    /* you, and the pets that live here */
+    var me = svgSprite(heroSVG(S.boots), 160, 192, 68, 72 / 88); me.center.set(0.5, 0.04); sc.add(me); HV3.me = me;
+    HV3.pets = h.res.map(function (pt, n) { var sp = svgSprite(petSVG(pt.type, pt.stage, '', pt.body), 144, 144, 44, 1); sp.center.set(0.5, 0.04); sc.add(sp); return { sp: sp, x: 0, y: 0, z: 0, init: false }; });
+    var sh = new TH.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false }), sgeo = new TH.CircleGeometry(1, 14), meSh = new TH.Mesh(sgeo, sh); meSh.rotation.x = -Math.PI / 2; meSh.scale.set(16, 8, 1); sc.add(meSh); HV3.sh = meSh;
+    sc.add(new TH.HemisphereLight(0xffffff, 0xd6cdbd, 0.95)); var dl = new TH.DirectionalLight(0xfff4e0, 0.5); dl.position.set(-120, 300, 260); sc.add(dl); var pt0 = new TH.PointLight(0xffe6b0, 0.55, 420); pt0.position.set(0, 90, 0); sc.add(pt0);
+    HV3.scene = sc; HV3.G1 = G1; HV3.t = 0; HV3.res = h.res;
+  };
+  HV3.render = function (W, moved) {
+    if (!HV3.on || !HV || !HV.walk || !HV3.scene) return;
+    var r = HV3.r, v = HV3.view, w = v.clientWidth, hh = v.clientHeight, cam = HV3.cam; if (!w || !hh) return;
+    if (HV3.w !== w || HV3.h !== hh) { HV3.w = w; HV3.h = hh; r.setSize(w, hh, false); HV3.cv.style.width = w + 'px'; HV3.cv.style.height = hh + 'px'; cam.aspect = w / hh; cam.updateProjectionMatrix(); }
+    var a = HV.a * Math.PI / 180, fx = Math.sin(a), fz = -Math.cos(a), D = Math.max(140, Math.min(300, 560 / (HV.zoom || 2))), pit = 0.62, tt = performance.now() / 1000;
+    var tx = W.x - fx * D * Math.cos(pit), ty = W.y + 26 + D * Math.sin(pit), tz = W.z - fz * D * Math.cos(pit);
+    if (!HV3.cp) HV3.cp = new THREE.Vector3(tx, ty, tz); else HV3.cp.x += (tx - HV3.cp.x) * 0.16, HV3.cp.y += (ty - HV3.cp.y) * 0.16, HV3.cp.z += (tz - HV3.cp.z) * 0.16;
+    cam.position.copy(HV3.cp); cam.lookAt(W.x + fx * 30, W.y + 34, W.z + fz * 30);
+    HV3.G1.visible = W.y > 38;
+    var rx = Math.cos(a), rz = Math.sin(a), bob = moved ? Math.abs(Math.sin(tt * 11)) * 3 : 0, me = HV3.me, prev = HV3.px;
+    me.position.set(W.x, W.y + bob, W.z); HV3.sh.position.set(W.x, W.y + 0.4, W.z);
+    if (prev !== undefined && moved) { var mvx = (W.x - prev) * rx + (W.z - HV3.pz) * rz; if (Math.abs(mvx) > 0.01) me.scale.x = Math.abs(me.scale.x) * (mvx < 0 ? -1 : 1); }
+    HV3.px = W.x; HV3.pz = W.z;
+    var up = upUsable(HV.id);
+    HV3.pets.forEach(function (c, n) {
+      var q = HV.pos[n] || { x: (n - 1) * 50, z: 30 }, y0 = up && n % 2 ? HH : 0;
+      if (!c.init) { c.x = q.x; c.z = q.z; c.y = y0; c.init = true; } c.x += (q.x - c.x) * 0.05; c.z += (q.z - c.z) * 0.05; c.y += (y0 - c.y) * 0.1;
+      c.sp.position.set(c.x, c.y + Math.abs(Math.sin(tt * 3 + n)) * 2, c.z); c.sp.visible = y0 > 0 ? HV3.G1.visible : true;
+    });
+    r.render(HV3.scene, cam);
+  };
   function hvWalkTray() {
     var h = houseOf(HV.id);
     return '<div class="hv-walkpad"><button data-wk="left" aria-label="Walk left">&#9664;</button><button data-wk="up" aria-label="Walk forward">&#9650;</button><button data-wk="down" aria-label="Walk back">&#9660;</button><button data-wk="right" aria-label="Walk right">&#9654;</button></div>' +
@@ -10246,7 +10344,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (lv !== (HV.floor | 0)) { HV.floor = lv; hvPaint(true); el = $('.hv-builder'); }
     HV.ipos = [W.x, FLOOR_Y - W.y, W.z];
     if (el) { el.style.transition = 'none'; el.style.transform = hvBuilderAt(HV.ipos); el.classList.toggle('walking', moved); }
-    hvCamera();
+    hvCamera(); HV3.render(W, moved);
     if (W.z > HD / 2 - 8 && W.y < 10 && Math.abs(W.x) < 24) hvWalkLeave();
   }
   function hvCollect() {
