@@ -8262,7 +8262,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     }
     /* ---- the other kind of battle: a little space-ship shooter against Vex and Moxie's Junk Comet ---- */
     var shipRaf = 0, shipOff = null;
-    function svgImg(svg) { var im = new Image(); im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.indexOf('xmlns') < 0 ? svg.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ') : svg); return im; }
+    /* a picture made from an SVG does not get the page's CSS, so the pet's sad and angry faces must be hidden here by hand */
+    var SVG_HIDE = '<style>.eyes-happy,.mouth-open,.eyes-sad,.mouth-sad,.brows-sad,.tear,.eyes-angry,.brows-angry,.mouth-angry,.steam{display:none}</style>';
+    function svgImg(svg) { svg = svg.replace(/^(\s*<svg[^>]*>)/, '$1' + SVG_HIDE); var im = new Image(); im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.indexOf('xmlns') < 0 ? svg.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ') : svg); return im; }
     function startShip(lm) {
       phase = 'ship'; busy = true; finished = false;
       el.innerHTML = '<div class="rv-bg"></div><div class="rv-wrap rv-shipwrap"><div class="rv-top"><span id="rvsHull"></span><span id="rvsInfo"></span><button class="btn ghost small" data-rv="sflee">Retreat</button></div><canvas id="rvcv" class="rv-cv"></canvas><p class="rv-hint">' + (lm ? (F ? 'Drag to move your pet. ' : 'Drag to fly. ') + 'Shoot the ship carrying the glowing letter or number. Beat the clock: 40 seconds for each round!' : F ? 'Drag to move your pet. Your pet and your friends shoot by themselves!' : 'Drag to fly your rocket. Your ship and your pets shoot by themselves!') + '</p></div>';
@@ -8712,7 +8714,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         playerX += dx * steer - dx * sp * pSeg.curve * 0.18;
         speed += (brake ? -MAXV * 1.2 : MAXV / 5) * dt; if (boost > 0) { boost -= dt; speed += MAXV * 0.6 * dt; }
         if ((playerX < -1.05 || playerX > 1.05) && speed > MAXV * 0.3) speed -= MAXV * 0.5 * dt;
-        speed = Math.max(0, Math.min(maxV, speed)); playerX = Math.max(-2.2, Math.min(2.2, playerX));
+        speed = Math.max(0, Math.min(maxV, speed)); if (Math.abs(playerX) > 0.9) { playerX = playerX < 0 ? -0.9 : 0.9; speed *= 1 - 0.5 * dt; }
         pSeg.spr.forEach(function (s) {
           if (s.hit || (s.t !== 'block' && s.t !== 'boost') || Math.abs(playerX - s.off) > 0.32) return;
           s.hit = true;
@@ -8743,9 +8745,9 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(x, y, w * 0.55, w * 0.08, 0, 0, 6.283); ctx.fill();
         ctx.fillStyle = '#1b1530'; ctx.fillRect(x - w * 0.52, y - w * 0.2, w * 0.2, w * 0.24); ctx.fillRect(x + w * 0.32, y - w * 0.2, w * 0.2, w * 0.24);
         if (flame) { ctx.fillStyle = '#ffb02e'; ctx.beginPath(); ctx.moveTo(x - w * 0.2, y - w * 0.1); ctx.lineTo(x, y + w * (0.25 + 0.15 * Math.random())); ctx.lineTo(x + w * 0.2, y - w * 0.1); ctx.fill(); }
+        var ih = w * 0.66; ctx.drawImage(img, x - ih * ar / 2, y - w * 0.18 - ih, ih * ar, ih);
         ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x - w * 0.5, y - w * 0.1); ctx.lineTo(x - w * 0.42, y - w * 0.36); ctx.lineTo(x + w * 0.42, y - w * 0.36); ctx.lineTo(x + w * 0.5, y - w * 0.1); ctx.closePath(); ctx.fill();
         ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(x - w * 0.42, y - w * 0.36, w * 0.84, w * 0.07); ctx.fillStyle = '#ff3b5c'; ctx.fillRect(x - w * 0.46, y - w * 0.22, w * 0.12, w * 0.06); ctx.fillRect(x + w * 0.34, y - w * 0.22, w * 0.12, w * 0.06);
-        var ih = w * 0.78; ctx.drawImage(img, x - ih * ar / 2, y - w * 0.3 - ih, ih * ar, ih);
       }
       function drawSpr(s, o, sc, sx, sy, clipY) {
         var u = sc * HW, w, h, k, r;
