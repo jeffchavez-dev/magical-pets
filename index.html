@@ -2067,7 +2067,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       if (!S.team.length) return;
       dexSync();
       stashWorld();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, fairyW: S.fairyW | 0, mzN: S.mzN | 0, rcN: S.rcN | 0, deep: S.deep || {}, isl: S.isl || {}, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, dig: S.dig || {}, pits: S.pits || {}, wf: S.wf || {}, carry: S.carry || null, rvDone: !!S.rvDone, rvN: S.rvN | 0, rvFairy: S.rvFairy | 0, rvWins: S.rvWins | 0, lt: S.lt || '', seeds: S.seeds | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 1, ws: 2, fairyW: S.fairyW | 0, mzN: S.mzN | 0, rcN: S.rcN | 0, flN: S.flN | 0, deep: S.deep || {}, isl: S.isl || {}, look: S.look, team: S.team.map(savePet), cageLv: S.cageLv, suit: S.suit, ship: S.ship, scrap: S.scrap, o2: S.o2, tank: S.tank, air: S.air, sea: S.sea, dig: S.dig || {}, pits: S.pits || {}, wf: S.wf || {}, carry: S.carry || null, rvDone: !!S.rvDone, rvN: S.rvN | 0, rvFairy: S.rvFairy | 0, rvWins: S.rvWins | 0, lt: S.lt || '', seeds: S.seeds | 0, diveBest: S.diveBest, cage: S.cage.map(savePet), sel: S.sel, friendly: S.friendly, gf: S.gf || {}, lockUntil: S.lockUntil || 0, mats: S.mats || {}, houses: housesSave(), weak: S.weak || {}, homeJ: S.homeJ || [], sleeping: S.sleeping, losses: S.losses || 0, toll: S.toll || {},
         stones: S.stones.map(function (s) { return s.id; }), caught: S.caught, wilds: S.wilds, freed: S.freed, opened: S.opened, beaten: S.beaten, coins: S.coins, boots: S.boots, bag: S.bag, portals: S.portals, suns: S.suns, food: S.food,
         cur: S.cur, nextPetId: S.nextPetId, tipsSeen: S.tipsSeen, prize: S.prize, tools: S.tools, luck: S.luck, focus: S.focus, finds: S.finds, homeStyle: S.homeStyle, dex: S.dex, uni: S.uni, jump: S.jump == null ? null : Math.round(S.jump), away: S.away.map(function (a) { var q = a.pet; return { t: a.t, w: a.w ? 1 : 0, dur: a.dur | 0, until: a.until, from: a.from, pet: { id: q.id, type: q.type, body: q.body, rid: q.rid, stage: q.stage, happy: q.happy, fav: q.fav, name: q.name, prog: q.prog, hun: Math.round(hunOf(q)), uc: q.uc, px: q.px } }; }) }));
     } catch (x) { /* storage can be unavailable; the game still works */ }
@@ -2096,7 +2096,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     S.cageLv = Math.max(0, Math.min(4, d.cageLv | 0));
     S.suit = {}; SUIT.forEach(function (p) { if (d.suit && d.suit[p.id]) S.suit[p.id] = 1; });
     S.ship = {}; SHIP.forEach(function (q) { S.ship[q.id] = Math.max(0, Math.min(3, (d.ship && d.ship[q.id]) | 0)); });
-    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.isl = {}; if (d.isl && typeof d.isl === 'object') Object.keys(d.isl).slice(0, 120).forEach(function (k) { if (d.isl[k]) S.isl[String(k).slice(0, 40)] = 1; }); S.deep = {}; if (d.deep && typeof d.deep === 'object') Object.keys(d.deep).slice(0, 40).forEach(function (k) { var q = d.deep[k]; if (q && Array.isArray(q.p)) S.deep[String(k).slice(0, 40)] = { p: q.p.slice(0, 6).map(function (n) { return n | 0; }), d: q.d ? 1 : 0 }; }); S.fairyW = Math.max(0, Math.min(99, d.fairyW | 0)); S.mzN = Math.max(0, Math.min(99, d.mzN | 0)); S.rcN = Math.max(0, Math.min(99, d.rcN | 0)); S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.rvN = Math.max(0, Math.min(999, d.rvN | 0)); S.seeds = Math.max(0, Math.min(99, d.seeds | 0)); S.lt = String(d.lt || '').toUpperCase().replace(/[^A-Z0-9]/g, '').split('').filter(function (c, i, a) { return a.indexOf(c) === i; }).join(''); S.pits = {}; Object.keys(d.pits || {}).forEach(function (k) { if (WORLDS[k] && Array.isArray(d.pits[k])) S.pits[k] = d.pits[k].filter(function (q) { return q && isFinite(q.x) && isFinite(q.y); }).slice(0, PIT_MAX + PARK_MAX).map(function (q) { return { p: q.p ? 1 : 0, x: Math.round(+q.x), y: Math.round(+q.y), f: Math.max(0, Math.min(PIT_FULL, q.f | 0)), s: q.p ? Math.max(0, Math.min(2, q.s | 0)) : 0, n: String(q.n || 'My Pond').slice(0, 24) }; }); }); S.wf = {}; if (d.wf && typeof d.wf === 'object') Object.keys(d.wf).forEach(function (k) { if (WORLDS[k]) S.wf[k] = Math.max(0, Math.min(99, d.wf[k] | 0)); }); S.carry = d.carry && d.carry.amt > 0 ? { amt: Math.min(60, d.carry.amt | 0), pet: String(d.carry.pet || '').slice(0, 20) } : null; syncPits(); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
+    S.diveBest = Math.max(0, d.diveBest | 0); S.rvWins = Math.max(0, Math.min(9999, d.rvWins | 0)); S.rvDone = !!d.rvDone || S.rvWins > 0; S.isl = {}; if (d.isl && typeof d.isl === 'object') Object.keys(d.isl).slice(0, 120).forEach(function (k) { if (d.isl[k]) S.isl[String(k).slice(0, 40)] = 1; }); S.deep = {}; if (d.deep && typeof d.deep === 'object') Object.keys(d.deep).slice(0, 40).forEach(function (k) { var q = d.deep[k]; if (q && Array.isArray(q.p)) S.deep[String(k).slice(0, 40)] = { p: q.p.slice(0, 6).map(function (n) { return n | 0; }), d: q.d ? 1 : 0 }; }); S.fairyW = Math.max(0, Math.min(99, d.fairyW | 0)); S.mzN = Math.max(0, Math.min(99, d.mzN | 0)); S.rcN = Math.max(0, Math.min(99, d.rcN | 0)); S.flN = Math.max(0, Math.min(99, d.flN | 0)); S.rvFairy = Math.max(0, Math.min(999, d.rvFairy | 0)); S.rvN = Math.max(0, Math.min(999, d.rvN | 0)); S.seeds = Math.max(0, Math.min(99, d.seeds | 0)); S.lt = String(d.lt || '').toUpperCase().replace(/[^A-Z0-9]/g, '').split('').filter(function (c, i, a) { return a.indexOf(c) === i; }).join(''); S.pits = {}; Object.keys(d.pits || {}).forEach(function (k) { if (WORLDS[k] && Array.isArray(d.pits[k])) S.pits[k] = d.pits[k].filter(function (q) { return q && isFinite(q.x) && isFinite(q.y); }).slice(0, PIT_MAX + PARK_MAX).map(function (q) { return { p: q.p ? 1 : 0, x: Math.round(+q.x), y: Math.round(+q.y), f: Math.max(0, Math.min(PIT_FULL, q.f | 0)), s: q.p ? Math.max(0, Math.min(2, q.s | 0)) : 0, n: String(q.n || 'My Pond').slice(0, 24) }; }); }); S.wf = {}; if (d.wf && typeof d.wf === 'object') Object.keys(d.wf).forEach(function (k) { if (WORLDS[k]) S.wf[k] = Math.max(0, Math.min(99, d.wf[k] | 0)); }); S.carry = d.carry && d.carry.amt > 0 ? { amt: Math.min(60, d.carry.amt | 0), pet: String(d.carry.pet || '').slice(0, 20) } : null; syncPits(); S.dig = {}; DIGC.forEach(function (q) { if (d.dig && d.dig[q.id] > 0) S.dig[q.id] = Math.min(99, d.dig[q.id] | 0); }); S.air = Math.max(0, Math.min(7, d.air | 0)); S.sea = {}; SEA.forEach(function (q) { if (d.sea && d.sea[q.id] > 0) S.sea[q.id] = Math.min(99, d.sea[q.id] | 0); });
     S.scrap = Math.max(0, Math.min(99, d.scrap | 0)); S.tank = Math.max(0, Math.min(TANKS.length - 1, d.tank | 0)); S.o2 = Math.max(0, Math.min(TANKS[S.tank].cap, d.o2 | 0));
     S.cage = (Array.isArray(d.cage) ? d.cage : []).filter(function (p) { return p && TYPES[p.type]; }).slice(0, S.cageLv ? CAGE_CAP[S.cageLv - 1] : 0);
     S.team.concat(S.cage).forEach(function (p) { if (!p.body) p.body = bodyFor(p.type, p.id); if (!p.prog) migrateProg(p); });
@@ -8147,11 +8147,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
         el.innerHTML = bgH() + '<div class="rv-wrap">' + h + '</div>';
         return;
       }
-      var talk = phase === 'intro' ? (ambush === 'maze' ? 'Hee hee! You are stuck in our maze now! Our Glitchbots are going to chase you!' : ambush === 'race' ? 'Hee hee! Today is RACE day! Think you can beat our souped-up karts?' : F ? RV_FH[(S.rvWins | 0) % RV_FH.length].replace('@', F.n) : RV_HI[(S.rvWins | 0) % RV_HI.length]) : log;
+      var talk = phase === 'intro' ? (ambush === 'maze' ? 'Hee hee! You are stuck in our maze now! Our Glitchbots are going to chase you!' : ambush === 'race' ? 'Hee hee! Today is RACE day! Think you can beat our souped-up karts?' : ambush === 'flap' ? 'Hee hee! Today we play FLAP! Try to fly through our pillars!' : F ? RV_FH[(S.rvWins | 0) % RV_FH.length].replace('@', F.n) : RV_HI[(S.rvWins | 0) % RV_HI.length]) : log;
       h += '<div class="rv-logo">THE GLITCH GANG</div><div class="rv-cast"><div class="rv-vil v1">' + vexSVG() + '<b>Vex</b></div><div class="rv-vil v2">' + moxieSVG() + '<b>Moxie</b></div></div><div class="rv-say"><b>Vex:</b> ' + esc(talk) + '</div>';
-      if (phase === 'intro' && ambush === 'race') h += '<p class="rv-sub">Moxie: Start your engines! We never lose a race!</p>' + fieldNote() + '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="race">Race the Glitch Gang! (level ' + ((S.rcN | 0) + 1) + ')</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Racing battle: a 3D road race! Your kart drives itself, you steer. Dodge the glitch blocks, grab star pads for a boost and cross the finish line before Vex, Moxie and the Glitchbots. Every time you play, the track gets twistier and the racers get faster and smarter! ' + (F ? 'Running away can fail.' : 'Running costs a little oxygen and can fail.') + '</p>';
+      if (phase === 'intro' && ambush === 'flap') h += '<p class="rv-sub">Moxie: Flap, flap, flap! Our pillars never move... much!</p>' + fieldNote() + '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="flap">Fly through the pillars! (level ' + ((S.flN | 0) + 1) + ')</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Flap flight: tap to flap your pet through the gaps in the glitch pillars. You have 3 hearts. Every time you play, the gaps get smaller, the pillars faster, and sneaky Glitchbots start to hover in the gaps! ' + (F ? 'Running away can fail.' : 'Running costs a little oxygen and can fail.') + '</p>';
+      else if (phase === 'intro' && ambush === 'race') h += '<p class="rv-sub">Moxie: Start your engines! We never lose a race!</p>' + fieldNote() + '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="race">Race the Glitch Gang! (level ' + ((S.rcN | 0) + 1) + ')</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Racing battle: a 3D road race! Your kart drives itself, you steer. Dodge the glitch blocks, grab star pads for a boost and cross the finish line before Vex, Moxie and the Glitchbots. Every time you play, the track gets twistier and the racers get faster and smarter! ' + (F ? 'Running away can fail.' : 'Running costs a little oxygen and can fail.') + '</p>';
       else if (phase === 'intro' && ambush === 'maze') h += '<p class="rv-sub">Moxie: Surprise! Today we are playing CHASE!</p>' + fieldNote() + '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="maze">Escape the maze! (level ' + ((S.mzN | 0) + 1) + ')</button><button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Maze chase: find the glowing portal while the Glitchbots hunt you down. You have 3 hearts. Grab a snowflake to freeze them for a moment. Every time you play, the maze gets bigger and the Glitchbots get faster and smarter! ' + (F ? 'Running away can fail.' : 'Running costs a little oxygen and can fail.') + '</p>';
-      else if (phase === 'intro') h += '<p class="rv-sub">Moxie: Hand over your star scrap, or battle us!</p>' + fieldNote() + '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="fight">Pet battle</button><button class="btn primary alt" data-rv="ship"' + (o.ship ? '' : ' disabled') + '>' + (o.ship ? 'Ship battle' : 'Ship battle (locked)') + '</button><button class="btn primary alt" data-rv="abc">Letter battle</button>' + (PICK_ALL ? '<button class="btn primary alt" data-rv="maze">Maze chase (level ' + ((S.mzN | 0) + 1) + ')</button><button class="btn primary alt" data-rv="race">Road race (level ' + ((S.rcN | 0) + 1) + ')</button>' : '') + '<button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Pet battle: your pets fight up close with their own battle powers (higher-level pets hit much harder). Ship battle: fly your rocket and shoot it out' + (F ? '' : ' in space') + '' + (o.ship ? '' : ' (locked: you need a rocket part first, so upgrade your rocket at the Rocket station)') + '! Letter battle: a gentle game with no damage, but you have 40 seconds for each round. Shoot the ships carrying the right letters and numbers to spell words and count, and fill your Letter book (' + (S.lt || '').length + ' / 36). ' + (F ? 'Running away can fail.' : 'Running costs a little oxygen and can fail.') + '</p>';
+      else if (phase === 'intro') h += '<p class="rv-sub">Moxie: Hand over your star scrap, or battle us!</p>' + fieldNote() + '<p class="rv-rec">' + fairyInfo() + '</p><div class="rv-btns"><button class="btn primary" data-rv="fight">Pet battle</button><button class="btn primary alt" data-rv="ship"' + (o.ship ? '' : ' disabled') + '>' + (o.ship ? 'Ship battle' : 'Ship battle (locked)') + '</button><button class="btn primary alt" data-rv="abc">Letter battle</button>' + (PICK_ALL ? '<button class="btn primary alt" data-rv="maze">Maze chase (level ' + ((S.mzN | 0) + 1) + ')</button><button class="btn primary alt" data-rv="race">Road race (level ' + ((S.rcN | 0) + 1) + ')</button><button class="btn primary alt" data-rv="flap">Flap flight (level ' + ((S.flN | 0) + 1) + ')</button>' : '') + '<button class="btn" data-rv="run">Run away</button></div><p class="rv-hint">Pet battle: your pets fight up close with their own battle powers (higher-level pets hit much harder). Ship battle: fly your rocket and shoot it out' + (F ? '' : ' in space') + '' + (o.ship ? '' : ' (locked: you need a rocket part first, so upgrade your rocket at the Rocket station)') + '! Letter battle: a gentle game with no damage, but you have 40 seconds for each round. Shoot the ships carrying the right letters and numbers to spell words and count, and fill your Letter book (' + (S.lt || '').length + ' / 36). ' + (F ? 'Running away can fail.' : 'Running costs a little oxygen and can fail.') + '</p>';
       else h += '<div class="rv-btns"><button class="btn primary" data-rv="close">Continue</button></div>';
       el.innerHTML = bgH() + '<div class="rv-wrap">' + h + '</div>';
     }
@@ -8479,7 +8480,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       shipRaf = requestAnimationFrame(function (n) { lastT = n; frame(n); });
     }
     /* ---- Maze chase: the Glitchbots hunt you through a maze; reach the portal without being caught. It gets harder every time you play. ---- */
-    var MZ_FORCE = /[?&]maze(=1|&|$)/.test(location.search), RC_FORCE = /[?&]race(=1|&|$)/.test(location.search), PICK_ALL = true /* testing: set to false to go back to random surprise games only */, ambush = PICK_ALL ? '' : MZ_FORCE ? 'maze' : RC_FORCE ? 'race' : Math.random() < 0.45 ? (Math.random() < 0.5 ? 'maze' : 'race') : '';
+    var MZ_FORCE = /[?&]maze(=1|&|$)/.test(location.search), RC_FORCE = /[?&]race(=1|&|$)/.test(location.search), PICK_ALL = true /* testing: set to false to go back to random surprise games only */, FL_FORCE = /[?&]flap(=1|&|$)/.test(location.search), ambush = PICK_ALL ? '' : MZ_FORCE ? 'maze' : RC_FORCE ? 'race' : FL_FORCE ? 'flap' : Math.random() < 0.45 ? ['maze', 'race', 'flap'][Math.floor(Math.random() * 3)] : '';
     function startMaze() {
       var L = Math.min(40, S.mzN | 0); S.mzN = (S.mzN | 0) + 1; try { save(); } catch (e) { /* saving is optional */ }
       phase = 'maze'; busy = true; finished = false;
@@ -8811,6 +8812,93 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       hudText(); info('Race level ' + (L + 1) + ': get ready!');
       shipRaf = requestAnimationFrame(function (n) { lastT = n; frame(n); });
     }
+    /* ---- Flap flight: a flappy-bird style game. Tap to flap through the gaps in the glitch pillars. Harder every play. ---- */
+    function startFlap() {
+      var L = Math.min(40, S.flN | 0); S.flN = (S.flN | 0) + 1; try { save(); } catch (e) { /* saving is optional */ }
+      phase = 'flap'; busy = true; finished = false;
+      var goal = Math.min(24, 8 + Math.floor(L * 1.5));
+      el.innerHTML = '<div class="rv-bg"></div><div class="rv-wrap rv-shipwrap"><div class="rv-top"><span id="rvsHull"></span><span id="rvsInfo"></span><button class="btn ghost small" data-rv="sflee">Retreat</button></div><canvas id="rvcv" class="rv-cv"></canvas><p class="rv-hint">Tap, click or press Space to flap! Fly through the gaps in the glitch pillars. Get through ' + goal + ' gates to win. You have 3 hearts.</p></div>';
+      var cv = el.querySelector('#rvcv'), ctx = cv.getContext('2d'), W = cv.width = window.innerWidth, H = cv.height = window.innerHeight;
+      var gapH = H * Math.max(0.2, 0.34 - 0.012 * L), spd = Math.max(230, W * 0.26) * Math.min(1.6, 1 + 0.045 * L), spc = Math.max(300, W * 0.42), pw = Math.max(56, W * 0.085), amp = L >= 3 ? Math.min(0.09, 0.012 * (L - 2)) * H : 0, drones = L >= 6;
+      var G = 2.6 * H, FL = 0.85 * H, R = Math.max(16, H * 0.04), px = Math.max(90, W * 0.22), py = H * 0.5, vy = 0, started = false, hull = 3, inv = 0, score = 0, hits = 0, gates = [], lastC = H * 0.5, t = 0, rt = 0, ended = false, flashT = 0, pops = [], lastT = performance.now(), stars = [], i;
+      for (i = 0; i < 70; i++) stars.push({ x: Math.random() * W, y: Math.random() * H, r: 0.6 + Math.random() * 1.6, s: 0.1 + Math.random() * 0.5 });
+      var petImg = svgImg(petSVG(team[0].p.type, team[0].p.stage, '', team[0].p.body)), droneImg = svgImg(botSVG('zap'));
+      function addGate(x) {
+        var lo = gapH / 2 + H * 0.1, hi = H - gapH / 2 - H * 0.1, c = Math.max(lo, Math.min(hi, lastC + (Math.random() * 2 - 1) * H * 0.2)); lastC = c;
+        gates.push({ x: x, c: c, ph: Math.random() * 6.283, passed: false, dr: drones && Math.random() < 0.5 ? Math.random() * 6.283 : -1 });
+      }
+      function cy(g) { return g.c + Math.sin(t * 1.3 + g.ph) * amp; }
+      function hearts() { var h = ''; for (var k = 0; k < 3; k++) h += '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 21 C3 14 3 6 8 6 C10 6 11.500 7 12 8.500 C12.500 7 14 6 16 6 C21 6 21 14 12 21Z" fill="' + (k < hull ? '#ff4d7a' : 'rgba(255,255,255,.2)') + '" stroke="#fff" stroke-width="1.500"/></svg>'; var e = el.querySelector('#rvsHull'); if (e) e.innerHTML = h; }
+      function info(txt) { var e = el.querySelector('#rvsInfo'); if (e) e.textContent = txt; }
+      function flap() { if (ended) return; if (!started) { started = true; info('Flap level ' + (L + 1)); } vy = -FL; try { auAct('pad', 1); } catch (e) { /* sound is optional */ } }
+      function onKey(ev) { var k = ev.key.toLowerCase(); if (ev.type === 'keydown' && (k === ' ' || k === 'arrowup' || k === 'w')) { ev.preventDefault(); if (!ev.repeat) flap(); } }
+      document.addEventListener('keydown', onKey);
+      cv.style.touchAction = 'none'; cv.addEventListener('pointerdown', function (ev) { ev.preventDefault(); flap(); });
+      shipOff = function () { ended = true; cancelAnimationFrame(shipRaf); document.removeEventListener('keydown', onKey); };
+      function end(won) {
+        if (ended) return; ended = true; document.removeEventListener('keydown', onKey);
+        if (won) {
+          try { auArrive(); } catch (e) { /* sound is optional */ }
+          timers.push(setTimeout(function () { var bn = document.createElement('div'); bn.className = 'rv-banner'; bn.style.top = '36%'; bn.textContent = 'YOU MADE IT!'; var wr = el.querySelector('.rv-shipwrap'); if (wr) wr.appendChild(bn); confetti(70); }, REDUCE ? 100 : 400));
+          timers.push(setTimeout(function () {
+            cancelAnimationFrame(shipRaf); grantWin(rt <= goal * spc / spd * 1.15 + 4, hits === 0);
+            var bonus = Math.min(40, 4 + L * 3); o.lines.push({ k: 'bonus', t: 'Flap level ' + (L + 1) + ' bonus: coins', n: bonus }); o.res.coins += bonus; o.res.msg += ' Flap bonus: +' + bonus + ' coins.';
+            o.vline = 'You flapped right through our pillars?! Next time they will be trickier! Moxie: Much trickier!'; phase = 'end'; finished = true; ui(); confetti(36); countUp();
+          }, REDUCE ? 300 : 3000));
+        } else {
+          timers.push(setTimeout(function () { cancelAnimationFrame(shipRaf); finished = true; loseOutcome(); log = 'Splat! Moxie: Hee hee, our pillars got you! They will be even trickier next time!'; phase = 'end'; ui(); }, REDUCE ? 200 : 1500));
+        }
+      }
+      function hurt() {
+        hull--; inv = 1.8; flashT = 0.3; hits++; hearts(); pops.push({ txt: hull > 0 ? 'Ouch!' : 'Out of hearts!', col: '#ff8fa0', age: 0 }); vy = -FL * 0.55; try { auAct('nope', 1); } catch (e) { /* sound is optional */ }
+        if (hull <= 0) end(false);
+      }
+      function update(dt) {
+        t += dt; if (inv > 0) inv -= dt; if (flashT > 0) flashT -= dt;
+        stars.forEach(function (s) { s.x -= s.s * spd * dt * 0.3; if (s.x < -2) s.x = W + 2; });
+        if (!started) { py = H * 0.5 + Math.sin(t * 4) * 6; while (!gates.length || gates[gates.length - 1].x < W + spc) addGate(gates.length ? gates[gates.length - 1].x + spc : W + 200); return; }
+        rt += dt; vy += G * dt; py += vy * dt;
+        if (py < R) { py = R; vy = Math.max(vy, 0); }
+        if (py > H - R) { py = H - R; if (inv <= 0) hurt(); else vy = -FL * 0.6; }
+        gates.forEach(function (g) { g.x -= spd * dt; });
+        gates = gates.filter(function (g) { return g.x > -pw * 2; });
+        while (!gates.length || gates[gates.length - 1].x < W + spc) addGate(gates.length ? gates[gates.length - 1].x + spc : W + 200);
+        for (var k = 0; k < gates.length; k++) {
+          var g = gates[k], c = cy(g);
+          if (!g.passed && g.x < px) { g.passed = true; score++; pops.push({ txt: score + ' / ' + goal, col: '#ffd86b', age: 0 }); if (score >= goal) { end(true); return; } }
+          if (inv > 0) continue;
+          if (Math.abs(px - g.x) < pw / 2 + R * 0.8 && (py - R * 0.8 < c - gapH / 2 || py + R * 0.8 > c + gapH / 2)) { hurt(); return; }
+          if (g.dr >= 0) { var dy = c + Math.sin(t * 2.2 + g.dr) * gapH * 0.3; if (Math.hypot(px - g.x, py - dy) < R * 1.4) { hurt(); return; } }
+        }
+      }
+      function render() {
+        var g0 = ctx.createLinearGradient(0, 0, 0, H); g0.addColorStop(0, '#12063a'); g0.addColorStop(1, '#4a1a86'); ctx.fillStyle = g0; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = '#fff'; stars.forEach(function (s) { ctx.globalAlpha = 0.35 + s.s; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill(); }); ctx.globalAlpha = 1;
+        gates.forEach(function (g) {
+          var c = cy(g), top = c - gapH / 2, bot = c + gapH / 2, x0 = g.x - pw / 2;
+          [['#ff4fd8', 4, 0.5], ['#7fe8ff', 0, 1]].forEach(function (ps) {
+            ctx.globalAlpha = ps[2]; ctx.fillStyle = ps[0] === '#ff4fd8' ? '#ff4fd8' : '#2a1a66'; ctx.strokeStyle = ps[0]; ctx.lineWidth = 4; ctx.shadowColor = ps[0]; ctx.shadowBlur = ps[1] ? 0 : 10;
+            ctx.fillRect(x0 + ps[1], -4, pw, top + 4); ctx.fillRect(x0 + ps[1], bot, pw, H - bot + 4); if (!ps[1]) { ctx.strokeRect(x0, -4, pw, top + 4); ctx.strokeRect(x0, bot, pw, H - bot + 4); }
+            ctx.shadowBlur = 0;
+          });
+          ctx.globalAlpha = 1; ctx.fillStyle = '#7fe8ff'; ctx.fillRect(x0 - 8, top - 22, pw + 16, 22); ctx.fillRect(x0 - 8, bot, pw + 16, 22);
+          var tk = Math.floor(t * 8 + g.ph * 3), cols = ['#ff4fd8', '#fff', '#2a1a66'], j;
+          for (j = 0; j < 4; j++) { ctx.fillStyle = cols[(tk + j) % 3]; var sz = pw / 5, yy = (j % 2 ? top - 60 - j * 14 : bot + 36 + j * 14); ctx.fillRect(x0 + ((tk * 7 + j * 13) % 5) * sz, yy, sz, sz); }
+          if (g.dr >= 0) { var dy = c + Math.sin(t * 2.2 + g.dr) * gapH * 0.3, ds = R * 2.6; ctx.drawImage(droneImg, g.x - ds / 2, dy - ds / 2, ds, ds); }
+        });
+        ctx.save(); ctx.translate(px, py); ctx.rotate(Math.max(-0.5, Math.min(0.9, vy / (H * 1.2))) * 0.7); ctx.globalAlpha = inv > 0 && Math.sin(t * 40) > 0 ? 0.35 : 1;
+        var ps2 = R * 3; ctx.drawImage(petImg, -ps2 / 2, -ps2 / 2, ps2, ps2); ctx.restore(); ctx.globalAlpha = 1;
+        ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#2a1a55'; ctx.font = '900 ' + Math.round(Math.max(28, H * 0.09)) + 'px sans-serif';
+        ctx.strokeText(score + ' / ' + goal, W / 2, H * 0.2); ctx.fillStyle = '#fff'; ctx.fillText(score + ' / ' + goal, W / 2, H * 0.2);
+        if (!started) { ctx.font = '800 ' + Math.round(Math.max(22, H * 0.06)) + 'px sans-serif'; ctx.strokeText('Tap to flap!', W / 2, H * 0.72); ctx.fillStyle = '#ffd86b'; ctx.fillText('Tap to flap!', W / 2, H * 0.72); }
+        pops.forEach(function (q) { q.age += 1 / 60; ctx.globalAlpha = Math.max(0, 1.1 - q.age); ctx.font = '900 ' + Math.round(Math.max(22, H * 0.06)) + 'px sans-serif'; ctx.strokeText(q.txt, px + 70, py - q.age * 30); ctx.fillStyle = q.col; ctx.fillText(q.txt, px + 70, py - q.age * 30); }); ctx.globalAlpha = 1;
+        pops = pops.filter(function (q) { return q.age < 1.1; });
+        if (flashT > 0) { ctx.fillStyle = 'rgba(255,60,90,' + (flashT * 1.4).toFixed(2) + ')'; ctx.fillRect(0, 0, W, H); }
+      }
+      function frame(now) { var dt = Math.min(0.05, (now - lastT) / 1000); lastT = now; if (!ended) update(dt); else t += dt; render(); shipRaf = requestAnimationFrame(frame); }
+      hearts(); info('Flap level ' + (L + 1) + ': tap to start!');
+      shipRaf = requestAnimationFrame(function (n) { lastT = n; frame(n); });
+    }
     function endBattle(won) {
       if (finished) return; finished = true; pick = null; busy = true; ui();
       var lv2 = Math.min(30, level());
@@ -8850,6 +8938,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       else if (a === 'abc') startShip(true);
       else if (a === 'maze') startMaze();
       else if (a === 'race') startRace();
+      else if (a === 'flap') startFlap();
       else if (a === 'sflee') { if (shipOff) shipOff(); timers.forEach(clearTimeout); finished = true; phase = 'ran'; var lo2 = Math.min(4, Math.max(0, Math.floor(o.o2) - 1)); o.won = false; o.res = { o2: -lo2, scrap: 0, coins: 0, msg: (F ? 'You ran away from the Glitch Gang!' : 'You flew away from the Glitch Gang!') + (F ? '' : ' The jets used ' + lo2 + ' oxygen.') }; log = 'Hey! Come back and fight, you chicken! Moxie: Bawk bawk!'; ui(); }
       else if (a === 'close') finishAll();
       else if (busy || finished) return;
