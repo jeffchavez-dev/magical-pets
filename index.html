@@ -251,6 +251,8 @@ body.in-world { padding: 0; overflow: hidden; height: 100%; overscroll-behavior:
 /* ----- immersive walk view ----- */
 .w3 { position: absolute; inset: 0; overflow: hidden; z-index: 1; touch-action: none; }
 .w3floor { position: absolute; left: 0; width: 100%; display: block; }
+.w3gl { position: absolute; left: 0; top: 0; display: block; pointer-events: none; }
+.w3.t3 .w3item > svg { visibility: hidden; }
 .w3clouds { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; background-repeat: repeat-x; background-size: 1400px 100%;
   background-image: radial-gradient(ellipse 110px 28px at 140px 34%, rgba(255,255,255,.9), rgba(255,255,255,0) 70%), radial-gradient(ellipse 150px 36px at 520px 20%, rgba(255,255,255,.85), rgba(255,255,255,0) 70%), radial-gradient(ellipse 120px 30px at 900px 44%, rgba(255,255,255,.8), rgba(255,255,255,0) 70%), radial-gradient(ellipse 90px 22px at 1230px 28%, rgba(255,255,255,.85), rgba(255,255,255,0) 70%); }
 .w3obj, .w3ents { position: absolute; inset: 0; pointer-events: none; }
@@ -1378,6 +1380,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
 <div id="app"></div>
 <div id="flash" aria-hidden="true"></div>
 
+<script src="three.min.js"></script>
 <script>
 (function () {
   'use strict';
@@ -4591,7 +4594,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       try {
         var cv = document.createElement('canvas'); cv.width = cv.height = T;
         var x = cv.getContext('2d'); x.drawImage(img, 0, 0, T, T);
-        c.px = new Uint32Array(x.getImageData(0, 0, T, T).data.buffer); c.T = T; c.ready = true;
+        c.px = new Uint32Array(x.getImageData(0, 0, T, T).data.buffer); c.T = T; c.cv = cv; c.ready = true;
       } catch (err) { c.fail = true; }
       URL.revokeObjectURL(url);
     };
@@ -4649,11 +4652,12 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     V3.on = true;
     var dcx = CX - lead.x, dcy = CY - lead.y;
     V3.th = Math.hypot(dcx, dcy) > 260 ? Math.atan2(dcy, dcx) : -Math.PI / 2;
-    V3.size(); V3.build(); V3.pose(lead, 0.016);
+    V3.size(); V3.build(); V3.pose(lead, 0.016); T3.mount();
     V3.syncBtn();
   };
   V3.unmount = function () {
     if (!V3.on) return;
+    T3.unmount();
     var sc = $('#scene'), ents = $('#ents'), world = $('#world'), L = $('#w3');
     if (ents && world) world.appendChild(ents);
     if (L) L.remove();
@@ -4770,7 +4774,7 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
     if (!V3.on) return;
     if (V3.vw !== vw || V3.vh !== vh) V3.size();
     V3.rho2 = V3.G ? 2 * V3.RR * V3.H * 0.9 : 1e18;   /* things beyond the horizon of the little planet are out of sight */
-    V3.floor();
+    if (T3.on) T3.render(); else V3.floor();
     var F = V3.F, hw = V3.vw / 2, i, o, dx, dy, z, x, sc, sx, gy, q;
     for (i = 0; i < V3.list.length; i++) {
       o = V3.list[i]; dx = o.ax - V3.cx; dy = o.ay - V3.cy; z = dx * V3.fx + dy * V3.fy;
@@ -4796,6 +4800,168 @@ body:has(#rotatehint) .dpad { bottom: calc(82px + env(safe-area-inset-bottom, 0p
       q.el.style.zIndex = 1;
     }
     var cl = $('#w3clouds'); if (cl) cl.style.backgroundPositionX = (-V3.th * 420).toFixed(0) + 'px';
+  };
+  /* ----- real 3D walk view (three.js): the world as low-poly 3D things seen from a camera behind your hero.
+     The ground is the painted world map laid flat and curved like a little planet; trees, caves, bushes and the lab are 3D models.
+     Pets and other walkers stay flat pictures that are placed with the very same camera maths. If 3D is not available the old view is used. ----- */
+  var T3 = { on: false, ok: false, mats: {}, geo: {}, uR: { value: 3200 }, items: [], frame: 0 };
+  T3.ok = (function () { try { if (!window.THREE) return false; var c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } })();
+  T3.patch = function (m) {
+    m.onBeforeCompile = function (sh) {
+      sh.uniforms.uR = T3.uR;
+      sh.vertexShader = 'uniform float uR;\n' + sh.vertexShader.replace('#include <project_vertex>', 'vec4 mvPosition = vec4( transformed, 1.0 );\nmvPosition = modelViewMatrix * mvPosition;\nmvPosition.y -= (mvPosition.x * mvPosition.x + mvPosition.z * mvPosition.z) / (2.0 * uR);\ngl_Position = projectionMatrix * mvPosition;');
+    };
+    return m;
+  };
+  T3.G = function (k) {
+    var g = T3.geo[k]; if (g) return g; var T = THREE;
+    return (T3.geo[k] = k === 'sph' ? new T.IcosahedronGeometry(1, 1) : k === 'cone' ? new T.ConeGeometry(1, 1, 7) : k === 'cone4' ? new T.ConeGeometry(1, 1, 4) : k === 'cyl' ? new T.CylinderGeometry(1, 1, 1, 7) : k === 'box' ? new T.BoxGeometry(1, 1, 1) : k === 'oct' ? new T.OctahedronGeometry(1) : k === 'dome' ? new T.SphereGeometry(1, 10, 6, 0, 6.2832, 0, 1.5708) : new T.CircleGeometry(1, 16));
+  };
+  T3.mat = function (c, basic) {
+    var k = c + (basic ? 'b' : '');
+    if (!T3.mats[k]) T3.mats[k] = T3.patch(basic ? new THREE.MeshBasicMaterial({ color: c }) : new THREE.MeshLambertMaterial({ color: c, flatShading: true }));
+    return T3.mats[k];
+  };
+  /* one 3D piece: shape, colour, size (sx, sy, sz), position (x, y up, z) and turn (rx, ry, rz) */
+  T3.part = function (g, k, c, sx, sy, sz, x, y, z, rx, ry, rz, basic) {
+    var m = new THREE.Mesh(T3.G(k), T3.mat(c, basic)); m.scale.set(sx, sy, sz); m.position.set(x, y, z); if (rx || ry || rz) m.rotation.set(rx || 0, ry || 0, rz || 0); g.add(m); return m;
+  };
+  T3.tube = function (g, c, pts, r, segs) {
+    var cu = new THREE.CatmullRomCurve3(pts.map(function (p) { return new THREE.Vector3(p[0], p[1], p[2]); })), m = new THREE.Mesh(new THREE.TubeGeometry(cu, segs || 8, r, 6, false), T3.mat(c)); g.add(m); return m;
+  };
+  T3.shadow = function (g, r) { if (!T3.shMat) T3.shMat = T3.patch(new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.2, depthWrite: false })); var m = new THREE.Mesh(T3.G('disc'), T3.shMat); m.rotation.x = -Math.PI / 2; m.position.y = 0.6; m.scale.set(r, r, r); g.add(m); };
+  /* every kind of tree on the islands becomes a simple low-poly model, sized for scale 1 */
+  T3.tree = function (style, pine) {
+    var g = new THREE.Group(), P = function (k, c, sx, sy, sz, x, y, z, rx, ry, rz, b) { return T3.part(g, k, c, sx, sy, sz, x, y, z, rx, ry, rz, b); }, i;
+    function round(trunk, c1, c2) { P('cyl', trunk, 5, 26, 5, 0, 13, 0); P('sph', c1, 28, 26, 28, 0, 50, 0); P('sph', c2, 15, 13, 15, -10, 60, 8); }
+    function spikes(c, c2, n) { for (i = 0; i < n; i++) { var a = i / n * 6.283 + 0.4, h = 50 + (i % 3) * 22; P('cone', i % 2 ? c2 : c, 9, h, 9, Math.cos(a) * 14, h / 2, Math.sin(a) * 14, Math.sin(a) * 0.35, 0, -Math.cos(a) * 0.35); } }
+    if (style === 'cactus') { P('cyl', '#4f9a45', 9, 70, 9, 0, 35, 0); P('cyl', '#4f9a45', 6.5, 30, 6.5, -22, 40, 0); P('cyl', '#4f9a45', 14, 7, 6.5, -14, 30, 0, 0, 0, 1.5708); P('cyl', '#4f9a45', 6.5, 28, 6.5, 22, 46, 0); P('cyl', '#4f9a45', 14, 7, 6.5, 14, 34, 0, 0, 0, 1.5708); }
+    else if (style === 'coral') { var cc = pine ? '#ff8fb0' : '#ffb36b'; P('cyl', cc, 6, 48, 6, 0, 24, 0); P('cyl', cc, 5, 34, 5, -14, 30, 0, 0, 0, 0.7); P('cyl', cc, 5, 40, 5, 15, 36, 0, 0, 0, -0.6); P('sph', '#fff', 6, 6, 6, 0, 50, 0); P('sph', '#fff', 5, 5, 5, -24, 46, 0); P('sph', '#fff', 5, 5, 5, 24, 56, 0); }
+    else if (style === 'blossom') round('#6b4a5a', '#ff9ed8', '#ffc9ec');
+    else if (style === 'puff') { P('sph', '#e2d6fb', 18, 16, 18, 0, 22, 0); P('sph', '#efe6ff', 20, 20, 20, -18, 28, 0); P('sph', '#efe6ff', 22, 20, 22, 18, 28, 0); P('sph', '#ffffff', 26, 24, 26, 0, 46, 0); }
+    else if (style === 'crystal') { [['#c9ecff', -16, 0.8], ['#ffd0ea', 14, 0.7], ['#d7c4ff', 0, 1.15]].forEach(function (c, k) { P('cone', c[0], 15 * c[2], 62 * c[2], 15 * c[2], c[1], 31 * c[2], k * 4 - 4); P('cone', c[0], 15 * c[2], 20 * c[2], 15 * c[2], c[1], -4, k * 4 - 4, Math.PI); }); }
+    else if (style === 'bolt') { P('cyl', '#5b6196', 5, 66, 5, 0, 33, 0); P('box', '#ffd84d', 26, 8, 7, 0, 76, 0, 0, 0, 0.5, true); P('box', '#ffd84d', 8, 30, 7, -4, 62, 0, 0, 0, 0.35, true); P('box', '#ffd84d', 8, 30, 7, 6, 90, 0, 0, 0, -0.35, true); }
+    else if (style === 'boulder') { P('sph', '#a8845a', 30, 20, 26, 0, 14, 0); P('sph', '#c9a06b', 20, 14, 18, -6, 32, 0); P('cone', '#4fc3f7', 6, 26, 6, 16, 44, 0); P('cone', '#ff7eb6', 5, 18, 5, -22, 14, 4, 0, 0, 0.5); }
+    else if (style === 'dusk') round('#3c3560', '#4b4180', '#6a5fb0');
+    else if (style === 'swirl') round('#8fb8b0', '#a9efe6', '#ffffff');
+    else if (style === 'rainbow') { P('cyl', '#a07858', 5, 26, 5, 0, 13, 0); P('sph', '#ff9ec4', 18, 18, 18, -18, 32, 0); P('sph', '#7fe8ff', 18, 18, 18, 18, 32, 0); P('sph', '#ffe98a', 24, 22, 24, 0, 48, 0); P('sph', '#c9a8ff', 12, 12, 12, -6, 62, 10); }
+    else if (style === 'obsidian') { spikes('#2c1f26', '#4a2f2a', 3); P('cone', '#ff7a2f', 3, 14, 3, 0, 8, 0, 0, 0, 0, true); }
+    else if (style === 'thorn') { spikes('#3c0e22', '#5a1430', 4); P('sph', '#ff3a6a', 8, 8, 8, -4, 50, 6, 0, 0, 0, true); }
+    else if (style === 'icespire') { spikes('#7fb0e8', '#a8d8ff', 3); }
+    else if (style === 'voidshard') { P('oct', '#150b2a', 18, 46, 18, 0, 46, 0); P('oct', '#150b2a', 8, 18, 8, 26, 28, 0); P('oct', '#b388ff', 20, 48, 20, 0, 46, 0, 0, 0, 0, true).material = T3.patch(new THREE.MeshBasicMaterial({ color: 0xb388ff, wireframe: true })); }
+    else if (style === 'bonespire') { P('cone', '#ece4cc', 12, 84, 12, -10, 42, 0, 0, 0, 0.1); P('cone', '#e0d6ba', 10, 58, 10, 18, 29, 0, 0, 0, -0.18); }
+    else if (style === 'pillar') { P('box', '#d9d2c0', 24, 66, 24, 0, 33, 0); P('box', '#efe9d8', 36, 10, 36, 0, 66, 0); P('box', '#bfb8a4', 36, 8, 36, 0, 4, 0); }
+    else if (style === 'tombstone') { P('box', '#8b9088', 34, 36, 10, 0, 18, 0); P('cyl', '#8b9088', 17, 10, 17, 0, 36, 0, 1.5708, 0, 0); P('box', '#5b605a', 3, 20, 2, 0, 38, 6); }
+    else if (style === 'starpost') { P('box', '#6b5aa0', 8, 56, 8, 0, 28, 0); P('oct', '#ffe98a', 30, 30, 8, 0, 74, 0, 0, 0, 0.4, true); P('oct', '#fff6c4', 15, 15, 9, 0, 74, 0, 0, 0, 0.4, true); }
+    else if (style === 'deadtree') { P('cyl', '#2b2622', 5, 62, 5, 0, 31, 0); P('cyl', '#2b2622', 3, 30, 3, -12, 52, 0, 0, 0, 0.9); P('cyl', '#2b2622', 3, 34, 3, 12, 60, 0, 0, 0, -0.9); P('cyl', '#2b2622', 2.5, 20, 2.5, -4, 74, 8, 0.7, 0, 0.2); }
+    else if (style === 'fungus') { P('cyl', '#cfc4e6', 6, 40, 6, 0, 20, 0); P('dome', '#6a2fb8', 36, 26, 36, 0, 34, 0); P('dome', '#8a55e0', 22, 12, 22, -6, 52, 0); P('sph', '#a6ffe4', 5, 5, 5, -14, 40, 24, 0, 0, 0, true); P('sph', '#a6ffe4', 4, 4, 4, 12, 36, 28, 0, 0, 0, true); }
+    else if (style === 'tentacle') { T3.tube(g, '#1d6a66', [[0, 0, 0], [-20, 22, 0], [14, 44, 0], [0, 70, 0]], 7); }
+    else if (style === 'emberpine') { P('cyl', '#1e1618', 4, 22, 4, 0, 11, 0); P('cone', '#2e2224', 30, 56, 30, 0, 30, 0); P('cone', '#241a1c', 23, 56, 23, 0, 52, 0); P('cone', '#ff7a2f', 2, 14, 2, 4, 40, 18, 0, 0, 0, true); }
+    else if (pine || style === 'snowpine') { P('cyl', '#7a5a3a', 5, 22, 5, 0, 11, 0); P('cone', '#247a4c', 31, 56, 31, 0, 30, 0); P('cone', '#2a8a58', 24, 56, 24, 0, 52, 0); if (style === 'snowpine') P('cone', '#ffffff', 11, 24, 11, 0, 70, 0); }
+    else round('#7a5a3a', '#2f9a55', '#4cc069');
+    return g;
+  };
+  T3.palm = function (ob) {
+    var g = new THREE.Group(), s = ob.s, lean = (ob.x < CX ? -1 : 1) * 10, a;
+    T3.tube(g, '#8a6a44', [[0, 0, 0], [lean * 0.2, 26, 0], [lean, 50, 0]], 4);
+    for (a = 0; a < 5; a++) { var an = a / 5 * 6.283; T3.part(g, 'sph', '#3fa65e', 26, 3, 8, lean + Math.cos(an) * 22, 52, Math.sin(an) * 22, 0, -an, 0.35); }
+    return g;
+  };
+  T3.spot = function (o, pal) {
+    var g = new THREE.Group(), s = o.s, P = function (k, c, sx, sy, sz, x, y, z, rx, ry, rz, b) { return T3.part(g, k, c, sx, sy, sz, x, y, z, rx, ry, rz, b); }, i;
+    if (o.k === 'portal') {
+      var t = s.tint;
+      P('dome', t[0], 190, 235, 92, 0, 0, -30); P('dome', t[1], 120, 160, 70, 40, 0, -34);
+      P('disc', '#241447', 62, 118, 1, 0, 0, 62); P('disc', t[1], 46, 96, 1, 0, 0, 63, 0, 0, 0, true).material = T3.patch(new THREE.MeshBasicMaterial({ color: t[1], transparent: true, opacity: 0.35 }));
+      P('cone', t[0], 16, 70, 16, -130, 35, 10); P('cone', t[1], 16, 70, 16, 150, 35, 0); P('cone', '#ffffff', 18, 70, 18, 0, 270, -30); P('cone', t[1], 11, 50, 11, -80, 255, -20); P('cone', t[0], 11, 48, 11, 90, 240, -20);
+    } else if (o.k === 'bush') {
+      var RB = rng(Math.abs(s.x * 31 + s.y)), sty = s.dug ? s.st | 0 : 0, LF = pal.leaf, BC = pal.berry;
+      if (sty === 1) { LF = ['#5fbf5a', '#7ad46c']; } else if (sty === 2) { LF = ['#6a56d6', '#8a70ea']; BC = '#ffe27a'; }
+      [[-70, -30, 50], [10, -50, 56], [84, -20, 48], [-40, 30, 46], [50, 38, 52], [-104, 24, 38]].forEach(function (b, k) {
+        P('sph', LF[k % 2], b[2], b[2] * 0.75, b[2], b[0], b[2] * 0.55, b[1]);
+        for (i = 0; i < 5; i++) { var ba = RB() * 6.283, bd = Math.sqrt(RB()) * b[2] * 0.7; P('sph', sty === 1 ? ['#ff7eb6', '#ffd23f', '#ffffff'][(k + i) % 3] : BC, 6, 6, 6, b[0] + Math.cos(ba) * bd, b[2] * 0.85, b[1] + Math.sin(ba) * bd, 0, 0, 0, true); }
+      });
+    } else if (o.k === 'pile') {
+      P('dome', '#9a8be8', 112, 28, 46, 0, 0, 10); P('dome', '#c9c0ff', 98, 24, 38, 0, 14, 6);
+      [[-52, 6, 23, '#4fc3f7'], [52, 8, 23, '#ff7eb6'], [0, -2, 27, '#ffd86b'], [-22, -38, 20, '#b388ff'], [28, -34, 19, '#6ee7b7']].forEach(function (b) { P('oct', b[3], b[2], b[2] * 1.2, b[2], b[0], 30 + (-b[1]) * 0.4, b[1] * 0.5, 0, b[0] * 0.02, 0); });
+    } else if (o.k === 'prof') {
+      P('box', '#f4f1ff', 144, 76, 90, 0, 38, 14); P('cone4', '#5b3df0', 108, 74, 108, 0, 112, 14, 0, 0.785, 0); P('cyl', '#8f86c4', 2.5, 40, 2.5, 0, 168, 14); P('sph', '#ffd86b', 8, 8, 8, 0, 190, 14, 0, 0, 0, true);
+      P('box', '#3b2090', 34, 46, 6, 0, 23, 60); P('cyl', '#2a1a55', 14, 5, 14, -46, 44, 60, 1.5708, 0, 0); P('cyl', '#2a1a55', 14, 5, 14, 46, 44, 60, 1.5708, 0, 0); P('sph', '#4fc3f7', 6, 6, 6, -46, 44, 63, 0, 0, 0, true); P('sph', '#4fc3f7', 6, 6, 6, 46, 44, 63, 0, 0, 0, true);
+    } else if (o.k === 'hill') {
+      var h = pal.hill; P('dome', h[0], 190, 100, 115, 0, 0, 10); P('dome', h[1], 160, 135, 95, 0, 0, 6); P('dome', h[2], 110, 168, 70, 0, 0, 2); P('sph', '#fff', 60, 12, 24, -34, 150, 40, 0, 0, 0, true);
+      P('sph', '#ffd86b', 34, 34, 34, 0, 290, -10, 0, 0, 0, true); P('sph', '#ffe99a', 48, 48, 48, 0, 290, -10, 0, 0, 0, true).material = T3.patch(new THREE.MeshBasicMaterial({ color: 0xffe99a, transparent: true, opacity: 0.35, depthWrite: false }));
+    }
+    return g;
+  };
+  T3.build = function () {
+    var id = S.cur, c = V3.tex || splitFor(id), sc = new THREE.Scene(), W = WD(), pal = W.pal, items = [], sk = V3.skyCols();
+    T3.id = id; T3.tex0 = c;
+    sc.fog = new THREE.Fog(sk[1], 400, 1000); T3.fogCol = sk[1];
+    var dark = dangerOf(id) > 1;
+    sc.add(new THREE.HemisphereLight(0xffffff, dark ? 0x6a5a8a : 0x9aa890, dark ? 0.95 : 1.05));
+    var dl = new THREE.DirectionalLight(0xfff4e0, dark ? 0.35 : 0.55); dl.position.set(-500, 900, 300); sc.add(dl);
+    /* the sea all round, and the painted island map laid flat on top */
+    var sea = new THREE.Mesh(new THREE.PlaneGeometry(8000, 8000, 64, 64), T3.patch(new THREE.MeshBasicMaterial({ color: pal.sea[0] }))); sea.rotation.x = -Math.PI / 2; sea.position.y = -3; sc.add(sea); T3.sea = sea;
+    var gm = new THREE.Mesh(new THREE.PlaneGeometry(WORLD, WORLD, 120, 120), T3.patch(new THREE.MeshBasicMaterial({ color: pal.grass[1] && pal.grass[1].length === 7 ? pal.grass[1] : '#5cbd6a' })));
+    gm.rotation.x = -Math.PI / 2; gm.position.set(WORLD / 2, 0, WORLD / 2); sc.add(gm); T3.ground = gm; T3.hasTex = false;
+    c.objs.forEach(function (o) {
+      var g, st = null, s = o.s;
+      if (o.k === 'tree') { g = T3.tree(pal.trees, o.svg.indexOf('<polygon') >= 0); g.scale.set(s, s, s); T3.shadow(g, 26); }
+      else if (o.k === 'palm') { g = T3.palm(o); g.scale.set(s, s, s); T3.shadow(g, 22); }
+      else if (o.s && typeof o.s === 'object') { g = T3.spot(o, pal); T3.shadow(g, o.k === 'hill' ? 210 : o.k === 'portal' ? 200 : o.k === 'prof' ? 100 : 120 / 1); }
+      else return;
+      var ax = o.x !== undefined ? o.x : o.s.x, ay = o.y !== undefined ? o.y : o.s.y;
+      g.position.set(ax, 0, ay); sc.add(g);
+      if (o.k === 'tree' || o.k === 'palm') { st = new THREE.Group(); T3.part(st, 'cyl', '#8b5a2b', 13, 14, 13, 0, 7, 0); T3.part(st, 'cyl', '#c98b4b', 12, 1, 12, 0, 14.5, 0); st.scale.set(s, s, s); st.position.set(ax, 0, ay); st.visible = false; sc.add(st); }
+      items.push({ o: o, g: g, st: st, x: ax, y: ay, r: o.k === 'portal' ? 190 : o.k === 'hill' ? 190 : o.k === 'prof' ? 90 : o.k === 'bush' ? 120 : o.k === 'pile' ? 110 : 30 * (typeof s === 'number' ? s : 1), chopped: false });
+    });
+    T3.items = items; T3.scene = sc;
+  };
+  T3.mount = function () {
+    if (!T3.ok) return;
+    if (T3.on) { if (T3.r && T3.r.domElement.isConnected) return; T3.unmount(); }   /* the walk view was rebuilt: start the 3D again */
+    try {
+      var L = $('#w3'), fl = $('#w3floor'); if (!L || !fl) return;
+      var r = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); r.setClearColor(0x000000, 0);
+      var cv = r.domElement; cv.className = 'w3gl'; cv.setAttribute('aria-hidden', 'true'); L.insertBefore(cv, $('#w3obj'));
+      fl.style.display = 'none'; L.classList.add('t3');
+      T3.r = r; T3.cam = new THREE.PerspectiveCamera(50, 1, 8, 9000); T3.key = ''; T3.id = null; T3.on = true; T3.build();
+    } catch (e) { T3.unmount(); T3.ok = false; }
+  };
+  T3.unmount = function () {
+    var L = $('#w3'), fl = $('#w3floor');
+    if (T3.r) { try { T3.r.dispose(); if (T3.r.forceContextLoss) T3.r.forceContextLoss(); } catch (e) { /* optional */ } if (T3.r.domElement && T3.r.domElement.parentNode) T3.r.domElement.parentNode.removeChild(T3.r.domElement); }
+    if (T3.gtex) { T3.gtex.dispose(); T3.gtex = null; }
+    T3.r = null; T3.scene = null; T3.items = []; T3.on = false;
+    if (L) L.classList.remove('t3'); if (fl) fl.style.display = '';
+  };
+  T3.render = function () {
+    var r = T3.r, cam = T3.cam, c = V3.tex, i, it, dx, dy, z, x;
+    if (!r || !T3.scene) return;
+    if (T3.id !== S.cur || (c && T3.tex0 !== c)) { if (T3.gtex) { T3.gtex.dispose(); T3.gtex = null; } T3.build(); }
+    if (c && c.ready && c.cv && !T3.hasTex) {
+      var tx = new THREE.CanvasTexture(c.cv); tx.anisotropy = Math.min(8, r.capabilities.getMaxAnisotropy());
+      if (!r.capabilities.isWebGL2) { tx.generateMipmaps = false; tx.minFilter = THREE.LinearFilter; }
+      T3.gtex = tx; T3.ground.material = T3.patch(new THREE.MeshBasicMaterial({ map: tx })); T3.hasTex = true;
+    }
+    var key = vw + 'x' + vh + ':' + V3.hzY + ':' + V3.F;
+    if (T3.key !== key) {
+      T3.key = key; r.setSize(vw, vh, false); r.domElement.style.width = vw + 'px'; r.domElement.style.height = vh + 'px';
+      cam.aspect = vw / vh; cam.fov = 2 * Math.atan((vh / 2) / V3.F) * 180 / Math.PI; cam.setViewOffset(vw, vh, 0, vh / 2 - V3.hzY, vw, vh); cam.updateProjectionMatrix();
+    }
+    T3.uR.value = V3.G ? V3.RR : 1e12;
+    cam.position.set(V3.cx, V3.H, V3.cy); cam.lookAt(V3.cx + V3.fx * 200, V3.H, V3.cy + V3.fy * 200);
+    var rho = Math.sqrt(2 * V3.RR * V3.H); T3.scene.fog.near = rho * 0.4; T3.scene.fog.far = rho * 1.02;
+    T3.sea.position.set(V3.cx, -3, V3.cy);
+    T3.frame++;
+    for (i = 0; i < T3.items.length; i++) {
+      it = T3.items[i]; dx = it.x - V3.cx; dy = it.y - V3.cy; z = dx * V3.fx + dy * V3.fy; x = dx * V3.rx + dy * V3.ry;
+      it.g.visible = !(z < V3.D - 10 && z > -it.r && Math.abs(x) < it.r + 30) && (dx * dx + dy * dy) < V3.rho2 * 1.2;
+      if (it.st && (T3.frame + i) % 12 === 0) { var ok = treeReady(it.o); if (ok === it.chopped) { it.chopped = !ok; } }
+      if (it.st) { it.st.visible = it.chopped && (dx * dx + dy * dy) < V3.rho2 * 1.2; if (it.chopped) it.g.visible = false; }
+    }
+    r.render(T3.scene, cam);
   };
   function screenToWorld(px, py) {
     if (V3.on) return V3.s2w(px, py);
